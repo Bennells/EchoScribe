@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app:*)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --app --no-src-dir --import-alias \"@/*\" --use-npm --skip-install)",
+      "Bash(npm install)",
+      "Bash(firebase init:*)",
+      "Bash(npm install firebase@10.12.0 @google/generative-ai@0.7.1 stripe@14.25.0 zod@3.23.0 react-hot-toast@2.4.1 lucide-react@0.390.0 class-variance-authority clsx tailwind-merge)",
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)",
+      "Bash(git reset:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rm:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

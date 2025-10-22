@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isWithinQuota() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc.data.quota.used < userDoc.data.quota.monthly;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Only via Cloud Functions
+    }
+
+    // Podcasts collection
+    match /podcasts/{podcastId} {
+      allow read, delete: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId)
+                    && isWithinQuota();
+      allow update: if false; // Only via Cloud Functions
+    }
+
+    // Articles collection
+    match /articles/{articleId} {
+      allow read: if isOwner(resource.data.userId);
+      allow update: if isOwner(resource.data.userId); // For editing
+      allow create, delete: if false; // Only via Cloud Functions
+    }
+
+    // Subscriptions collection
+    match /subscriptions/{subId} {
+      allow read: if isOwner(resource.data.userId);
+      allow write: if false; // Only via Stripe Webhooks
+    }
+  }
+}
