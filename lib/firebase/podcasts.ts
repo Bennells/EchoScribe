@@ -8,7 +8,9 @@ import {
   query,
   where,
   orderBy,
+  onSnapshot,
   Timestamp,
+  Unsubscribe,
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, deleteObject, UploadTask } from "firebase/storage";
 import { db, storage } from "./config";
@@ -80,6 +82,29 @@ export async function getUserPodcasts(userId: string): Promise<Podcast[]> {
     id: doc.id,
     ...doc.data(),
   })) as Podcast[];
+}
+
+/**
+ * Subscribe to real-time updates for user's podcasts
+ * Returns an unsubscribe function to clean up the listener
+ */
+export function subscribeToUserPodcasts(
+  userId: string,
+  onUpdate: (podcasts: Podcast[]) => void
+): Unsubscribe {
+  const q = query(
+    collection(db, "podcasts"),
+    where("userId", "==", userId),
+    orderBy("uploadedAt", "desc")
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const podcasts = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Podcast[];
+    onUpdate(podcasts);
+  });
 }
 
 export async function deletePodcast(podcastId: string, storagePath: string): Promise<void> {

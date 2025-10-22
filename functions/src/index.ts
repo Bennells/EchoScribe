@@ -6,3 +6,6 @@
 
 // Auth Triggers
 export { onUserCreate } from "./triggers/onUserCreate";
+
+// Storage Triggers
+export { onPodcastUploaded } from "./triggers/onPodcastUploaded";

@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/firebase/auth-context";
 import { checkQuota, getQuotaInfo, incrementQuota } from "@/lib/firebase/quota";
-import { createPodcast, getUserPodcasts, deletePodcast } from "@/lib/firebase/podcasts";
+import { createPodcast, getUserPodcasts, deletePodcast, subscribeToUserPodcasts } from "@/lib/firebase/podcasts";
 import { UploadZone } from "@/components/features/podcast-upload/upload-zone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import toast from "react-hot-toast";
-import { Trash2, FileAudio, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { Trash2, FileAudio, Clock, CheckCircle, AlertCircle, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import type { Podcast } from "@/types/podcast";
 
 export default function PodcastsPage() {
@@ -23,8 +24,16 @@ export default function PodcastsPage() {
 
   useEffect(() => {
     if (user) {
-      loadPodcasts();
       loadQuotaInfo();
+
+      // Subscribe to real-time podcast updates
+      const unsubscribe = subscribeToUserPodcasts(user.uid, (podcasts) => {
+        setPodcasts(podcasts);
+        setLoading(false);
+      });
+
+      // Cleanup subscription on unmount
+      return () => unsubscribe();
     }
   }, [user]);
 
@@ -88,8 +97,7 @@ export default function PodcastsPage() {
       setSelectedFile(null);
       setUploadProgress(0);
 
-      // Reload data
-      await loadPodcasts();
+      // Reload quota info (podcasts will update via real-time listener)
       await loadQuotaInfo();
     } catch (error: any) {
       console.error("Upload error:", error);
@@ -105,7 +113,7 @@ export default function PodcastsPage() {
     try {
       await deletePodcast(podcast.id, podcast.storagePath);
       toast.success("Podcast gelöscht");
-      await loadPodcasts();
+      // Podcasts will update via real-time listener
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("Fehler beim Löschen");
@@ -247,6 +255,18 @@ export default function PodcastsPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     {getStatusBadge(podcast.status)}
+                    {podcast.status === "completed" && podcast.articleId && (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Link href={`/dashboard/articles/${podcast.articleId}`}>
+                          <ExternalLink className="h-4 w-4 mr-1" />
+                          Artikel
+                        </Link>
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
