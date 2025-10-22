@@ -1,13 +1,46 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/firebase/auth-context";
+import { getQuotaInfo } from "@/lib/firebase/quota";
+import { getPodcastStats, getUserPodcasts } from "@/lib/firebase/podcasts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { FileAudio, FileText, TrendingUp, Upload } from "lucide-react";
+import type { Podcast } from "@/types/podcast";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const [stats, setStats] = useState({ thisMonth: 0, total: 0, completed: 0 });
+  const [quotaInfo, setQuotaInfo] = useState<any>(null);
+  const [recentPodcasts, setRecentPodcasts] = useState<Podcast[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user]);
+
+  const loadData = async () => {
+    if (!user) return;
+    try {
+      const [podcastStats, quota, podcasts] = await Promise.all([
+        getPodcastStats(user.uid),
+        getQuotaInfo(user.uid),
+        getUserPodcasts(user.uid),
+      ]);
+
+      setStats(podcastStats);
+      setQuotaInfo(quota);
+      setRecentPodcasts(podcasts.slice(0, 5)); // Last 5
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -29,7 +62,9 @@ export default function DashboardPage() {
             <FileAudio className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">
+              {loading ? "..." : stats.thisMonth}
+            </div>
             <p className="text-xs text-muted-foreground">
               Diesen Monat
             </p>
@@ -44,7 +79,9 @@ export default function DashboardPage() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">
+              {loading ? "..." : stats.completed}
+            </div>
             <p className="text-xs text-muted-foreground">
               Gesamt
             </p>
@@ -59,7 +96,11 @@ export default function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0 / 3</div>
+            <div className="text-2xl font-bold">
+              {loading || !quotaInfo
+                ? "..."
+                : `${quotaInfo.used} / ${quotaInfo.monthly}`}
+            </div>
             <p className="text-xs text-muted-foreground">
               Free Tier
             </p>
@@ -90,13 +131,48 @@ export default function DashboardPage() {
         <CardHeader>
           <CardTitle>Letzte Aktivität</CardTitle>
           <CardDescription>
-            Ihre zuletzt verarbeiteten Podcasts
+            Ihre zuletzt hochgeladenen Podcasts
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">
-            Noch keine Podcasts hochgeladen
-          </p>
+          {loading ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Lädt...</p>
+          ) : recentPodcasts.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Noch keine Podcasts hochgeladen
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {recentPodcasts.map((podcast) => (
+                <div
+                  key={podcast.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{podcast.fileName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {podcast.uploadedAt.toDate().toLocaleDateString("de-DE")}
+                    </p>
+                  </div>
+                  <span
+                    className={`text-xs px-2 py-1 rounded ${
+                      podcast.status === "completed"
+                        ? "bg-green-100 text-green-700"
+                        : podcast.status === "error"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {podcast.status === "completed"
+                      ? "Fertig"
+                      : podcast.status === "error"
+                      ? "Fehler"
+                      : "In Arbeit"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -1,0 +1,126 @@
+import {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  Timestamp,
+} from "firebase/firestore";
+import { ref, uploadBytesResumable, deleteObject, UploadTask } from "firebase/storage";
+import { db, storage } from "./config";
+import type { Podcast } from "@/types/podcast";
+
+export async function createPodcast(
+  userId: string,
+  file: File,
+  onProgress?: (progress: number) => void
+): Promise<{ podcastId: string; uploadTask: UploadTask }> {
+  // Generate storage path
+  const storagePath = `podcasts/${userId}/${Date.now()}_${file.name}`;
+
+  // Create podcast document first
+  const podcastRef = await addDoc(collection(db, "podcasts"), {
+    userId,
+    fileName: file.name,
+    fileSize: file.size,
+    storagePath,
+    status: "uploading",
+    uploadedAt: Timestamp.now(),
+  });
+
+  // Upload to Storage
+  const storageRef = ref(storage, storagePath);
+  const uploadTask = uploadBytesResumable(storageRef, file);
+
+  // Monitor upload progress
+  uploadTask.on(
+    "state_changed",
+    (snapshot) => {
+      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      if (onProgress) {
+        onProgress(progress);
+      }
+    },
+    async (error) => {
+      console.error("Upload error:", error);
+      // Update status to error
+      await updateDoc(doc(db, "podcasts", podcastRef.id), {
+        status: "error",
+        errorMessage: error.message,
+        errorAt: Timestamp.now(),
+      });
+    },
+    async () => {
+      // Upload complete
+      await updateDoc(doc(db, "podcasts", podcastRef.id), {
+        status: "uploaded",
+      });
+    }
+  );
+
+  return {
+    podcastId: podcastRef.id,
+    uploadTask,
+  };
+}
+
+export async function getUserPodcasts(userId: string): Promise<Podcast[]> {
+  const q = query(
+    collection(db, "podcasts"),
+    where("userId", "==", userId),
+    orderBy("uploadedAt", "desc")
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Podcast[];
+}
+
+export async function deletePodcast(podcastId: string, storagePath: string): Promise<void> {
+  // Delete from Storage
+  try {
+    const storageRef = ref(storage, storagePath);
+    await deleteObject(storageRef);
+  } catch (error) {
+    console.error("Error deleting file from storage:", error);
+  }
+
+  // Delete from Firestore
+  await deleteDoc(doc(db, "podcasts", podcastId));
+}
+
+export async function getPodcastStats(userId: string) {
+  const q = query(collection(db, "podcasts"), where("userId", "==", userId));
+
+  const snapshot = await getDocs(q);
+
+  const total = snapshot.size;
+  const completed = snapshot.docs.filter((doc) => doc.data().status === "completed").length;
+  const processing = snapshot.docs.filter(
+    (doc) => doc.data().status === "processing" || doc.data().status === "queued"
+  ).length;
+  const errors = snapshot.docs.filter((doc) => doc.data().status === "error").length;
+
+  // Count this month's uploads
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const thisMonth = snapshot.docs.filter((doc) => {
+    const uploadedAt = doc.data().uploadedAt?.toDate();
+    return uploadedAt && uploadedAt >= firstOfMonth;
+  }).length;
+
+  return {
+    total,
+    completed,
+    processing,
+    errors,
+    thisMonth,
+  };
+}
