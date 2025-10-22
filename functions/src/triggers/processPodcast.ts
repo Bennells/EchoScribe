@@ -3,6 +3,11 @@ import * as logger from "firebase-functions/logger";
 import { processAudioWithGemini } from "../services/gemini";
 import { generateSlug } from "../utils/prompts";
 
+// Initialize Firebase Admin (only once)
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
 const db = admin.firestore();
 const bucket = admin.storage().bucket();
 

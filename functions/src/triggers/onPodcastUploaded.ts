@@ -2,6 +2,11 @@ import { onObjectFinalized } from "firebase-functions/v2/storage";
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 
+// Initialize Firebase Admin (only once)
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
 const db = admin.firestore();
 
 export const onPodcastUploaded = onObjectFinalized(

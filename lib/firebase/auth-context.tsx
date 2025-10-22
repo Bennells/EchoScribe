@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged } from "firebase/auth";
 import { auth } from "./config";
 import { signIn, signUp, signOut, resetPassword } from "./auth";
+import { createUserDocument } from "./users";
 
 interface AuthContextType {
   user: User | null;
@@ -34,7 +35,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const handleSignUp = async (email: string, password: string) => {
-    await signUp(email, password);
+    const userCredential = await signUp(email, password);
+    // Create user document in Firestore after successful registration
+    await createUserDocument(userCredential.user.uid, email);
   };
 
   const handleSignOut = async () => {

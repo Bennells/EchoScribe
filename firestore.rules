@@ -19,7 +19,14 @@ service cloud.firestore {
     // Users collection
     match /users/{userId} {
       allow read: if isOwner(userId);
-      allow write: if false; // Only via Cloud Functions
+      // Allow one-time creation by the user themselves (during registration)
+      allow create: if isOwner(userId)
+                    && !exists(/databases/$(database)/documents/users/$(userId))
+                    && request.resource.data.email == request.auth.token.email
+                    && request.resource.data.subscriptionStatus == "free"
+                    && request.resource.data.quota.monthly == 3
+                    && request.resource.data.quota.used == 0;
+      allow update, delete: if false; // Quota updates only via Cloud Functions
     }
 
     // Podcasts collection
