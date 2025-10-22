@@ -1,5 +1,6 @@
 import { onObjectFinalized } from "firebase-functions/v2/storage";
 import * as admin from "firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 
 // Initialize Firebase Admin (only once)
@@ -44,7 +45,7 @@ export const onPodcastUploaded = onObjectFinalized(
       // Update status to "queued" for processing
       await db.collection("podcasts").doc(podcastId).update({
         status: "queued",
-        queuedAt: admin.firestore.FieldValue.serverTimestamp(),
+        queuedAt: FieldValue.serverTimestamp(),
       });
 
       logger.info(`Podcast ${podcastId} queued for processing`);
@@ -73,7 +74,7 @@ async function processPodcastNow(podcastId: string, storagePath: string) {
     await db.collection("podcasts").doc(podcastId).update({
       status: "error",
       errorMessage: error.message || "Unknown error",
-      errorAt: admin.firestore.FieldValue.serverTimestamp(),
+      errorAt: FieldValue.serverTimestamp(),
     });
   }
 }

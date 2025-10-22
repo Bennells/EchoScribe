@@ -193,7 +193,7 @@ export default function PodcastsPage() {
         <CardHeader>
           <CardTitle>Neuen Podcast hochladen</CardTitle>
           <CardDescription>
-            Unterstützte Formate: MP3, WAV, M4A, OGG (max. 100 MB)
+            Unterstützte Formate: MP3, WAV, M4A, OGG (max. 500 MB)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

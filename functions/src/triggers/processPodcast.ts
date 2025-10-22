@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import { processAudioWithGemini } from "../services/gemini";
 import { generateSlug } from "../utils/prompts";
@@ -18,7 +19,7 @@ export async function processPodcast(podcastId: string, storagePath: string) {
     // Update status to processing
     await db.collection("podcasts").doc(podcastId).update({
       status: "processing",
-      processingStartedAt: admin.firestore.FieldValue.serverTimestamp(),
+      processingStartedAt: FieldValue.serverTimestamp(),
     });
 
     // Get podcast data
@@ -60,7 +61,7 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       contentHTML: article.html,
       schemaOrgMarkup: article.schemaOrg || {},
       openGraphTags: article.openGraph || {},
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
 
     logger.info(`Article created: ${articleRef.id}`);
@@ -69,7 +70,7 @@ export async function processPodcast(podcastId: string, storagePath: string) {
     await db.collection("podcasts").doc(podcastId).update({
       status: "completed",
       articleId: articleRef.id,
-      processingCompletedAt: admin.firestore.FieldValue.serverTimestamp(),
+      processingCompletedAt: FieldValue.serverTimestamp(),
     });
 
     logger.info(`Podcast ${podcastId} processing completed`);
@@ -80,7 +81,7 @@ export async function processPodcast(podcastId: string, storagePath: string) {
     await db.collection("podcasts").doc(podcastId).update({
       status: "error",
       errorMessage: error.message || "Unknown error",
-      errorAt: admin.firestore.FieldValue.serverTimestamp(),
+      errorAt: FieldValue.serverTimestamp(),
     });
 
     throw error;

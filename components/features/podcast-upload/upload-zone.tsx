@@ -11,7 +11,7 @@ interface UploadZoneProps {
   disabled?: boolean;
 }
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
 const ACCEPTED_TYPES = ["audio/mp3", "audio/mpeg", "audio/wav", "audio/m4a", "audio/ogg"];
 
 export function UploadZone({ onFileSelect, disabled }: UploadZoneProps) {
@@ -21,7 +21,7 @@ export function UploadZone({ onFileSelect, disabled }: UploadZoneProps) {
   const validateFile = (file: File): boolean => {
     // Check file size
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("Datei ist zu groß. Maximale Größe: 100 MB");
+      toast.error("Datei ist zu groß. Maximale Größe: 500 MB");
       return false;
     }
 
@@ -142,7 +142,7 @@ export function UploadZone({ onFileSelect, disabled }: UploadZoneProps) {
             Ziehen Sie eine Audio-Datei hierher oder klicken Sie zum Auswählen
             <br />
             <span className="text-xs">
-              Unterstützt: MP3, WAV, M4A, OGG (max. 100 MB)
+              Unterstützt: MP3, WAV, M4A, OGG (max. 500 MB)
             </span>
           </p>
         </label>

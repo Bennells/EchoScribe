@@ -22,7 +22,7 @@ export default function TermsPage() {
           </p>
           <h3 className="text-xl font-semibold mt-6 mb-3">2.1 Leistungsumfang</h3>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Upload von Audio-Dateien (max. 100 MB)</li>
+            <li>Upload von Audio-Dateien (max. 500 MB)</li>
             <li>Automatische Transkription und Artikel-Generierung</li>
             <li>Bereitstellung in Markdown- und HTML-Format</li>
             <li>SEO-Optimierung (Meta-Descriptions, Keywords, Schema.org)</li>
