@@ -9,3 +9,6 @@ export { onPodcastUploaded } from "./triggers/onPodcastUploaded";
 
 // Cloud Tasks
 export { processPodcastTask } from "./tasks/processPodcastTask";
+
+// Callable Functions
+export { deleteUserAccount } from "./callable/deleteUserAccount";

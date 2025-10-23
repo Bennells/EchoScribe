@@ -40,7 +40,9 @@ export default function RegisterPage() {
     try {
       await signUp(email, password);
       toast.success("Konto erfolgreich erstellt!");
-      router.push("/dashboard");
+      // Use window.location to force a full page reload
+      // This ensures the auth state is fully updated before accessing dashboard
+      window.location.href = "/dashboard";
     } catch (err: any) {
       console.error(err);
       if (err.code === "auth/email-already-in-use") {

@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc, Timestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "./config";
 import type { User } from "@/types/user";
 
@@ -12,17 +12,12 @@ export async function checkQuota(userId: string): Promise<boolean> {
   const userData = userDoc.data() as User;
   const quota = userData.quota;
 
-  // Check if quota needs reset (new month)
-  const now = new Date();
-  const resetDate = quota.resetAt.toDate();
-
-  if (now >= resetDate) {
-    // Reset quota
-    await resetQuota(userId);
+  // Pro users (active subscription) have unlimited quota
+  if (userData.subscriptionStatus === "active") {
     return true;
   }
 
-  // Check if user has quota left
+  // Free users have 3 uploads total (lifetime limit, no reset)
   return quota.used < quota.monthly;
 }
 
@@ -42,17 +37,10 @@ export async function incrementQuota(userId: string): Promise<void> {
   });
 }
 
-export async function resetQuota(userId: string): Promise<void> {
-  const userRef = doc(db, "users", userId);
-
-  // Calculate next reset date (1st of next month)
-  const now = new Date();
-  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-  await updateDoc(userRef, {
-    "quota.used": 0,
-    "quota.resetAt": Timestamp.fromDate(nextMonth),
-  });
+export async function resetQuota(_userId: string): Promise<void> {
+  // This function is no longer used since we have lifetime quota
+  // Kept for backward compatibility but does nothing
+  console.warn("resetQuota called but quota no longer resets monthly");
 }
 
 export async function getQuotaInfo(userId: string) {
@@ -63,11 +51,18 @@ export async function getQuotaInfo(userId: string) {
   }
 
   const userData = userDoc.data() as User;
+
+  // Pro users have unlimited quota
+  const isPro = userData.subscriptionStatus === "active";
+  const total = isPro ? Infinity : userData.quota.monthly; // Using 'monthly' field as total limit
+  const remaining = isPro ? Infinity : userData.quota.monthly - userData.quota.used;
+
   return {
     used: userData.quota.used,
-    monthly: userData.quota.monthly,
-    remaining: userData.quota.monthly - userData.quota.used,
-    resetAt: userData.quota.resetAt.toDate(),
-    hasQuota: userData.quota.used < userData.quota.monthly,
+    total: total, // Changed from 'monthly' to 'total'
+    remaining: remaining,
+    hasQuota: isPro || userData.quota.used < userData.quota.monthly,
+    isPro: isPro,
+    subscriptionStatus: userData.subscriptionStatus,
   };
 }

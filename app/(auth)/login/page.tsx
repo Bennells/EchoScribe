@@ -27,7 +27,9 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       toast.success("Erfolgreich angemeldet!");
-      router.push("/dashboard");
+      // Use window.location to force a full page reload
+      // This ensures the auth state is fully updated before accessing dashboard
+      window.location.href = "/dashboard";
     } catch (err: any) {
       console.error(err);
       if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {

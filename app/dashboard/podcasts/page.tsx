@@ -12,6 +12,8 @@ import toast from "react-hot-toast";
 import { Trash2, FileAudio, Clock, CheckCircle, AlertCircle, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type { Podcast } from "@/types/podcast";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
 
 export default function PodcastsPage() {
   const { user } = useAuth();
@@ -24,16 +26,39 @@ export default function PodcastsPage() {
 
   useEffect(() => {
     if (user) {
-      loadQuotaInfo();
-
       // Subscribe to real-time podcast updates
-      const unsubscribe = subscribeToUserPodcasts(user.uid, (podcasts) => {
+      const unsubscribePodcasts = subscribeToUserPodcasts(user.uid, (podcasts) => {
         setPodcasts(podcasts);
         setLoading(false);
       });
 
-      // Cleanup subscription on unmount
-      return () => unsubscribe();
+      // Subscribe to real-time quota updates
+      const userRef = doc(db, "users", user.uid);
+      const unsubscribeQuota = onSnapshot(userRef, (doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          const isPro = userData.subscriptionStatus === "active";
+          const total = isPro ? Infinity : userData.quota.monthly;
+          const remaining = isPro ? Infinity : userData.quota.monthly - userData.quota.used;
+
+          setQuotaInfo({
+            used: userData.quota.used,
+            total: total,
+            remaining: remaining,
+            hasQuota: isPro || userData.quota.used < userData.quota.monthly,
+            isPro: isPro,
+            subscriptionStatus: userData.subscriptionStatus,
+          });
+        }
+      }, (error) => {
+        console.error("Error subscribing to quota updates:", error);
+      });
+
+      // Cleanup subscriptions on unmount
+      return () => {
+        unsubscribePodcasts();
+        unsubscribeQuota();
+      };
     }
   }, [user]);
 
@@ -50,16 +75,6 @@ export default function PodcastsPage() {
     }
   };
 
-  const loadQuotaInfo = async () => {
-    if (!user) return;
-    try {
-      const info = await getQuotaInfo(user.uid);
-      setQuotaInfo(info);
-    } catch (error) {
-      console.error("Error loading quota:", error);
-    }
-  };
-
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
   };
@@ -67,11 +82,19 @@ export default function PodcastsPage() {
   const handleUpload = async () => {
     if (!selectedFile || !user) return;
 
+    // Prevent multiple simultaneous uploads
+    if (uploading) return;
+
     try {
-      // Check quota
-      const hasQuota = await checkQuota(user.uid);
-      if (!hasQuota) {
-        toast.error("Quota erreicht. Bitte upgraden Sie Ihr Abo oder warten Sie bis zum nächsten Monat.");
+      // Double-check quota including pending uploads
+      const currentQuotaInfo = await getQuotaInfo(user.uid);
+      const pendingUploads = podcasts.filter(p =>
+        p.status === "uploaded" || p.status === "queued" || p.status === "processing"
+      ).length;
+
+      // For non-pro users, check if they have quota available considering pending uploads
+      if (!currentQuotaInfo.isPro && currentQuotaInfo.used + pendingUploads >= currentQuotaInfo.total) {
+        toast.error("Quota erreicht. Bitte warten Sie, bis die Verarbeitung abgeschlossen ist, oder upgraden Sie Ihr Abo.");
         return;
       }
 
@@ -90,18 +113,17 @@ export default function PodcastsPage() {
       // Wait for upload to complete
       await uploadTask;
 
-      // Quota will be incremented by Cloud Function after successful processing
       toast.success("Podcast erfolgreich hochgeladen! Verarbeitung läuft...");
+
+      // Reset upload state to allow immediate re-upload
       setSelectedFile(null);
       setUploadProgress(0);
+      setUploading(false);
 
-      // Quota info will be updated by Cloud Function
-      // Reload it to show the latest status
-      setTimeout(() => loadQuotaInfo(), 2000); // Wait a bit for Function to update
+      // Quota will be incremented by Cloud Function after processing completes
     } catch (error: any) {
       console.error("Upload error:", error);
       toast.error("Fehler beim Hochladen: " + error.message);
-    } finally {
       setUploading(false);
     }
   };
@@ -173,16 +195,15 @@ export default function PodcastsPage() {
           <CardContent>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-muted-foreground">
-                {quotaInfo.used} von {quotaInfo.monthly} Podcasts verwendet
+                {quotaInfo.used} von {quotaInfo.isPro ? "∞" : quotaInfo.total} Podcasts verwendet
               </span>
               <span className="text-sm font-medium">
-                {quotaInfo.remaining} übrig
+                {quotaInfo.isPro ? "Unbegrenzt" : `${quotaInfo.remaining} übrig`}
               </span>
             </div>
-            <Progress value={(quotaInfo.used / quotaInfo.monthly) * 100} />
-            <p className="text-xs text-muted-foreground mt-2">
-              Nächstes Reset: {quotaInfo.resetAt.toLocaleDateString("de-DE")}
-            </p>
+            {!quotaInfo.isPro && (
+              <Progress value={(quotaInfo.used / quotaInfo.total) * 100} />
+            )}
           </CardContent>
         </Card>
       )}
@@ -196,7 +217,12 @@ export default function PodcastsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <UploadZone onFileSelect={handleFileSelect} disabled={uploading} />
+          <UploadZone
+            onFileSelect={handleFileSelect}
+            disabled={uploading}
+            selectedFile={selectedFile}
+            onClearFile={() => setSelectedFile(null)}
+          />
 
           {selectedFile && !uploading && (
             <Button onClick={handleUpload} className="w-full">

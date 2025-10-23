@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Upload, File, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,14 +9,27 @@ import toast from "react-hot-toast";
 interface UploadZoneProps {
   onFileSelect: (file: File) => void;
   disabled?: boolean;
+  selectedFile?: File | null;
+  onClearFile?: () => void;
 }
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
 const ACCEPTED_TYPES = ["audio/mp3", "audio/mpeg", "audio/wav", "audio/m4a", "audio/ogg"];
 
-export function UploadZone({ onFileSelect, disabled }: UploadZoneProps) {
+export function UploadZone({ onFileSelect, disabled, selectedFile: externalSelectedFile, onClearFile }: UploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [internalSelectedFile, setInternalSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Use external selectedFile if provided (controlled), otherwise use internal state (uncontrolled)
+  const selectedFile = externalSelectedFile !== undefined ? externalSelectedFile : internalSelectedFile;
+
+  // Clear file input when selectedFile is cleared
+  useEffect(() => {
+    if (!selectedFile && fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [selectedFile]);
 
   const validateFile = (file: File): boolean => {
     // Check file size
@@ -38,7 +51,7 @@ export function UploadZone({ onFileSelect, disabled }: UploadZoneProps) {
     (file: File) => {
       if (!validateFile(file)) return;
 
-      setSelectedFile(file);
+      setInternalSelectedFile(file);
       onFileSelect(file);
     },
     [onFileSelect]
@@ -81,7 +94,11 @@ export function UploadZone({ onFileSelect, disabled }: UploadZoneProps) {
   );
 
   const clearFile = () => {
-    setSelectedFile(null);
+    if (onClearFile) {
+      onClearFile();
+    } else {
+      setInternalSelectedFile(null);
+    }
   };
 
   return (
@@ -98,6 +115,7 @@ export function UploadZone({ onFileSelect, disabled }: UploadZoneProps) {
       <input
         type="file"
         id="file-upload"
+        ref={fileInputRef}
         className="hidden"
         accept=".mp3,.wav,.m4a,.ogg,audio/*"
         onChange={handleFileInput}

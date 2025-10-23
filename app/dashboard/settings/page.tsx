@@ -3,9 +3,111 @@
 import { useAuth } from "@/lib/firebase/auth-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { getQuotaInfo } from "@/lib/firebase/quota";
+import toast from "react-hot-toast";
+import { Loader2 } from "lucide-react";
+import { DeleteAccountDialog } from "@/components/features/delete-account-dialog";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [quotaInfo, setQuotaInfo] = useState<any>(null);
+
+  useEffect(() => {
+    if (user) {
+      loadQuotaInfo();
+    }
+  }, [user]);
+
+  const loadQuotaInfo = async () => {
+    if (!user) return;
+    try {
+      const info = await getQuotaInfo(user.uid);
+      setQuotaInfo(info);
+    } catch (error) {
+      console.error("Error loading quota info:", error);
+    }
+  };
+
+  const handleUpgrade = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Fehler beim Erstellen der Checkout-Session");
+      }
+
+      const { url } = await response.json();
+
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error: any) {
+      console.error("Upgrade error:", error);
+      toast.error("Fehler beim Upgrade. Bitte versuchen Sie es erneut.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const response = await fetch("/api/stripe/create-portal-session", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Fehler beim Öffnen des Kundenportals");
+      }
+
+      const { url } = await response.json();
+
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error: any) {
+      console.error("Portal error:", error);
+      toast.error("Fehler beim Öffnen des Kundenportals. Bitte versuchen Sie es erneut.");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const isPro = quotaInfo?.isPro;
+  const subscriptionStatus = quotaInfo?.subscriptionStatus;
+
+  const handleDeleteAccount = async () => {
+    try {
+      const functions = getFunctions();
+      const deleteUserAccount = httpsCallable(functions, "deleteUserAccount");
+
+      toast.loading("Konto wird gelöscht...", { id: "delete-account" });
+
+      await deleteUserAccount();
+
+      toast.success("Konto erfolgreich gelöscht", { id: "delete-account" });
+
+      // Sign out and redirect to homepage
+      await signOut();
+      router.push("/");
+    } catch (error: any) {
+      console.error("Delete account error:", error);
+      toast.error(
+        "Fehler beim Löschen des Kontos. Bitte versuchen Sie es erneut.",
+        { id: "delete-account" }
+      );
+      throw error; // Re-throw to keep dialog loading state
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -28,21 +130,74 @@ export default function SettingsPage() {
           </div>
           <div>
             <label className="text-sm font-medium">Konto-Typ</label>
-            <p className="text-sm text-muted-foreground">Free Tier (3 Podcasts/Monat)</p>
+            <p className="text-sm text-muted-foreground">
+              {isPro ? "Pro (Unbegrenzt)" : "Free Tier (3 Podcasts insgesamt)"}
+            </p>
           </div>
+          {quotaInfo && (
+            <div>
+              <label className="text-sm font-medium">Quota-Nutzung</label>
+              <p className="text-sm text-muted-foreground">
+                {quotaInfo.used} / {isPro ? "∞" : quotaInfo.total} Podcasts verwendet
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
           <CardTitle>Abo-Verwaltung</CardTitle>
-          <CardDescription>Upgrade oder ändern Sie Ihr Abo</CardDescription>
+          <CardDescription>
+            {isPro
+              ? "Verwalten Sie Ihr aktives Abonnement"
+              : "Upgrade auf Pro für unbegrenzte Podcasts"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground mb-4">
-            Stripe-Integration wird in Phase 6 implementiert
-          </p>
-          <Button disabled>Upgrade</Button>
+          {!isPro ? (
+            <>
+              <div className="mb-4 space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Mit EchoScribe Pro erhalten Sie:
+                </p>
+                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                  <li>Unbegrenzte Podcast-Konvertierungen</li>
+                  <li>Priorität-Support</li>
+                  <li>Frühzeitiger Zugang zu neuen Features</li>
+                </ul>
+                <p className="text-sm font-medium mt-4">
+                  Preis: €19,99/Monat
+                </p>
+              </div>
+              <Button onClick={handleUpgrade} disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Wird geladen...
+                  </>
+                ) : (
+                  "Jetzt upgraden"
+                )}
+              </Button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground mb-4">
+                Sie haben ein aktives Pro-Abonnement. Vielen Dank für Ihre Unterstützung!
+              </p>
+              <Button onClick={handleManageSubscription} disabled={portalLoading}>
+                {portalLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Wird geladen...
+                  </>
+                ) : (
+                  "Abonnement verwalten"
+                )}
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -54,9 +209,10 @@ export default function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button variant="destructive" disabled>
-            Konto löschen (wird später implementiert)
-          </Button>
+          <DeleteAccountDialog
+            userEmail={user?.email || ""}
+            onConfirm={handleDeleteAccount}
+          />
         </CardContent>
       </Card>
     </div>

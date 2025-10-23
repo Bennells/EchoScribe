@@ -31,7 +31,11 @@
       "Bash(cmd //c \"taskkill /F /PID 13460 /T 2>nul & taskkill /F /PID 21368 /T 2>nul & taskkill /F /PID 26660 /T 2>nul & echo Done\")",
       "Bash(cmd //c \"taskkill /F /PID 12908 /T & taskkill /F /PID 20872 /T & taskkill /F /PID 26200 /T\")",
       "Bash(cmd //c \"taskkill /F /IM node.exe /FI \"\"WINDOWTITLE eq firebase*\"\" 2>nul || taskkill /F /IM java.exe /FI \"\"WINDOWTITLE eq firebase*\"\" 2>nul || echo No Firebase processes found\")",
-      "Bash(cmd //c \"taskkill /F /PID 23476 /T & taskkill /F /PID 29240 /T & taskkill /F /PID 21444 /T\")"
+      "Bash(cmd //c \"taskkill /F /PID 23476 /T & taskkill /F /PID 29240 /T & taskkill /F /PID 21444 /T\")",
+      "Bash(xargs:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(npx tsc:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

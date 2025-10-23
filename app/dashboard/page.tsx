@@ -99,10 +99,12 @@ export default function DashboardPage() {
             <div className="text-2xl font-bold">
               {loading || !quotaInfo
                 ? "..."
-                : `${quotaInfo.used} / ${quotaInfo.monthly}`}
+                : quotaInfo.isPro
+                ? "Unbegrenzt"
+                : `${quotaInfo.used} / ${quotaInfo.total}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              Free Tier
+              {quotaInfo?.isPro ? "Pro" : "Free Tier"}
             </p>
           </CardContent>
         </Card>

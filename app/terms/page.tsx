@@ -49,8 +49,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-semibold mt-8 mb-4">4. Preise und Zahlung</h2>
           <h3 className="text-xl font-semibold mt-6 mb-3">4.1 Free Tier</h3>
           <p>
-            Der Free Tier umfasst 3 Podcast-Konvertierungen pro Monat. Die Quota wird am 1. jeden
-            Monats zurückgesetzt.
+            Der Free Tier umfasst 3 Podcast-Konvertierungen insgesamt (keine monatliche Erneuerung).
           </p>
           <h3 className="text-xl font-semibold mt-6 mb-3">4.2 Bezahlte Abos</h3>
           <p>

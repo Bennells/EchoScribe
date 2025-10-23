@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/firebase/auth-context";
 import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/features/auth/protected-route";
+import { ErrorBoundary } from "@/components/error-boundary";
 import toast from "react-hot-toast";
 import { Home, FileAudio, FileText, Settings, LogOut } from "lucide-react";
 
@@ -89,7 +90,9 @@ export default function DashboardLayout({
 
         {/* Main Content */}
         <main className="flex-1">
-          <div className="h-full p-8">{children}</div>
+          <div className="h-full p-8">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </div>
         </main>
       </div>
     </ProtectedRoute>
