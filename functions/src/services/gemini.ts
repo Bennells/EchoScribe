@@ -1,8 +1,26 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as logger from "firebase-functions/logger";
+import { defineSecret } from "firebase-functions/params";
 import { BLOG_GENERATION_PROMPT } from "../utils/prompts";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+// Define API key as secret parameter (for production) or use env variable (for local dev)
+const geminiApiKeySecret = defineSecret("GEMINI_API_KEY");
+
+function getApiKey(): string {
+  // Try to get from environment first (local development)
+  if (process.env.GEMINI_API_KEY) {
+    return process.env.GEMINI_API_KEY;
+  }
+
+  // In production, use the secret
+  if (geminiApiKeySecret.value()) {
+    return geminiApiKeySecret.value();
+  }
+
+  throw new Error("GEMINI_API_KEY not configured");
+}
+
+let genAI: GoogleGenerativeAI;
 
 export interface BlogArticle {
   title: string;
@@ -17,9 +35,19 @@ export interface BlogArticle {
 
 export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogArticle> {
   try {
+    // Initialize genAI if not already done
+    if (!genAI) {
+      const apiKey = getApiKey();
+      genAI = new GoogleGenerativeAI(apiKey);
+      logger.info("Initialized Gemini API client");
+    }
+
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
-    logger.info("Sending audio to Gemini API...");
+    logger.info("Sending audio to Gemini API...", {
+      audioSize: audioBuffer.length,
+      audioSizeMB: (audioBuffer.length / 1024 / 1024).toFixed(2),
+    });
 
     // Send audio directly to Gemini
     const result = await model.generateContent([
@@ -35,7 +63,9 @@ export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogA
     const response = result.response;
     const text = response.text();
 
-    logger.info("Received response from Gemini");
+    logger.info("Received response from Gemini", {
+      responseLength: text.length,
+    });
 
     // Parse JSON response
     let article: BlogArticle;
@@ -72,6 +102,12 @@ export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogA
 
 export async function testGeminiConnection(): Promise<boolean> {
   try {
+    // Initialize genAI if not already done
+    if (!genAI) {
+      const apiKey = getApiKey();
+      genAI = new GoogleGenerativeAI(apiKey);
+    }
+
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
     const result = await model.generateContent("Hello, test");
     return !!result.response;

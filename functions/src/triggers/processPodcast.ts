@@ -17,10 +17,12 @@ export async function processPodcast(podcastId: string, storagePath: string) {
 
   try {
     // Update status to processing
+    logger.info(`Updating podcast ${podcastId} status to processing`);
     await db.collection("podcasts").doc(podcastId).update({
       status: "processing",
       processingStartedAt: FieldValue.serverTimestamp(),
     });
+    logger.info(`Status updated successfully`);
 
     // Get podcast data
     const podcastDoc = await db.collection("podcasts").doc(podcastId).get();
@@ -33,11 +35,17 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       throw new Error("Podcast data is empty");
     }
 
+    logger.info(`Podcast data retrieved:`, {
+      userId: podcastData.userId,
+      fileName: podcastData.fileName,
+      fileSize: podcastData.fileSize,
+    });
+
     // Download audio file from Storage
-    logger.info("Downloading audio file...");
+    logger.info(`Downloading audio file from: ${storagePath}`);
     const file = bucket.file(storagePath);
     const [audioBuffer] = await file.download();
-    logger.info(`Downloaded ${audioBuffer.length} bytes`);
+    logger.info(`Downloaded ${audioBuffer.length} bytes (${(audioBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
 
     // Process with Gemini
     logger.info("Sending to Gemini for processing...");
@@ -73,16 +81,45 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       processingCompletedAt: FieldValue.serverTimestamp(),
     });
 
+    // Increment user quota
+    try {
+      await db.collection("users").doc(podcastData.userId).update({
+        "quota.used": FieldValue.increment(1),
+      });
+      logger.info(`Incremented quota for user ${podcastData.userId}`);
+    } catch (quotaError: any) {
+      logger.error(`Failed to increment quota:`, quotaError);
+      // Don't fail the whole process if quota update fails
+    }
+
     logger.info(`Podcast ${podcastId} processing completed`);
   } catch (error: any) {
-    logger.error(`Error processing podcast ${podcastId}:`, error);
-
-    // Update status to error
-    await db.collection("podcasts").doc(podcastId).update({
-      status: "error",
-      errorMessage: error.message || "Unknown error",
-      errorAt: FieldValue.serverTimestamp(),
+    logger.error(`Error processing podcast ${podcastId}:`, {
+      errorMessage: error.message,
+      errorStack: error.stack,
+      errorCode: error.code,
+      errorDetails: error.details || error.response?.data,
     });
+
+    // Update status to error with detailed information
+    try {
+      await db.collection("podcasts").doc(podcastId).update({
+        status: "error",
+        errorMessage: error.message || "Unknown error",
+        errorDetails: {
+          code: error.code,
+          timestamp: new Date().toISOString(),
+          stack: error.stack?.substring(0, 500), // Limit stack trace size
+        },
+        errorAt: FieldValue.serverTimestamp(),
+      });
+      logger.info(`Updated podcast ${podcastId} status to error`);
+    } catch (updateError: any) {
+      logger.error(`Failed to update podcast status to error:`, {
+        updateErrorMessage: updateError.message,
+        updateErrorCode: updateError.code,
+      });
+    }
 
     throw error;
   }

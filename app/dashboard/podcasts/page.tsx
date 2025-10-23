@@ -78,8 +78,8 @@ export default function PodcastsPage() {
       setUploading(true);
       setUploadProgress(0);
 
-      // Create podcast and start upload
-      const { podcastId, uploadTask } = await createPodcast(
+      // Start upload to Storage
+      const { uploadTask, storagePath } = await createPodcast(
         user.uid,
         selectedFile,
         (progress) => {
@@ -90,15 +90,14 @@ export default function PodcastsPage() {
       // Wait for upload to complete
       await uploadTask;
 
-      // Increment quota
-      await incrementQuota(user.uid);
-
-      toast.success("Podcast erfolgreich hochgeladen!");
+      // Quota will be incremented by Cloud Function after successful processing
+      toast.success("Podcast erfolgreich hochgeladen! Verarbeitung läuft...");
       setSelectedFile(null);
       setUploadProgress(0);
 
-      // Reload quota info (podcasts will update via real-time listener)
-      await loadQuotaInfo();
+      // Quota info will be updated by Cloud Function
+      // Reload it to show the latest status
+      setTimeout(() => loadQuotaInfo(), 2000); // Wait a bit for Function to update
     } catch (error: any) {
       console.error("Upload error:", error);
       toast.error("Fehler beim Hochladen: " + error.message);

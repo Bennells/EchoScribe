@@ -30,11 +30,11 @@ service cloud.firestore {
     }
 
     // Podcasts collection
+    // Only Cloud Functions can create and update podcasts
+    // Users can only read and delete their own podcasts
     match /podcasts/{podcastId} {
       allow read, delete: if isOwner(resource.data.userId);
-      allow create: if isOwner(request.resource.data.userId)
-                    && isWithinQuota();
-      allow update: if false; // Only via Cloud Functions
+      allow create, update: if false; // Only via Cloud Functions (Admin SDK)
     }
 
     // Articles collection

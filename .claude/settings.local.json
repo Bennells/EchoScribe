@@ -20,7 +20,18 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(firebase functions:config:set:*)",
+      "Bash(cmd //c \"taskkill /F /PID 5276\")",
+      "Bash(cmd //c \"taskkill /F /PID 34576\")",
+      "Bash(cmd //c \"taskkill /F /PID 27284\")",
+      "Bash(awk:*)",
+      "Bash(cmd //c \"taskkill /F /PID 22664 /T 2>nul & taskkill /F /PID 22768 /T 2>nul & echo Done\")",
+      "Bash(cmd //c \"taskkill /F /PID 18056 /T 2>nul & taskkill /F /PID 18324 /T 2>nul & taskkill /F /PID 21920 /T 2>nul & echo Done\")",
+      "Bash(cmd //c \"taskkill /F /PID 13460 /T 2>nul & taskkill /F /PID 21368 /T 2>nul & taskkill /F /PID 26660 /T 2>nul & echo Done\")",
+      "Bash(cmd //c \"taskkill /F /PID 12908 /T & taskkill /F /PID 20872 /T & taskkill /F /PID 26200 /T\")",
+      "Bash(cmd //c \"taskkill /F /IM node.exe /FI \"\"WINDOWTITLE eq firebase*\"\" 2>nul || taskkill /F /IM java.exe /FI \"\"WINDOWTITLE eq firebase*\"\" 2>nul || echo No Firebase processes found\")",
+      "Bash(cmd //c \"taskkill /F /PID 23476 /T & taskkill /F /PID 29240 /T & taskkill /F /PID 21444 /T\")"
     ],
     "deny": [],
     "ask": []

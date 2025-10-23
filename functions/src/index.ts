@@ -6,3 +6,6 @@
 
 // Storage Triggers
 export { onPodcastUploaded } from "./triggers/onPodcastUploaded";
+
+// Cloud Tasks
+export { processPodcastTask } from "./tasks/processPodcastTask";

@@ -20,21 +20,12 @@ export async function createPodcast(
   userId: string,
   file: File,
   onProgress?: (progress: number) => void
-): Promise<{ podcastId: string; uploadTask: UploadTask }> {
+): Promise<{ uploadTask: UploadTask; storagePath: string }> {
   // Generate storage path
   const storagePath = `podcasts/${userId}/${Date.now()}_${file.name}`;
 
-  // Create podcast document first
-  const podcastRef = await addDoc(collection(db, "podcasts"), {
-    userId,
-    fileName: file.name,
-    fileSize: file.size,
-    storagePath,
-    status: "uploading",
-    uploadedAt: Timestamp.now(),
-  });
-
-  // Upload to Storage
+  // Upload directly to Storage (no Firestore document yet)
+  // The Cloud Function will create the Firestore document when upload completes
   const storageRef = ref(storage, storagePath);
   const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -47,26 +38,19 @@ export async function createPodcast(
         onProgress(progress);
       }
     },
-    async (error) => {
+    (error) => {
       console.error("Upload error:", error);
-      // Update status to error
-      await updateDoc(doc(db, "podcasts", podcastRef.id), {
-        status: "error",
-        errorMessage: error.message,
-        errorAt: Timestamp.now(),
-      });
+      // Error will be handled by the caller
     },
-    async () => {
-      // Upload complete
-      await updateDoc(doc(db, "podcasts", podcastRef.id), {
-        status: "uploaded",
-      });
+    () => {
+      // Upload complete - Cloud Function will handle the rest
+      console.log("Upload complete, waiting for Cloud Function processing...");
     }
   );
 
   return {
-    podcastId: podcastRef.id,
     uploadTask,
+    storagePath,
   };
 }
 
