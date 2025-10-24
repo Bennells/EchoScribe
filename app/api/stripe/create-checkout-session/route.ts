@@ -19,9 +19,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the token and get user info
-    const decodedToken = await adminAuth.verifyIdToken(token);
+    // In emulator mode, skip verification as emulator tokens don't have "kid" claim
+    const isEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true";
+    let decodedToken: { uid: string; email?: string };
+
+    if (isEmulator) {
+      // Decode without verification for emulator
+      const base64Payload = token.split(".")[1];
+      const payload = Buffer.from(base64Payload, "base64").toString();
+      const parsed = JSON.parse(payload);
+      // Emulator tokens use 'user_id' instead of 'uid'
+      decodedToken = {
+        uid: parsed.user_id || parsed.uid,
+        email: parsed.email
+      };
+    } else {
+      // Verify token in production
+      decodedToken = await adminAuth.verifyIdToken(token);
+    }
+
     const userId = decodedToken.uid;
     const userEmail = decodedToken.email;
+
+    console.log("Creating checkout session for user:", userId, userEmail);
 
     if (!userEmail) {
       return NextResponse.json(
@@ -30,13 +50,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get tier from request body (defaults to "professional" for backward compatibility)
+    const body = await request.json().catch(() => ({}));
+    const tier = body.tier || "professional";
+
+    // Map tier to Stripe price ID
+    const priceIdMap: Record<string, string | undefined> = {
+      starter: process.env.STRIPE_PRICE_ID_STARTER_MONTHLY,
+      professional: process.env.STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY,
+      business: process.env.STRIPE_PRICE_ID_BUSINESS_MONTHLY,
+      // Legacy support for old Pro tier
+      pro: process.env.STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY || process.env.STRIPE_PRICE_ID_PRO_MONTHLY,
+    };
+
+    const priceId = priceIdMap[tier];
+
+    if (!priceId) {
+      return NextResponse.json(
+        { error: "Ungültiger Plan oder fehlende Stripe-Preis-ID" },
+        { status: 400 }
+      );
+    }
+
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       customer_email: userEmail,
-      payment_method_types: ["card"],
+      payment_method_types: ["card", "sepa_debit"],
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID_PRO_MONTHLY,
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -45,6 +87,7 @@ export async function POST(request: NextRequest) {
       cancel_url: `${request.headers.get("origin")}/dashboard/settings?canceled=true`,
       metadata: {
         userId: userId,
+        tier: tier,
       },
     });
 

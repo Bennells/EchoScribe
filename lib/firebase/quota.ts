@@ -12,12 +12,8 @@ export async function checkQuota(userId: string): Promise<boolean> {
   const userData = userDoc.data() as User;
   const quota = userData.quota;
 
-  // Pro users (active subscription) have unlimited quota
-  if (userData.subscriptionStatus === "active") {
-    return true;
-  }
-
-  // Free users have 3 uploads total (lifetime limit, no reset)
+  // All tiers (free, starter, professional, business) have monthly limits
+  // Check if user has quota remaining
   return quota.used < quota.monthly;
 }
 
@@ -52,17 +48,20 @@ export async function getQuotaInfo(userId: string) {
 
   const userData = userDoc.data() as User;
 
-  // Pro users have unlimited quota
-  const isPro = userData.subscriptionStatus === "active";
-  const total = isPro ? Infinity : userData.quota.monthly; // Using 'monthly' field as total limit
-  const remaining = isPro ? Infinity : userData.quota.monthly - userData.quota.used;
+  // All paid tiers (starter, professional, business) have limited quotas
+  // No tier has unlimited quota anymore
+  const isPro = false; // Deprecated: all tiers now have limits
+  const tier = userData.tier || "free";
+  const total = userData.quota.monthly; // Using 'monthly' field for all tiers
+  const remaining = userData.quota.monthly - userData.quota.used;
 
   return {
     used: userData.quota.used,
-    total: total, // Changed from 'monthly' to 'total'
+    total: total,
     remaining: remaining,
-    hasQuota: isPro || userData.quota.used < userData.quota.monthly,
+    hasQuota: userData.quota.used < userData.quota.monthly,
     isPro: isPro,
+    tier: tier,
     subscriptionStatus: userData.subscriptionStatus,
   };
 }

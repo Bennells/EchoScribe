@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/features/auth/protected-route";
 import { ErrorBoundary } from "@/components/error-boundary";
 import toast from "react-hot-toast";
-import { Home, FileAudio, FileText, Settings, LogOut } from "lucide-react";
+import { Home, FileAudio, FileText, Settings, LogOut, CreditCard } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getQuotaInfo } from "@/lib/firebase/quota";
 
 export default function DashboardLayout({
   children,
@@ -16,6 +18,31 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
+  const [tierDisplay, setTierDisplay] = useState("Free Tier");
+
+  useEffect(() => {
+    if (user) {
+      loadTierInfo();
+    }
+  }, [user]);
+
+  const loadTierInfo = async () => {
+    if (!user) return;
+    try {
+      const info = await getQuotaInfo(user.uid);
+      const tierNames: Record<string, string> = {
+        free: "Free Tier",
+        starter: "Starter",
+        professional: "Professional",
+        business: "Business",
+      };
+      setTierDisplay(tierNames[info.tier] || "Free Tier");
+    } catch (error) {
+      console.error("Error loading tier info:", error);
+      // Set default tier on error
+      setTierDisplay("Free Tier");
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -30,6 +57,7 @@ export default function DashboardLayout({
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Podcasts", href: "/dashboard/podcasts", icon: FileAudio },
     { name: "Artikel", href: "/dashboard/articles", icon: FileText },
+    { name: "Preise", href: "/dashboard/pricing", icon: CreditCard },
     { name: "Einstellungen", href: "/dashboard/settings", icon: Settings },
   ];
 
@@ -73,7 +101,7 @@ export default function DashboardLayout({
             <div className="border-t p-4">
               <div className="mb-3 text-sm">
                 <p className="font-medium truncate">{user?.email}</p>
-                <p className="text-xs text-muted-foreground">Free Tier</p>
+                <p className="text-xs text-muted-foreground">{tierDisplay}</p>
               </div>
               <Button
                 variant="outline"

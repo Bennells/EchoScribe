@@ -37,16 +37,17 @@ export default function PodcastsPage() {
       const unsubscribeQuota = onSnapshot(userRef, (doc) => {
         if (doc.exists()) {
           const userData = doc.data();
-          const isPro = userData.subscriptionStatus === "active";
-          const total = isPro ? Infinity : userData.quota.monthly;
-          const remaining = isPro ? Infinity : userData.quota.monthly - userData.quota.used;
+          // All tiers have limited quotas now
+          const total = userData.quota.monthly;
+          const remaining = userData.quota.monthly - userData.quota.used;
 
           setQuotaInfo({
             used: userData.quota.used,
             total: total,
             remaining: remaining,
-            hasQuota: isPro || userData.quota.used < userData.quota.monthly,
-            isPro: isPro,
+            hasQuota: userData.quota.used < userData.quota.monthly,
+            isPro: false, // Deprecated: no unlimited tier
+            tier: userData.tier || "free",
             subscriptionStatus: userData.subscriptionStatus,
           });
         }
@@ -195,15 +196,13 @@ export default function PodcastsPage() {
           <CardContent>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-muted-foreground">
-                {quotaInfo.used} von {quotaInfo.isPro ? "∞" : quotaInfo.total} Podcasts verwendet
+                {quotaInfo.used} von {quotaInfo.total} Podcasts verwendet
               </span>
               <span className="text-sm font-medium">
-                {quotaInfo.isPro ? "Unbegrenzt" : `${quotaInfo.remaining} übrig`}
+                {quotaInfo.remaining} übrig
               </span>
             </div>
-            {!quotaInfo.isPro && (
-              <Progress value={(quotaInfo.used / quotaInfo.total) * 100} />
-            )}
+            <Progress value={(quotaInfo.used / quotaInfo.total) * 100} />
           </CardContent>
         </Card>
       )}

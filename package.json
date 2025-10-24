@@ -8,7 +8,16 @@
     "start": "next start",
     "lint": "next lint",
     "emulators": "firebase emulators:start",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "firebase:use:dev": "firebase use dev",
+    "firebase:use:test": "firebase use test",
+    "firebase:use:prod": "firebase use prod",
+    "deploy:functions:test": "firebase use test && firebase deploy --only functions",
+    "deploy:functions:prod": "firebase use prod && firebase deploy --only functions",
+    "deploy:test": "firebase use test && firebase deploy",
+    "deploy:prod": "firebase use prod && firebase deploy",
+    "secrets:set:test": "firebase use test && firebase functions:secrets:set GEMINI_API_KEY",
+    "secrets:set:prod": "firebase use prod && firebase functions:secrets:set GEMINI_API_KEY"
   },
   "dependencies": {
     "@google/generative-ai": "^0.7.1",

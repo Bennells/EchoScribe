@@ -21,6 +21,12 @@ export default function Home() {
                 Jetzt starten
               </Link>
               <Link
+                href="/pricing"
+                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-8 py-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                Preise ansehen
+              </Link>
+              <Link
                 href="/login"
                 className="inline-flex items-center justify-center rounded-md border border-input bg-background px-8 py-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
               >

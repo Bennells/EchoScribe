@@ -1,5 +1,11 @@
 import * as admin from "firebase-admin";
 
+// Set Firestore emulator host BEFORE any Firebase Admin initialization
+if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true") {
+  process.env.FIRESTORE_EMULATOR_HOST = "localhost:8080";
+  console.log("🔧 Firestore Admin SDK configured to use emulator at localhost:8080");
+}
+
 // Initialize Firebase Admin SDK for Next.js API routes
 // This is separate from the Cloud Functions admin instance
 
@@ -25,9 +31,11 @@ function createFirebaseAdminApp(params: FirebaseAdminAppParams) {
 
   // DEV mode with emulators
   if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true") {
-    return admin.initializeApp({
+    const app = admin.initializeApp({
       projectId: projectId,
     });
+
+    return app;
   }
 
   // TEST/PROD mode with credentials

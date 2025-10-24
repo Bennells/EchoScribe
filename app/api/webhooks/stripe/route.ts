@@ -34,10 +34,42 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle the event
+    console.log("Webhook event received:", event.type);
+
     switch (event.type) {
       case "checkout.session.completed": {
+        console.log("Processing checkout.session.completed event");
         const session = event.data.object as Stripe.Checkout.Session;
         await handleCheckoutSessionCompleted(session);
+        break;
+      }
+
+      case "invoice.payment_succeeded": {
+        console.log("Processing invoice.payment_succeeded event");
+        const invoice = event.data.object as Stripe.Invoice;
+        await handleInvoicePaymentSucceeded(invoice);
+        break;
+      }
+
+      case "invoice.paid": {
+        console.log("Processing invoice.paid event");
+        const invoice = event.data.object as Stripe.Invoice;
+        await handleInvoicePaymentSucceeded(invoice);
+        break;
+      }
+
+      case "invoice_payment.paid": {
+        console.log("Processing invoice_payment.paid event (invoice_payment object)");
+        const invoicePayment = event.data.object as any;
+        // invoice_payment objects have a reference to the actual invoice
+        // We need to fetch the invoice to get the subscription details
+        if (invoicePayment.invoice) {
+          console.log("Fetching invoice from invoice_payment:", invoicePayment.invoice);
+          const invoice = await stripe.invoices.retrieve(invoicePayment.invoice);
+          await handleInvoicePaymentSucceeded(invoice);
+        } else {
+          console.log("No invoice reference in invoice_payment object");
+        }
         break;
       }
 
@@ -70,19 +102,36 @@ export async function POST(request: NextRequest) {
 async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session
 ) {
-  console.log("Checkout session completed:", session.id);
+  console.log("=== CHECKOUT SESSION COMPLETED ===");
+  console.log("Session ID:", session.id);
 
   const userId = session.metadata?.userId;
+  const tier = session.metadata?.tier || "professional"; // Default to professional for backward compatibility
   const subscriptionId = session.subscription as string;
   const customerId = session.customer as string;
 
+  console.log("Metadata - userId:", userId);
+  console.log("Metadata - tier:", tier);
+  console.log("Subscription ID:", subscriptionId);
+  console.log("Customer ID:", customerId);
+
   if (!userId || !subscriptionId) {
-    console.error("Missing userId or subscriptionId in session metadata");
+    console.error("ERROR: Missing userId or subscriptionId in session metadata");
     return;
   }
 
   // Retrieve the subscription details
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+  // Map tier to quota limits
+  const quotaLimits: Record<string, number> = {
+    starter: 15,
+    professional: 60,
+    business: 150,
+    pro: 60, // Legacy support
+  };
+
+  const monthlyQuota = quotaLimits[tier] || 60;
 
   // Create subscription document in Firestore
   const subscriptionData = {
@@ -91,6 +140,7 @@ async function handleCheckoutSessionCompleted(
     stripeSubscriptionId: subscriptionId,
     status: subscription.status,
     priceId: subscription.items.data[0].price.id,
+    tier: tier,
     currentPeriodStart: new Date(subscription.current_period_start * 1000),
     currentPeriodEnd: new Date(subscription.current_period_end * 1000),
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
@@ -98,29 +148,194 @@ async function handleCheckoutSessionCompleted(
     updatedAt: FieldValue.serverTimestamp(),
   };
 
+  console.log("Attempting to create subscription document in Firestore...");
+  try {
+    await adminDb
+      .collection("subscriptions")
+      .doc(subscriptionId)
+      .set(subscriptionData);
+
+    console.log("✅ Subscription created in Firestore:", subscriptionId);
+  } catch (error) {
+    console.error("❌ ERROR creating subscription in Firestore:", error);
+    throw error;
+  }
+
+  // Update user document to reflect subscription and set quota
+  console.log("Attempting to update user document in Firestore...");
+  try {
+    await adminDb
+      .collection("users")
+      .doc(userId)
+      .update({
+        subscriptionStatus: subscription.status,
+        tier: tier,
+        "quota.monthly": monthlyQuota,
+        "quota.used": 0, // Reset usage when new subscription starts
+        "quota.resetAt": new Date(subscription.current_period_end * 1000),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+    console.log("✅ User subscription status and tier updated:", userId, tier);
+  } catch (error) {
+    console.error("❌ ERROR updating user in Firestore:", error);
+    throw error;
+  }
+}
+
+async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
+  console.log("=== INVOICE PAYMENT SUCCEEDED ===");
+  console.log("Invoice ID:", invoice.id);
+  console.log("Invoice subscription:", invoice.subscription);
+  console.log("Invoice customer:", invoice.customer);
+  console.log("Invoice metadata:", invoice.metadata);
+  console.log("Full invoice object:", JSON.stringify(invoice, null, 2));
+
+  // Try to get subscription ID from multiple possible locations
+  let subscriptionId = invoice.subscription as string;
+
+  // If not found at top level, try nested in parent.subscription_details
+  if (!subscriptionId && (invoice as any).parent?.subscription_details?.subscription) {
+    subscriptionId = (invoice as any).parent.subscription_details.subscription;
+    console.log("Found subscription ID in parent.subscription_details:", subscriptionId);
+  }
+
+  // If still not found, try to get from line items
+  if (!subscriptionId && invoice.lines?.data?.length > 0) {
+    const lineItem = invoice.lines.data[0];
+    if ((lineItem as any).parent?.subscription_item_details?.subscription) {
+      subscriptionId = (lineItem as any).parent.subscription_item_details.subscription;
+      console.log("Found subscription ID in line item:", subscriptionId);
+    }
+  }
+
+  if (!subscriptionId) {
+    console.log("No subscription ID in invoice. Attempting to find subscription by customer ID...");
+
+    // Try to find the subscription by customer ID
+    const customerId = invoice.customer as string;
+    if (customerId) {
+      console.log("Looking up subscriptions for customer:", customerId);
+
+      try {
+        const subscriptions = await stripe.subscriptions.list({
+          customer: customerId,
+          limit: 1,
+          status: 'active',
+        });
+
+        if (subscriptions.data.length > 0) {
+          const foundSubscription = subscriptions.data[0];
+          console.log("Found active subscription:", foundSubscription.id);
+
+          // Use the found subscription ID
+          await processInvoicePayment(foundSubscription.id);
+          return;
+        } else {
+          console.log("No active subscriptions found for customer");
+        }
+      } catch (error) {
+        console.error("Error looking up subscriptions:", error);
+      }
+    }
+
+    console.log("Cannot process invoice without subscription ID");
+    return;
+  }
+
+  console.log("Subscription ID:", subscriptionId);
+  await processInvoicePayment(subscriptionId);
+}
+
+async function processInvoicePayment(subscriptionId: string) {
+  console.log("Processing invoice payment for subscription:", subscriptionId);
+
+  // Get the subscription document to retrieve userId and tier
+  const subscriptionDoc = await adminDb
+    .collection("subscriptions")
+    .doc(subscriptionId)
+    .get();
+
+  if (!subscriptionDoc.exists) {
+    console.log("Subscription document doesn't exist yet, this might be the first payment. Waiting for checkout.session.completed to create it.");
+    return;
+  }
+
+  const subscriptionData = subscriptionDoc.data();
+  const userId = subscriptionData?.userId;
+  const tier = subscriptionData?.tier || "professional";
+
+  if (!userId) {
+    console.error("ERROR: No userId found in subscription document");
+    return;
+  }
+
+  console.log("User ID:", userId);
+  console.log("Tier:", tier);
+
+  // Retrieve the full subscription from Stripe
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+  // Map tier to quota limits
+  const quotaLimits: Record<string, number> = {
+    starter: 15,
+    professional: 60,
+    business: 150,
+    pro: 60, // Legacy support
+  };
+
+  const monthlyQuota = quotaLimits[tier] || 60;
+
+  // Update subscription document with latest status
+  console.log("Updating subscription document...");
   await adminDb
     .collection("subscriptions")
     .doc(subscriptionId)
-    .set(subscriptionData);
-
-  console.log("Subscription created in Firestore:", subscriptionId);
-
-  // Update user document to reflect subscription
-  await adminDb
-    .collection("users")
-    .doc(userId)
     .update({
-      subscriptionStatus: subscription.status,
+      status: subscription.status,
+      currentPeriodStart: new Date(subscription.current_period_start * 1000),
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       updatedAt: FieldValue.serverTimestamp(),
     });
 
-  console.log("User subscription status updated:", userId);
+  console.log("✅ Subscription updated in Firestore");
+
+  // Update user document - ensure tier and quota are set correctly
+  console.log("Updating user document with tier and quota...");
+  try {
+    await adminDb
+      .collection("users")
+      .doc(userId)
+      .update({
+        subscriptionStatus: subscription.status,
+        tier: tier,
+        "quota.monthly": monthlyQuota,
+        "quota.resetAt": new Date(subscription.current_period_end * 1000),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+    console.log("✅ User subscription status and tier updated after payment:", userId, tier);
+  } catch (error) {
+    console.error("❌ ERROR updating user in Firestore:", error);
+    throw error;
+  }
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   console.log("Subscription updated:", subscription.id);
 
   const subscriptionId = subscription.id;
+
+  // Get userId and tier from subscription document first
+  const subscriptionDoc = await adminDb
+    .collection("subscriptions")
+    .doc(subscriptionId)
+    .get();
+
+  if (!subscriptionDoc.exists) {
+    console.log("Subscription document doesn't exist yet, skipping update:", subscriptionId);
+    return; // Skip if subscription document hasn't been created yet
+  }
 
   // Update subscription document in Firestore
   const subscriptionData = {
@@ -136,24 +351,38 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     .doc(subscriptionId)
     .update(subscriptionData);
 
-  // Get userId from subscription document
-  const subscriptionDoc = await adminDb
-    .collection("subscriptions")
-    .doc(subscriptionId)
-    .get();
-
   if (subscriptionDoc.exists) {
     const userId = subscriptionDoc.data()?.userId;
+    const tier = subscriptionDoc.data()?.tier || "professional";
 
     if (userId) {
+      // Check if it's the start of a new billing period (quota reset)
+      const userDoc = await adminDb.collection("users").doc(userId).get();
+      const userData = userDoc.data();
+      const previousPeriodEnd = userData?.quota?.resetAt?.toDate();
+      const newPeriodEnd = new Date(subscription.current_period_end * 1000);
+
+      const shouldResetQuota =
+        !previousPeriodEnd ||
+        newPeriodEnd.getTime() > previousPeriodEnd.getTime();
+
       // Update user document
+      const userUpdate: any = {
+        subscriptionStatus: subscription.status,
+        "quota.resetAt": newPeriodEnd,
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+
+      // Reset quota if it's a new billing period
+      if (shouldResetQuota) {
+        userUpdate["quota.used"] = 0;
+        console.log("Resetting quota for user:", userId);
+      }
+
       await adminDb
         .collection("users")
         .doc(userId)
-        .update({
-          subscriptionStatus: subscription.status,
-          updatedAt: FieldValue.serverTimestamp(),
-        });
+        .update(userUpdate);
 
       console.log("User subscription status updated:", userId);
     }
@@ -184,16 +413,19 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       });
 
     if (userId) {
-      // Update user document to remove subscription
+      // Revert user to free tier
       await adminDb
         .collection("users")
         .doc(userId)
         .update({
           subscriptionStatus: "canceled",
+          tier: "free",
+          "quota.monthly": 3,
+          "quota.used": 0,
           updatedAt: FieldValue.serverTimestamp(),
         });
 
-      console.log("User subscription canceled:", userId);
+      console.log("User subscription canceled and reverted to free tier:", userId);
     }
   }
 }

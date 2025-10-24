@@ -151,7 +151,7 @@ export default function SettingsPage() {
           <CardDescription>
             {isPro
               ? "Verwalten Sie Ihr aktives Abonnement"
-              : "Upgrade auf Pro für unbegrenzte Podcasts"}
+              : "Wählen Sie einen Plan und starten Sie mit mehr Podcast-Analysen"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -159,43 +159,42 @@ export default function SettingsPage() {
             <>
               <div className="mb-4 space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Mit EchoScribe Pro erhalten Sie:
+                  Wählen Sie aus unseren verschiedenen Plänen:
                 </p>
                 <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                  <li>Unbegrenzte Podcast-Konvertierungen</li>
-                  <li>Priorität-Support</li>
-                  <li>Frühzeitiger Zugang zu neuen Features</li>
+                  <li>Starter: 15 Podcasts pro Monat (€9,99)</li>
+                  <li>Professional: 60 Podcasts pro Monat (€24,99)</li>
+                  <li>Business: 150 Podcasts pro Monat (€49,99)</li>
                 </ul>
-                <p className="text-sm font-medium mt-4">
-                  Preis: €19,99/Monat
-                </p>
               </div>
-              <Button onClick={handleUpgrade} disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Wird geladen...
-                  </>
-                ) : (
-                  "Jetzt upgraden"
-                )}
+              <Button asChild>
+                <a href="/dashboard/pricing">
+                  Pläne ansehen & upgraden
+                </a>
               </Button>
             </>
           ) : (
             <>
               <p className="text-sm text-muted-foreground mb-4">
-                Sie haben ein aktives Pro-Abonnement. Vielen Dank für Ihre Unterstützung!
+                Sie haben ein aktives Abonnement. Vielen Dank für Ihre Unterstützung!
               </p>
-              <Button onClick={handleManageSubscription} disabled={portalLoading}>
-                {portalLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Wird geladen...
-                  </>
-                ) : (
-                  "Abonnement verwalten"
-                )}
-              </Button>
+              <div className="flex gap-3">
+                <Button onClick={handleManageSubscription} disabled={portalLoading}>
+                  {portalLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Wird geladen...
+                    </>
+                  ) : (
+                    "Abonnement verwalten"
+                  )}
+                </Button>
+                <Button variant="outline" asChild>
+                  <a href="/dashboard/pricing">
+                    Andere Pläne ansehen
+                  </a>
+                </Button>
+              </div>
             </>
           )}
         </CardContent>
