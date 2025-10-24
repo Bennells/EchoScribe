@@ -172,18 +172,18 @@ export default function ArticleDetailPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="preview" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="preview">
-                <Eye className="h-4 w-4 mr-2" />
-                Vorschau
+            <TabsList className="inline-flex sticky top-0 z-10 bg-background border-b mb-4">
+              <TabsTrigger value="preview" className="gap-2">
+                <Eye className="h-4 w-4" />
+                <span className="hidden sm:inline">Vorschau</span>
               </TabsTrigger>
-              <TabsTrigger value="markdown">
-                <Code className="h-4 w-4 mr-2" />
-                Markdown
+              <TabsTrigger value="markdown" className="gap-2">
+                <Code className="h-4 w-4" />
+                <span className="hidden sm:inline">Markdown</span>
               </TabsTrigger>
-              <TabsTrigger value="html">
-                <Code className="h-4 w-4 mr-2" />
-                HTML
+              <TabsTrigger value="html" className="gap-2">
+                <Code className="h-4 w-4" />
+                <span className="hidden sm:inline">HTML</span>
               </TabsTrigger>
             </TabsList>
 

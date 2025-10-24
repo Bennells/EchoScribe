@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/firebase/auth-context";
 import { getQuotaInfo } from "@/lib/firebase/quota";
 import { getPodcastStats, getUserPodcasts } from "@/lib/firebase/podcasts";
+import { ProcessingStatus } from "@/components/features/podcast-upload/processing-status";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -154,21 +155,26 @@ export default function DashboardPage() {
                       {podcast.uploadedAt.toDate().toLocaleDateString("de-DE")}
                     </p>
                   </div>
-                  <span
-                    className={`text-xs px-2 py-1 rounded ${
-                      podcast.status === "completed"
-                        ? "bg-green-100 text-green-700"
-                        : podcast.status === "error"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {podcast.status === "completed"
-                      ? "Fertig"
-                      : podcast.status === "error"
-                      ? "Fehler"
-                      : "In Arbeit"}
-                  </span>
+                  {podcast.status === "completed" ? (
+                    <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-700">
+                      Fertig
+                    </span>
+                  ) : podcast.status === "error" ? (
+                    <span className="text-xs px-2 py-1 rounded bg-red-100 text-red-700">
+                      Fehler
+                    </span>
+                  ) : (podcast.status === "processing" || podcast.status === "queued") ? (
+                    <div className="scale-75 origin-right">
+                      <ProcessingStatus
+                        processingStartedAt={podcast.processingStartedAt}
+                        fileSize={podcast.fileSize}
+                      />
+                    </div>
+                  ) : (
+                    <span className="text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-700">
+                      In Arbeit
+                    </span>
+                  )}
                 </div>
               ))}
             </div>

@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/firebase/auth-context";
 import { checkQuota, getQuotaInfo, incrementQuota } from "@/lib/firebase/quota";
 import { createPodcast, getUserPodcasts, deletePodcast, subscribeToUserPodcasts } from "@/lib/firebase/podcasts";
 import { UploadZone } from "@/components/features/podcast-upload/upload-zone";
+import { ProcessingStatus } from "@/components/features/podcast-upload/processing-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -142,7 +143,9 @@ export default function PodcastsPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (podcast: Podcast) => {
+    const { status, processingStartedAt, fileSize } = podcast;
+
     switch (status) {
       case "uploaded":
         return (
@@ -154,10 +157,10 @@ export default function PodcastsPage() {
       case "processing":
       case "queued":
         return (
-          <div className="flex items-center gap-1 text-yellow-600">
-            <Clock className="h-4 w-4" />
-            <span className="text-sm">Wird verarbeitet</span>
-          </div>
+          <ProcessingStatus
+            processingStartedAt={processingStartedAt}
+            fileSize={fileSize}
+          />
         );
       case "completed":
         return (
@@ -278,7 +281,7 @@ export default function PodcastsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    {getStatusBadge(podcast.status)}
+                    {getStatusBadge(podcast)}
                     {podcast.status === "completed" && podcast.articleId && (
                       <Button
                         asChild
