@@ -43,7 +43,9 @@
       "Bash(firebase deploy:*)",
       "Bash(gcloud projects add-iam-policy-binding:*)",
       "Bash(firebase functions:delete:*)",
-      "Bash(gcloud secrets list:*)"
+      "Bash(gcloud secrets list:*)",
+      "Bash(firebase apphosting:secrets:grantaccess:*)",
+      "Bash(firebase apphosting:backends:list:*)"
     ],
     "deny": [],
     "ask": []
