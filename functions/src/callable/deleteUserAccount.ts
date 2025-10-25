@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 import Stripe from "stripe";
+import { captureException, setUser, clearUser } from "../lib/sentry";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2023-10-16",
@@ -18,6 +19,10 @@ export const deleteUserAccount = onCall(
     }
 
     const userId = request.auth.uid;
+    const userEmail = request.auth.token.email;
+
+    // Set user context for Sentry
+    setUser(userId, userEmail);
 
     logger.info(`Starting account deletion for user: ${userId}`);
 
@@ -44,7 +49,16 @@ export const deleteUserAccount = onCall(
             logger.info(`Stripe subscription canceled: ${stripeSubscriptionId}`);
           } catch (error: any) {
             logger.error(`Error canceling Stripe subscription: ${error.message}`);
-            // Continue with deletion even if Stripe cancellation fails
+            
+            // Report to Sentry but continue
+            captureException(error, {
+              functionName: "deleteUserAccount",
+              userId,
+              extra: {
+                step: "cancel_stripe_subscription",
+                stripeSubscriptionId,
+              },
+            });
           }
         }
       }
@@ -105,7 +119,15 @@ export const deleteUserAccount = onCall(
         }
       } catch (error: any) {
         logger.error(`Error deleting files from Storage: ${error.message}`);
-        // Continue with deletion even if storage cleanup fails
+        
+        // Report to Sentry but continue
+        captureException(error, {
+          functionName: "deleteUserAccount",
+          userId,
+          extra: {
+            step: "delete_storage_files",
+          },
+        });
       }
 
       // Step 6: Delete user document from Firestore
@@ -120,12 +142,26 @@ export const deleteUserAccount = onCall(
 
       logger.info(`Account deletion completed successfully for user: ${userId}`);
 
+      // Clear user context
+      clearUser();
+
       return {
         success: true,
         message: "Account deleted successfully",
       };
     } catch (error: any) {
       logger.error(`Error deleting account: ${error.message}`, error);
+      
+      // Report to Sentry
+      captureException(error, {
+        functionName: "deleteUserAccount",
+        userId,
+        extra: {
+          errorMessage: error.message,
+          errorStack: error.stack,
+        },
+      });
+      
       throw new HttpsError("internal", `Failed to delete account: ${error.message}`);
     }
   }

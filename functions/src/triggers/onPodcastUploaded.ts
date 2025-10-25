@@ -4,6 +4,7 @@ import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import { processPodcast } from "./processPodcast";
+import { captureException } from "../lib/sentry";
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
@@ -70,10 +71,20 @@ export const onPodcastUploaded = onObjectFinalized(
         logger.info(`[EMULATOR] Processing started in background for: ${podcastId}`);
       } else {
         // In production: enqueue Cloud Task for better scalability
-        await enqueueProcessingTask(podcastId, filePath);
+        await enqueueProcessingTask(podcastId, filePath, userId);
       }
     } catch (error: any) {
       logger.error("Error in onPodcastUploaded:", error);
+      
+      // Report to Sentry
+      captureException(error, {
+        functionName: "onPodcastUploaded",
+        extra: {
+          filePath,
+          fileSize,
+          contentType,
+        },
+      });
     }
   }
 );
@@ -82,7 +93,7 @@ export const onPodcastUploaded = onObjectFinalized(
  * Enqueue a Cloud Task to process the podcast asynchronously
  * This returns immediately, allowing the function to complete quickly
  */
-async function enqueueProcessingTask(podcastId: string, storagePath: string) {
+async function enqueueProcessingTask(podcastId: string, storagePath: string, userId?: string) {
   try {
     logger.info(`Enqueueing processing task for podcast: ${podcastId}`);
 
@@ -108,6 +119,17 @@ async function enqueueProcessingTask(podcastId: string, storagePath: string) {
       errorMessage: error.message,
       errorCode: error.code,
       errorName: error.name,
+    });
+
+    // Report to Sentry
+    captureException(error, {
+      functionName: "enqueueProcessingTask",
+      userId,
+      podcastId,
+      extra: {
+        storagePath,
+        errorCode: error.code,
+      },
     });
 
     // Update podcast status to error if we can't even enqueue

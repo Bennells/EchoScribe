@@ -12,6 +12,7 @@ Wandeln Sie Podcasts automatisch in SEO-optimierte Blog-Artikel um.
 - **AI:** Google Gemini 2.5 Flash
 - **Payment:** Stripe
 - **UI:** shadcn/ui Components
+- **Monitoring:** Sentry (Production Error Tracking)
 
 ## 📋 Prerequisites
 
@@ -110,6 +111,29 @@ npm run build
 # Functions Build
 cd functions && npm run build
 ```
+
+## 📊 Monitoring (Production)
+
+### Sentry Error Tracking
+
+Sentry ist für **Production-Only** konfiguriert und trackt automatisch:
+- Frontend Errors (React Components, API Calls)
+- Backend Errors (Cloud Functions, Triggers)
+- API Route Errors (Stripe Webhooks)
+
+**Setup Anleitung:** Siehe [SENTRY_SETUP.md](./SENTRY_SETUP.md)
+
+**Was wird getrackt:**
+- Error Messages und Stack Traces
+- User Context (welcher User hatte den Fehler)
+- Breadcrumbs (Aktionen vor dem Fehler)
+- Performance Metrics (optional)
+
+**Vorteile:**
+- Automatische Email-Benachrichtigungen bei neuen Fehlern
+- Source Maps für lesbare Stack Traces
+- Error Grouping und Trends
+- Integration mit GitHub, Slack, etc.
 
 ## 📝 Nächste Schritte (Phase 2)
 

@@ -36,7 +36,14 @@
       "Bash(npx shadcn@latest add:*)",
       "Bash(npx tsc:*)",
       "Bash(cat:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(firebase --version:*)",
+      "Bash(firebase use:*)",
+      "Bash(firebase login:*)",
+      "Bash(firebase deploy:*)",
+      "Bash(gcloud projects add-iam-policy-binding:*)",
+      "Bash(firebase functions:delete:*)",
+      "Bash(gcloud secrets list:*)"
     ],
     "deny": [],
     "ask": []

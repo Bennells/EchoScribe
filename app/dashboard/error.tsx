@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +15,15 @@ export default function DashboardError({
 }) {
   useEffect(() => {
     console.error("Dashboard error:", error);
+    
+    // Report error to Sentry in production
+    if (process.env.NODE_ENV === "production") {
+      Sentry.captureException(error, {
+        tags: {
+          location: "dashboard",
+        },
+      });
+    }
   }, [error]);
 
   return (

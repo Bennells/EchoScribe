@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import Stripe from "stripe";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
@@ -27,6 +28,20 @@ export async function POST(request: NextRequest) {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err: any) {
       console.error("Webhook signature verification failed:", err.message);
+
+      // Report signature verification failures to Sentry (production only)
+      if (process.env.NODE_ENV === "production") {
+        Sentry.captureException(err, {
+          tags: {
+            webhook_event: "signature_verification_failed",
+          },
+          extra: {
+            hasSignature: !!signature,
+            hasSecret: !!webhookSecret,
+          },
+        });
+      }
+
       return NextResponse.json(
         { error: `Webhook Error: ${err.message}` },
         { status: 400 }
@@ -92,6 +107,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error: any) {
     console.error("Webhook handler error:", error);
+
+    // Report webhook handler errors to Sentry (production only)
+    if (process.env.NODE_ENV === "production") {
+      Sentry.captureException(error, {
+        tags: {
+          webhook_handler: "stripe",
+        },
+        extra: {
+          errorMessage: error.message,
+          errorStack: error.stack,
+        },
+      });
+    }
+
     return NextResponse.json(
       { error: "Webhook handler failed" },
       { status: 500 }

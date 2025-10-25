@@ -1,0 +1,84 @@
+# Firebase App Hosting Configuration
+# https://firebase.google.com/docs/app-hosting/configure
+
+# Cloud Run configuration
+runConfig:
+  minInstances: 0  # Scale to zero for cost savings in TEST
+  maxInstances: 10
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+# Environment variables and secrets
+env:
+  # ==========================================
+  # Public Firebase Configuration (Client SDK)
+  # ==========================================
+  # These are automatically configured by App Hosting via FIREBASE_WEBAPP_CONFIG
+  # No need to explicitly set them here
+
+  # ==========================================
+  # Stripe Configuration
+  # ==========================================
+  - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    value: pk_test_51SJzrMGiTikY0UunW1S5hZcTMLPvXFFOaCY8wWfEuLOEJZTDQviGtWQt0FWz1GrNjqSoDjA6HmolPpCImWBKfc4V00yBVNO6HB
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Stripe Secret Key (from Secret Manager)
+  - variable: STRIPE_SECRET_KEY
+    secret: STRIPE_SECRET_KEY
+    availability:
+      - RUNTIME
+
+  # Stripe Webhook Secret (from Secret Manager)
+  - variable: STRIPE_WEBHOOK_SECRET
+    secret: STRIPE_WEBHOOK_SECRET
+    availability:
+      - RUNTIME
+
+  # ==========================================
+  # Stripe Price IDs (from Secret Manager)
+  # ==========================================
+  - variable: STRIPE_PRICE_ID_STARTER_MONTHLY
+    secret: STRIPE_PRICE_ID_STARTER_MONTHLY
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY
+    secret: STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: STRIPE_PRICE_ID_BUSINESS_MONTHLY
+    secret: STRIPE_PRICE_ID_BUSINESS_MONTHLY
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Legacy Pro tier (for backward compatibility)
+  - variable: STRIPE_PRICE_ID_PRO_MONTHLY
+    secret: STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # ==========================================
+  # Gemini API Configuration
+  # ==========================================
+  - variable: GEMINI_API_KEY
+    secret: GEMINI_API_KEY
+    availability:
+      - RUNTIME
+
+  # ==========================================
+  # Environment Flag
+  # ==========================================
+  - variable: NEXT_PUBLIC_USE_FIREBASE_EMULATOR
+    value: "false"
+    availability:
+      - BUILD
+      - RUNTIME
