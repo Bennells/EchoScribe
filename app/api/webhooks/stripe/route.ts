@@ -73,21 +73,6 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      case "invoice_payment.paid": {
-        console.log("Processing invoice_payment.paid event (invoice_payment object)");
-        const invoicePayment = event.data.object as any;
-        // invoice_payment objects have a reference to the actual invoice
-        // We need to fetch the invoice to get the subscription details
-        if (invoicePayment.invoice) {
-          console.log("Fetching invoice from invoice_payment:", invoicePayment.invoice);
-          const invoice = await stripe.invoices.retrieve(invoicePayment.invoice);
-          await handleInvoicePaymentSucceeded(invoice);
-        } else {
-          console.log("No invoice reference in invoice_payment object");
-        }
-        break;
-      }
-
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         await handleSubscriptionUpdated(subscription);

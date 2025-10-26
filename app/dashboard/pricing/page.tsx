@@ -168,7 +168,7 @@ export default function DashboardPricingPage() {
             <h3 className="font-medium mb-2">Wie kann ich meinen Plan kündigen?</h3>
             <p className="text-sm text-muted-foreground">
               Gehen Sie zu den <a href="/dashboard/settings" className="text-primary hover:underline">Einstellungen</a> und
-              klicken Sie auf "Abonnement verwalten". Sie werden zum Stripe-Kundenportal weitergeleitet,
+              klicken Sie auf &quot;Abonnement verwalten&quot;. Sie werden zum Stripe-Kundenportal weitergeleitet,
               wo Sie Ihr Abonnement kündigen können.
             </p>
           </div>
