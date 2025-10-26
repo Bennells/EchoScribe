@@ -48,7 +48,9 @@
       "Bash(firebase apphosting:backends:list:*)",
       "Bash(firebase functions:config:get:*)",
       "Bash(gcloud secrets create:*)",
-      "Bash(gcloud secrets versions add:*)"
+      "Bash(gcloud secrets versions add:*)",
+      "Bash(git push)",
+      "Bash(firebase apphosting:rollouts:create:*)"
     ],
     "deny": [],
     "ask": []
