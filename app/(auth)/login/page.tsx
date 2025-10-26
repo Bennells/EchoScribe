@@ -27,9 +27,10 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       toast.success("Erfolgreich angemeldet!");
-      // Use window.location to force a full page reload
-      // This ensures the auth state is fully updated before accessing dashboard
-      window.location.href = "/dashboard";
+      // Wait a bit for auth state to propagate, then use router.push
+      // This allows the AuthContext to update before navigation
+      await new Promise(resolve => setTimeout(resolve, 500));
+      router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
       if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
@@ -39,9 +40,9 @@ export default function LoginPage() {
       } else {
         setError("Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.");
       }
-    } finally {
       setLoading(false);
     }
+    // Don't set loading to false on success - keep it true during navigation
   };
 
   return (
