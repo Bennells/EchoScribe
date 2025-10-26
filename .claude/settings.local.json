@@ -45,7 +45,10 @@
       "Bash(firebase functions:delete:*)",
       "Bash(gcloud secrets list:*)",
       "Bash(firebase apphosting:secrets:grantaccess:*)",
-      "Bash(firebase apphosting:backends:list:*)"
+      "Bash(firebase apphosting:backends:list:*)",
+      "Bash(firebase functions:config:get:*)",
+      "Bash(gcloud secrets create:*)",
+      "Bash(gcloud secrets versions add:*)"
     ],
     "deny": [],
     "ask": []
