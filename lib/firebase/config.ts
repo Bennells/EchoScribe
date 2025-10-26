@@ -3,14 +3,29 @@ import { getAuth, connectAuthEmulator, Auth } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator, Firestore } from "firebase/firestore";
 import { getStorage, connectStorageEmulator, FirebaseStorage } from "firebase/storage";
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+// Parse Firebase config from environment
+// Priority: FIREBASE_CLIENT_CONFIG (production) > individual NEXT_PUBLIC_* vars (local dev)
+let firebaseConfig;
+
+if (process.env.FIREBASE_CLIENT_CONFIG) {
+  // Production/Test: Parse JSON config from Secret Manager
+  try {
+    firebaseConfig = JSON.parse(process.env.FIREBASE_CLIENT_CONFIG);
+  } catch (error) {
+    console.error("Failed to parse FIREBASE_CLIENT_CONFIG:", error);
+    throw new Error("Invalid Firebase configuration in FIREBASE_CLIENT_CONFIG");
+  }
+} else {
+  // Local development: Use individual environment variables
+  firebaseConfig = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  };
+}
 
 // Initialize Firebase only in browser context
 let app: FirebaseApp | undefined;

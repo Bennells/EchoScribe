@@ -14,9 +14,13 @@ env:
   # ==========================================
   # Public Firebase Configuration (Client SDK)
   # ==========================================
-  # Firebase Client SDK is automatically configured at RUNTIME via FIREBASE_WEBAPP_CONFIG
-  # The config is conditionally initialized only in browser context (see lib/firebase/config.ts)
-  # This prevents "invalid-api-key" errors during build/SSG
+  # Firebase Client SDK configuration stored in Secret Manager
+  # Available at both build time and runtime for client initialization
+  - variable: FIREBASE_CLIENT_CONFIG
+    secret: FIREBASE_CLIENT_CONFIG
+    availability:
+      - BUILD
+      - RUNTIME
 
   # ==========================================
   # Stripe Configuration
