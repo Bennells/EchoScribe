@@ -14,10 +14,47 @@ env:
   # ==========================================
   # Public Firebase Configuration (Client SDK)
   # ==========================================
-  # Firebase Client SDK configuration stored in Secret Manager
-  # Available at both build time and runtime for client initialization
-  - variable: FIREBASE_CLIENT_CONFIG
-    secret: FIREBASE_CLIENT_CONFIG
+  # Firebase Client SDK configuration as public NEXT_PUBLIC_* variables
+  # These values are safe to expose as they're visible in the client bundle anyway
+  # Access control is managed via Firebase Security Rules, not API keys
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyB59t2OsKGRHyMw3ah6Qa04G5v5cVFCnqo"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "echoscribe-test.firebaseapp.com"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "echoscribe-test"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "echoscribe-test.firebasestorage.app"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "436441931185"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:436441931185:web:ec94164ea9bd381df4b190"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: "G-5TJ0YQP3DN"
     availability:
       - BUILD
       - RUNTIME
