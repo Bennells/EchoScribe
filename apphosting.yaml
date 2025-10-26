@@ -21,8 +21,9 @@ env:
   # ==========================================
   # Public Firebase Configuration (Client SDK)
   # ==========================================
-  # These are automatically configured by App Hosting via FIREBASE_WEBAPP_CONFIG
-  # No need to explicitly set them here
+  # Firebase Client SDK is automatically configured at RUNTIME via FIREBASE_WEBAPP_CONFIG
+  # The config is conditionally initialized only in browser context (see lib/firebase/config.ts)
+  # This prevents "invalid-api-key" errors during build/SSG
 
   # ==========================================
   # Stripe Configuration
