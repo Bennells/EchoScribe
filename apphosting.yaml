@@ -45,26 +45,22 @@ env:
   - variable: STRIPE_PRICE_ID_STARTER_MONTHLY
     secret: STRIPE_PRICE_ID_STARTER_MONTHLY
     availability:
-      - BUILD
       - RUNTIME
 
   - variable: STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY
     secret: STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY
     availability:
-      - BUILD
       - RUNTIME
 
   - variable: STRIPE_PRICE_ID_BUSINESS_MONTHLY
     secret: STRIPE_PRICE_ID_BUSINESS_MONTHLY
     availability:
-      - BUILD
       - RUNTIME
 
   # Legacy Pro tier (for backward compatibility)
   - variable: STRIPE_PRICE_ID_PRO_MONTHLY
     secret: STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY
     availability:
-      - BUILD
       - RUNTIME
 
   # ==========================================
