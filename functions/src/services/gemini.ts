@@ -51,12 +51,12 @@ export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogA
       }
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     logger.info("[Gemini] Sending audio to Gemini API...", {
       audioSize: audioBuffer.length,
       audioSizeMB: (audioBuffer.length / 1024 / 1024).toFixed(2),
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.5-flash",
     });
 
     // Send audio directly to Gemini
@@ -81,17 +81,37 @@ export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogA
     // Parse JSON response
     let article: BlogArticle;
     try {
-      // Try to extract JSON from response (in case there's extra text)
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      // Step 1: Remove Markdown code blocks (```json ... ```)
+      let cleanText = text.trim();
+      cleanText = cleanText.replace(/^```json\s*/i, ""); // Remove opening ```json
+      cleanText = cleanText.replace(/```\s*$/, ""); // Remove closing ```
+      cleanText = cleanText.trim();
+
+      // Step 2: Extract JSON object
+      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error("No JSON found in response");
       }
 
-      article = JSON.parse(jsonMatch[0]);
-    } catch (parseError) {
+      let jsonString = jsonMatch[0];
+
+      // Step 3: Try to parse JSON with multiple strategies
+      try {
+        article = JSON.parse(jsonString);
+      } catch (firstError) {
+        // Strategy 2: Try to fix common escape issues
+        logger.warn("First parse attempt failed, trying to sanitize JSON...");
+
+        // Remove any invalid escape sequences before special chars
+        jsonString = jsonString.replace(/\\([^"\\\/bfnrtu])/g, "$1");
+
+        article = JSON.parse(jsonString);
+      }
+    } catch (parseError: any) {
       logger.error("Failed to parse Gemini response as JSON:", parseError);
-      logger.error("Response text:", text.substring(0, 500));
-      throw new Error("Invalid JSON response from Gemini");
+      logger.error("Response text (first 1000 chars):", text.substring(0, 1000));
+      logger.error("Response text (last 500 chars):", text.substring(Math.max(0, text.length - 500)));
+      throw new Error(`Invalid JSON response from Gemini: ${parseError.message}`);
     }
 
     // Validate required fields
@@ -127,7 +147,7 @@ export async function testGeminiConnection(): Promise<boolean> {
       genAI = new GoogleGenerativeAI(apiKey);
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent("Hello, test");
     return !!result.response;
   } catch (error) {
