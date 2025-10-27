@@ -11,8 +11,7 @@ import { ArrowLeft, Copy, Code, Eye, Tag, Calendar } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import type { Article } from "@/types/article";
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { HTMLCodeBlock } from "@/components/HTMLCodeBlock";
 
 export default function ArticleDetailPage() {
   const params = useParams();
@@ -241,23 +240,7 @@ export default function ArticleDetailPage() {
                   <Copy className="h-4 w-4 mr-2" />
                   Kopieren
                 </Button>
-                <div className="rounded-lg overflow-hidden border max-w-full">
-                  <SyntaxHighlighter
-                    language="html"
-                    style={vscDarkPlus}
-                    showLineNumbers={true}
-                    wrapLines={true}
-                    wrapLongLines={true}
-                    customStyle={{
-                      margin: 0,
-                      borderRadius: 0,
-                      maxWidth: '100%',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    {article.contentHTML}
-                  </SyntaxHighlighter>
-                </div>
+                <HTMLCodeBlock code={article.contentHTML} showLineNumbers={false} />
               </div>
             </TabsContent>
           </Tabs>
