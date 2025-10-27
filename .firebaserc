@@ -1,7 +1,6 @@
 {
   "projects": {
     "default": "demo-echoscribe",
-    "dev": "demo-echoscribe",
     "test": "echoscribe-test",
     "prod": "echoscribe-prod"
   }

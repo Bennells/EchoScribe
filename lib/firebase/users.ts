@@ -6,13 +6,26 @@ import { db } from "./config";
  * Called client-side after Firebase Auth user is created
  */
 export async function createUserDocument(userId: string, email: string): Promise<void> {
-  await setDoc(doc(db, "users", userId), {
-    email,
-    createdAt: Timestamp.now(),
-    subscriptionStatus: "free",
-    quota: {
-      monthly: 3, // Free tier: 3 podcasts total (lifetime limit, no reset)
-      used: 0,
-    },
-  });
+  try {
+    const userRef = doc(db, "users", userId);
+    const userData = {
+      email,
+      createdAt: Timestamp.now(),
+      subscriptionStatus: "free",
+      quota: {
+        monthly: 3, // Free tier: 3 podcasts total (lifetime limit, no reset)
+        used: 0,
+      },
+    };
+
+    await setDoc(userRef, userData);
+  } catch (error: any) {
+    console.error("[createUserDocument] Error creating user document:", {
+      userId,
+      email,
+      error: error.message,
+      errorCode: error.code,
+    });
+    throw error; // Re-throw to let caller handle it
+  }
 }

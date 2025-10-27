@@ -1,14 +1,9 @@
 import * as admin from "firebase-admin";
 
-// Set Firestore emulator host BEFORE any Firebase Admin initialization
-if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true") {
-  process.env.FIRESTORE_EMULATOR_HOST = "localhost:8080";
-  console.log("🔧 Firestore Admin SDK configured to use emulator at localhost:8080");
-}
-
 // Initialize Firebase Admin SDK for Next.js API routes
-// Uses Workload Identity Federation when running on Firebase App Hosting or Cloud Functions
-// Uses basic initialization for local development with emulators
+// Uses Application Default Credentials (ADC):
+// - On localhost: gcloud auth application-default credentials
+// - On Firebase App Hosting/Cloud Functions: Workload Identity Federation
 
 function createFirebaseAdminApp() {
   // Check if already initialized
@@ -16,21 +11,19 @@ function createFirebaseAdminApp() {
     return admin.app();
   }
 
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID as string;
+  // Uses Application Default Credentials (ADC)
+  // This works automatically in all environments:
+  // - Localhost: Requires `gcloud auth application-default login`
+  // - Firebase App Hosting: Uses Workload Identity (automatic)
+  // - Cloud Functions: Uses Workload Identity (automatic)
 
-  // DEV mode with emulators - basic initialization without credentials
-  if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true") {
-    console.log("🔧 Initializing Firebase Admin SDK for emulator environment");
-    return admin.initializeApp({
-      projectId: projectId,
-    });
-  }
+  // Explicitly set project ID to ensure correct Firebase project is used
+  // This is especially important when switching between projects
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.GCLOUD_PROJECT;
 
-  // TEST/PROD mode with Workload Identity Federation (Firebase App Hosting / Cloud Functions)
-  // Uses Application Default Credentials (ADC) - no service account keys needed
-  console.log("🔧 Initializing Firebase Admin SDK with Application Default Credentials (Workload Identity)");
   return admin.initializeApp({
     credential: admin.credential.applicationDefault(),
+    projectId: projectId,
   });
 }
 

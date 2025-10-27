@@ -3,17 +3,23 @@ import * as logger from "firebase-functions/logger";
 import { defineSecret } from "firebase-functions/params";
 import { BLOG_GENERATION_PROMPT } from "../utils/prompts";
 
-// Define API key as secret parameter (for production) or use env variable (for local dev)
-const geminiApiKeySecret = defineSecret("GEMINI_API_KEY");
+// Define API key as secret parameter ONLY in production
+// In emulator, we use process.env directly to avoid secret definition issues
+const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+const geminiApiKeySecret = isEmulator ? null : defineSecret("GEMINI_API_KEY");
 
 function getApiKey(): string {
-  // Try to get from environment first (local development)
-  if (process.env.GEMINI_API_KEY) {
-    return process.env.GEMINI_API_KEY;
+  // In emulator or local development: use environment variable
+  if (isEmulator || process.env.GEMINI_API_KEY) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) {
+      throw new Error("GEMINI_API_KEY not set in environment");
+    }
+    return key;
   }
 
-  // In production, use the secret
-  if (geminiApiKeySecret.value()) {
+  // In production: use Secret Manager
+  if (geminiApiKeySecret && geminiApiKeySecret.value()) {
     return geminiApiKeySecret.value();
   }
 

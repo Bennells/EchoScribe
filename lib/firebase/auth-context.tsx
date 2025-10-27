@@ -52,16 +52,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const handleSignUp = async (email: string, password: string) => {
+    console.log("[AuthContext] Starting sign up process", { email });
     const userCredential = await signUp(email, password);
+    console.log("[AuthContext] User created in Firebase Auth", { uid: userCredential.user.uid });
+
     // Create user document in Firestore after successful registration
-    await createUserDocument(userCredential.user.uid, email);
+    try {
+      await createUserDocument(userCredential.user.uid, email);
+      console.log("[AuthContext] User document created in Firestore");
+    } catch (error: any) {
+      console.error("[AuthContext] Failed to create user document:", error);
+      // Don't fail the signup if user document creation fails
+      // The user can still authenticate, but may need to recreate the document
+      throw new Error("Benutzer erstellt, aber Fehler beim Speichern der Benutzerdaten: " + error.message);
+    }
+
     // Get the ID token and store it in httpOnly cookie
     const token = await userCredential.user.getIdToken();
+    console.log("[AuthContext] Setting auth token cookie...");
     await fetch("/api/auth/set-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token }),
     });
+    console.log("[AuthContext] Sign up process completed successfully");
   };
 
   const handleSignOut = async () => {

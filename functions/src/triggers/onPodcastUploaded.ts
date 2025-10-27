@@ -3,7 +3,6 @@ import { getFunctions } from "firebase-admin/functions";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
-import { processPodcast } from "./processPodcast";
 import { captureException } from "../lib/sentry";
 
 // Initialize Firebase Admin (only once)
@@ -13,38 +12,48 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
+// Listen to ALL Storage events in the default bucket
+// Firebase will automatically use the correct bucket based on the project
 export const onPodcastUploaded = onObjectFinalized(
   {
     region: "europe-west1",
+    // No bucket specified = listen to default project bucket
   },
   async (event) => {
     const filePath = event.data.name;
     const fileSize = parseInt(String(event.data.size || "0"));
     const contentType = event.data.contentType;
 
-    logger.info(`File uploaded: ${filePath}, size: ${fileSize}, type: ${contentType}`);
+    logger.info("=".repeat(80));
+    logger.info(`[onPodcastUploaded] TRIGGER FIRED - File uploaded: ${filePath}`);
+    logger.info(`[onPodcastUploaded] File size: ${fileSize} bytes (${(fileSize / 1024 / 1024).toFixed(2)} MB)`);
+    logger.info(`[onPodcastUploaded] Content type: ${contentType}`);
+    logger.info("=".repeat(80));
 
     // Check if it's a podcast file
     if (!filePath.startsWith("podcasts/")) {
-      logger.info("Not a podcast file, ignoring");
+      logger.info(`[onPodcastUploaded] Not a podcast file (path: ${filePath}), ignoring`);
       return;
     }
 
     try {
       // Extract userId from path: podcasts/{userId}/{timestamp}_{filename}
       const pathParts = filePath.split("/");
+      logger.info(`[onPodcastUploaded] Path parts: ${JSON.stringify(pathParts)}`);
+
       if (pathParts.length < 3) {
-        logger.error(`Invalid path format: ${filePath}`);
+        logger.error(`[onPodcastUploaded] Invalid path format: ${filePath}`);
         return;
       }
 
       const userId = pathParts[1];
       const fileName = pathParts[2].replace(/^\d+_/, ""); // Remove timestamp prefix
 
-      logger.info(`Creating podcast document for user: ${userId}`);
+      logger.info(`[onPodcastUploaded] Extracted userId: ${userId}, fileName: ${fileName}`);
+      logger.info(`[onPodcastUploaded] Creating podcast document in Firestore...`);
 
       // Create podcast document in Firestore
-      const podcastRef = await db.collection("podcasts").add({
+      const podcastData = {
         userId,
         fileName,
         fileSize,
@@ -53,29 +62,33 @@ export const onPodcastUploaded = onObjectFinalized(
         status: "queued",
         uploadedAt: FieldValue.serverTimestamp(),
         queuedAt: FieldValue.serverTimestamp(),
-      });
+      };
+
+      logger.info(`[onPodcastUploaded] Podcast data to write: ${JSON.stringify(podcastData)}`);
+
+      const podcastRef = await db.collection("podcasts").add(podcastData);
 
       const podcastId = podcastRef.id;
-      logger.info(`Created podcast document: ${podcastId}`);
+      logger.info(`[onPodcastUploaded] ✅ Created podcast document: ${podcastId}`);
 
-      // Check if running in emulator
-      const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+      // Enqueue Cloud Task for asynchronous processing
+      logger.info(`[onPodcastUploaded] Enqueueing processing task for podcast: ${podcastId}`);
+      await enqueueProcessingTask(podcastId, filePath, userId);
 
-      if (isEmulator) {
-        // In emulator: process directly (Cloud Tasks don't work in emulator)
-        logger.info(`[EMULATOR] Processing podcast directly: ${podcastId}`);
-        // Process asynchronously without blocking the upload response
-        processPodcast(podcastId, filePath).catch((error) => {
-          logger.error(`[EMULATOR] Failed to process podcast ${podcastId}:`, error);
-        });
-        logger.info(`[EMULATOR] Processing started in background for: ${podcastId}`);
-      } else {
-        // In production: enqueue Cloud Task for better scalability
-        await enqueueProcessingTask(podcastId, filePath, userId);
-      }
+      logger.info(`[onPodcastUploaded] ✅ Trigger completed successfully for: ${podcastId}`);
+      logger.info("=".repeat(80));
     } catch (error: any) {
-      logger.error("Error in onPodcastUploaded:", error);
-      
+      logger.error("=".repeat(80));
+      logger.error(`[onPodcastUploaded] ❌ ERROR in onPodcastUploaded:`, {
+        errorMessage: error.message,
+        errorCode: error.code,
+        errorStack: error.stack,
+        filePath,
+        fileSize,
+        contentType,
+      });
+      logger.error("=".repeat(80));
+
       // Report to Sentry
       captureException(error, {
         functionName: "onPodcastUploaded",
