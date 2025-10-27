@@ -37,38 +37,38 @@ cd ..
 
 ### 2. Environment Variables
 
-Die `.env.local` Datei ist bereits konfiguriert für lokale Entwicklung mit Firebase Emulator.
+Die `.env.local` Datei ist bereits konfiguriert für lokale Entwicklung mit dem echten Firebase Backend (echoscribe-test).
 
-**Für Production später:** Aktualisieren Sie die Firebase Config und fügen Sie echte Stripe Keys hinzu.
+**Für Production:** Die `.env.production` Datei enthält Platzhalter für das Production Firebase Backend (echoscribe-prod).
 
-### 3. Development starten
+### 3. Firebase Backends
 
-**Option A: Separate Terminals**
+Die App nutzt **2 Firebase Backends**:
 
-Terminal 1 - Next.js Dev Server:
+1. **echoscribe-test** - für Entwicklung und Testing
+   - Localhost Development (`.env.local`)
+   - Firebase App Hosting DEV/TEST (via `apphosting.yaml`)
+
+2. **echoscribe-prod** - für Production
+   - Firebase App Hosting Production
+
+### 4. Development starten
+
 ```bash
 npm run dev
 ```
 
-Terminal 2 - Firebase Emulator:
-```bash
-npm run emulators
-```
+Die App läuft auf: **http://localhost:3000**
 
-**Option B: Parallel (mit concurrently)**
+### 5. Firebase Projekt wechseln
 
 ```bash
-npm run dev:all
+# Wechsel zu Test/Development
+npm run firebase:use:test
+
+# Wechsel zu Production
+npm run firebase:use:prod
 ```
-
-### 4. URLs
-
-- **Next.js App:** http://localhost:3000
-- **Firebase Emulator UI:** http://localhost:4000
-- **Firestore Emulator:** http://localhost:8080
-- **Auth Emulator:** http://localhost:9099
-- **Functions Emulator:** http://localhost:5001
-- **Storage Emulator:** http://localhost:9199
 
 ## 📁 Projektstruktur
 

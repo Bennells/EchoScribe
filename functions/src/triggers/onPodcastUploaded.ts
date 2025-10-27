@@ -1,9 +1,9 @@
 import { onObjectFinalized } from "firebase-functions/v2/storage";
-import { getFunctions } from "firebase-admin/functions";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import { captureException } from "../lib/sentry";
+import { processPodcast } from "./processPodcast";
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
@@ -71,9 +71,13 @@ export const onPodcastUploaded = onObjectFinalized(
       const podcastId = podcastRef.id;
       logger.info(`[onPodcastUploaded] ✅ Created podcast document: ${podcastId}`);
 
-      // Enqueue Cloud Task for asynchronous processing
-      logger.info(`[onPodcastUploaded] Enqueueing processing task for podcast: ${podcastId}`);
-      await enqueueProcessingTask(podcastId, filePath, userId);
+      // Process podcast directly (in background)
+      logger.info(`[onPodcastUploaded] Starting podcast processing for: ${podcastId}`);
+
+      // Run processing in background without waiting
+      processPodcast(podcastId, filePath).catch((error) => {
+        logger.error(`[onPodcastUploaded] Background processing failed for ${podcastId}:`, error);
+      });
 
       logger.info(`[onPodcastUploaded] ✅ Trigger completed successfully for: ${podcastId}`);
       logger.info("=".repeat(80));
@@ -101,62 +105,3 @@ export const onPodcastUploaded = onObjectFinalized(
     }
   }
 );
-
-/**
- * Enqueue a Cloud Task to process the podcast asynchronously
- * This returns immediately, allowing the function to complete quickly
- */
-async function enqueueProcessingTask(podcastId: string, storagePath: string, userId?: string) {
-  try {
-    logger.info(`Enqueueing processing task for podcast: ${podcastId}`);
-
-    const queue = getFunctions().taskQueue("processPodcastTask", "europe-west1");
-
-    await queue.enqueue(
-      {
-        podcastId,
-        storagePath,
-      },
-      {
-        // Schedule the task to run immediately
-        scheduleDelaySeconds: 0,
-        // Dispatch deadline (how long the task can wait in queue before being dispatched)
-        // Max allowed: 1800 seconds (30 minutes)
-        dispatchDeadlineSeconds: 1800,
-      }
-    );
-
-    logger.info(`Successfully enqueued task for podcast: ${podcastId}`);
-  } catch (error: any) {
-    logger.error(`Error enqueueing task for ${podcastId}:`, {
-      errorMessage: error.message,
-      errorCode: error.code,
-      errorName: error.name,
-    });
-
-    // Report to Sentry
-    captureException(error, {
-      functionName: "enqueueProcessingTask",
-      userId,
-      podcastId,
-      extra: {
-        storagePath,
-        errorCode: error.code,
-      },
-    });
-
-    // Update podcast status to error if we can't even enqueue
-    try {
-      await db.collection("podcasts").doc(podcastId).update({
-        status: "error",
-        errorMessage: "Failed to enqueue processing task: " + error.message,
-        errorAt: FieldValue.serverTimestamp(),
-      });
-    } catch (updateError: any) {
-      logger.error(`Failed to update error status for ${podcastId}:`, updateError);
-    }
-
-    // Rethrow to indicate failure
-    throw error;
-  }
-}

@@ -59,7 +59,21 @@
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" auth login)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets create FIREBASE_CLIENT_CONFIG --data-file=\"d:\\Projects\\EchoScribe\\temp-firebase-config.json\" --project=echoscribe-test)",
       "Bash(del \"d:\\Projects\\EchoScribe\\temp-firebase-config.json\")",
-      "Bash(dir /b \"d:\\Projects\\EchoScribe\\.env*\")"
+      "Bash(dir /b \"d:\\Projects\\EchoScribe\\.env*\")",
+      "Bash(firebase functions:list:*)",
+      "Bash(firebase functions:log:*)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-test --member=\"serviceAccount:436441931185-compute@developer.gserviceaccount.com\" --role=\"roles/datastore.user\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets add-iam-policy-binding GEMINI_API_KEY --member=\"serviceAccount:436441931185-compute@developer.gserviceaccount.com\" --role=\"roles/secretmanager.secretAccessor\" --project=echoscribe-test)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services describe processpodcasttask --region=europe-west1 --project=echoscribe-test --format=\"json\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions access latest --secret=GEMINI_API_KEY --project=echoscribe-test)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services describe processpodcasttask --region=europe-west1 --project=echoscribe-test --format=json)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" logging read \"resource.type=cloud_function AND resource.labels.function_name=onPodcastUploaded AND timestamp>=\"\"2025-10-27T08:54:00Z\"\"\" --limit=50 --format=json --project=echoscribe-test)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" services list --enabled --project=echoscribe-test)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-test --member=\"serviceAccount:436441931185-compute@developer.gserviceaccount.com\" --role=\"roles/cloudtasks.enqueuer\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-test --member=\"serviceAccount:436441931185-compute@developer.gserviceaccount.com\" --role=\"roles/cloudtasks.enqueuer\" --condition=None)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-test --member=\"serviceAccount:436441931185-compute@developer.gserviceaccount.com\" --role=\"roles/cloudtasks.taskRunner\" --condition=None)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" tasks queues list --project=echoscribe-test --location=europe-west1)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" tasks queues describe processPodcastTask --location=europe-west1 --project=echoscribe-test)"
     ],
     "deny": [],
     "ask": []

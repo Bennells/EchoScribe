@@ -2,6 +2,7 @@ import { onTaskDispatched } from "firebase-functions/v2/tasks";
 import * as logger from "firebase-functions/logger";
 import { processPodcast } from "../triggers/processPodcast";
 import { captureException } from "../lib/sentry";
+import { geminiApiKeySecret } from "../index";
 
 /**
  * Cloud Task Handler for processing podcasts
@@ -15,6 +16,8 @@ import { captureException } from "../lib/sentry";
  */
 export const processPodcastTask = onTaskDispatched(
   {
+    // Secrets this function needs access to
+    secrets: [geminiApiKeySecret],
     // Retry configuration
     retryConfig: {
       maxAttempts: 5, // Try up to 5 times

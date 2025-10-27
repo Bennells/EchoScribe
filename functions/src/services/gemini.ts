@@ -1,29 +1,20 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as logger from "firebase-functions/logger";
-import { defineSecret } from "firebase-functions/params";
 import { BLOG_GENERATION_PROMPT } from "../utils/prompts";
 
-// Define API key as secret parameter ONLY in production
-// In emulator, we use process.env directly to avoid secret definition issues
-const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
-const geminiApiKeySecret = isEmulator ? null : defineSecret("GEMINI_API_KEY");
-
 function getApiKey(): string {
-  // In emulator or local development: use environment variable
-  if (isEmulator || process.env.GEMINI_API_KEY) {
-    const key = process.env.GEMINI_API_KEY;
-    if (!key) {
-      throw new Error("GEMINI_API_KEY not set in environment");
-    }
-    return key;
+  // Firebase mounts secrets as environment variables in Cloud Run
+  // So we can just use process.env for both deployed and local
+
+  if (process.env.GEMINI_API_KEY) {
+    const source = process.env.NODE_ENV === 'production'
+      ? 'Secret Manager (via environment variable)'
+      : 'local .env.local file';
+    logger.info(`Using GEMINI_API_KEY from ${source}`);
+    return process.env.GEMINI_API_KEY;
   }
 
-  // In production: use Secret Manager
-  if (geminiApiKeySecret && geminiApiKeySecret.value()) {
-    return geminiApiKeySecret.value();
-  }
-
-  throw new Error("GEMINI_API_KEY not configured");
+  throw new Error("GEMINI_API_KEY not configured - please set up Secret Manager or .env.local");
 }
 
 let genAI: GoogleGenerativeAI;
@@ -41,18 +32,31 @@ export interface BlogArticle {
 
 export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogArticle> {
   try {
+    logger.info("=".repeat(80));
+    logger.info("[Gemini] Starting audio processing with Gemini");
+
     // Initialize genAI if not already done
     if (!genAI) {
-      const apiKey = getApiKey();
-      genAI = new GoogleGenerativeAI(apiKey);
-      logger.info("Initialized Gemini API client");
+      logger.info("[Gemini] Initializing Gemini API client...");
+      try {
+        const apiKey = getApiKey();
+        genAI = new GoogleGenerativeAI(apiKey);
+        logger.info("[Gemini] ✅ Gemini API client initialized successfully");
+      } catch (error: any) {
+        logger.error("[Gemini] ❌ Failed to initialize Gemini API client:", {
+          error: error.message,
+          stack: error.stack,
+        });
+        throw error;
+      }
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
-    logger.info("Sending audio to Gemini API...", {
+    logger.info("[Gemini] Sending audio to Gemini API...", {
       audioSize: audioBuffer.length,
       audioSizeMB: (audioBuffer.length / 1024 / 1024).toFixed(2),
+      model: "gemini-2.0-flash-exp",
     });
 
     // Send audio directly to Gemini
@@ -69,8 +73,9 @@ export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogA
     const response = result.response;
     const text = response.text();
 
-    logger.info("Received response from Gemini", {
+    logger.info("[Gemini] ✅ Received response from Gemini", {
       responseLength: text.length,
+      responseLengthKB: (text.length / 1024).toFixed(2),
     });
 
     // Parse JSON response
@@ -94,14 +99,22 @@ export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogA
       throw new Error("Missing required fields in Gemini response");
     }
 
-    logger.info("Successfully parsed article:", {
+    logger.info("[Gemini] ✅ Successfully parsed article:", {
       title: article.title,
       wordCount: article.markdown.split(/\s+/).length,
     });
+    logger.info("=".repeat(80));
 
     return article;
   } catch (error: any) {
-    logger.error("Error processing audio with Gemini:", error);
+    logger.error("=".repeat(80));
+    logger.error("[Gemini] ❌ Error processing audio with Gemini:", {
+      errorMessage: error.message,
+      errorName: error.name,
+      errorCode: error.code,
+      errorStack: error.stack,
+    });
+    logger.error("=".repeat(80));
     throw error;
   }
 }

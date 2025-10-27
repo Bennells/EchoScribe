@@ -19,20 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the token and get user info
-    // In emulator mode, skip verification as emulator tokens don't have "kid" claim
-    const isEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true";
-    let decodedToken: { uid: string };
-
-    if (isEmulator) {
-      // Decode without verification for emulator
-      const base64Payload = token.split(".")[1];
-      const payload = Buffer.from(base64Payload, "base64").toString();
-      decodedToken = JSON.parse(payload);
-    } else {
-      // Verify token in production
-      decodedToken = await adminAuth.verifyIdToken(token);
-    }
-
+    const decodedToken = await adminAuth.verifyIdToken(token);
     const userId = decodedToken.uid;
 
     // Get user's Stripe customer ID from Firestore

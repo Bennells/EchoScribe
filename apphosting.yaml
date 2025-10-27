@@ -111,12 +111,3 @@ env:
     secret: GEMINI_API_KEY
     availability:
       - RUNTIME
-
-  # ==========================================
-  # Environment Flag
-  # ==========================================
-  - variable: NEXT_PUBLIC_USE_FIREBASE_EMULATOR
-    value: "false"
-    availability:
-      - BUILD
-      - RUNTIME
