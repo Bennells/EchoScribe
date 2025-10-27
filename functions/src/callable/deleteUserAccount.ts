@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 import Stripe from "stripe";
 import { captureException, setUser, clearUser } from "../lib/sentry";
+import { config } from "../config/environment";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2023-10-16",
@@ -10,7 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
 
 export const deleteUserAccount = onCall(
   {
-    region: "europe-west1",
+    region: config.region, // ✅ Automatisch: TEST=europe-west1, PROD=europe-west3
   },
   async (request) => {
     // Check authentication
