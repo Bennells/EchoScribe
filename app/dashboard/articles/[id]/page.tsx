@@ -201,7 +201,7 @@ export default function ArticleDetailPage() {
                   HTML kopieren
                 </Button>
                 <div
-                  className="prose prose-sm max-w-none p-6 border rounded-lg"
+                  className="prose prose-sm max-w-full p-6 border rounded-lg overflow-x-auto"
                   dangerouslySetInnerHTML={{ __html: article.contentHTML }}
                 />
               </div>
@@ -220,8 +220,8 @@ export default function ArticleDetailPage() {
                   <Copy className="h-4 w-4 mr-2" />
                   Kopieren
                 </Button>
-                <pre className="p-6 bg-muted rounded-lg overflow-x-auto text-sm">
-                  <code>{article.contentMarkdown}</code>
+                <pre className="p-6 bg-muted rounded-lg overflow-x-auto text-sm whitespace-pre-wrap break-words">
+                  <code className="break-words">{article.contentMarkdown}</code>
                 </pre>
               </div>
             </TabsContent>
@@ -239,8 +239,8 @@ export default function ArticleDetailPage() {
                   <Copy className="h-4 w-4 mr-2" />
                   Kopieren
                 </Button>
-                <pre className="p-6 bg-muted rounded-lg overflow-x-auto text-sm">
-                  <code>{article.contentHTML}</code>
+                <pre className="p-6 bg-muted rounded-lg overflow-x-auto text-sm whitespace-pre-wrap break-words">
+                  <code className="break-words">{article.contentHTML}</code>
                 </pre>
               </div>
             </TabsContent>

@@ -3,10 +3,15 @@ import * as logger from "firebase-functions/logger";
 import { processPodcast } from "../triggers/processPodcast";
 import { captureException } from "../lib/sentry";
 import { geminiApiKeySecret } from "../index";
+import { config } from "../config/environment";
 
 /**
  * Cloud Task Handler for processing podcasts
  * This runs asynchronously and can take as long as needed
+ *
+ * Region wird automatisch angepasst:
+ * - TEST: europe-west1 (Multi-Region EU)
+ * - PROD: europe-west3 (Deutschland)
  *
  * Benefits:
  * - No timeout issues (can run for hours if needed)
@@ -32,7 +37,7 @@ export const processPodcastTask = onTaskDispatched(
     // Memory and timeout
     memory: "1GiB", // More memory for large audio files
     timeoutSeconds: 3600, // 1 hour max (plenty of time for Gemini)
-    region: "europe-west1",
+    region: config.region, // ✅ Automatisch: TEST=europe-west1, PROD=europe-west3
   },
   async (request) => {
     const { podcastId, storagePath } = request.data;

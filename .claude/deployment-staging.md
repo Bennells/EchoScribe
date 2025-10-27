@@ -1,8 +1,9 @@
-# EchoScribe Project Context
+# EchoScribe - Deployment & Environments
 
 ## Environment Setup
 
 ### Current Environments
+
 1. **Local Development** (`npm run dev`)
    - Uses `.env.local` for configuration
    - Next.js runs locally on development server
@@ -61,36 +62,42 @@ Firebase Project: echoscribe-test
 
 ## Development Workflow
 
-1. **Local Development:**
-   ```bash
-   npm run dev
-   # Connects to echoscribe-test backend
-   ```
+### 1. Local Development
 
-2. **Deploy Functions:**
-   ```bash
-   firebase use test
-   firebase deploy --only functions
-   ```
+```bash
+npm run dev
+# Connects to echoscribe-test backend
+```
 
-3. **Deploy App to App Hosting:**
-   - Push to GitHub
-   - Automatic deployment via App Hosting
-   - Or manual: `firebase apphosting:rollouts:create`
+### 2. Deploy Functions
+
+```bash
+firebase use test
+firebase deploy --only functions
+```
+
+### 3. Deploy App to App Hosting
+
+- **Automatic:** Push to GitHub (auto-deploys via App Hosting)
+- **Manual:** `firebase apphosting:rollouts:create`
 
 ## Critical Dependencies
 
-- **firebase-admin SDK:** MUST NOT be removed (required for server-side operations)
-  - Stripe Webhook handler
-  - Token verification with Workload Identity
-  - Server Actions in production
+### firebase-admin SDK
 
-## Current Issues & Solutions
+**MUST NOT be removed** - Required for server-side operations:
+- Stripe Webhook handler
+- Token verification with Workload Identity
+- Server Actions in production environment
 
-### Issue: GEMINI_API_KEY not accessible by Cloud Functions
-- **Cause:** Secret Manager permissions not set for Cloud Functions service account
-- **Solution:** Grant Secret Manager access to service account
+## Known Issues & Solutions
 
 ### Issue: Emulator references in code
 - **Cause:** Legacy emulator code still present
 - **Solution:** Remove all emulator-related code and checks
+- **Status:** Ongoing cleanup
+
+---
+
+**Related Documentation:**
+- [Cloud Functions Architecture](./cloud-functions.md) - Detailed Cloud Functions implementation

@@ -73,7 +73,20 @@
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-test --member=\"serviceAccount:436441931185-compute@developer.gserviceaccount.com\" --role=\"roles/cloudtasks.enqueuer\" --condition=None)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-test --member=\"serviceAccount:436441931185-compute@developer.gserviceaccount.com\" --role=\"roles/cloudtasks.taskRunner\" --condition=None)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" tasks queues list --project=echoscribe-test --location=europe-west1)",
-      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" tasks queues describe processPodcastTask --location=europe-west1 --project=echoscribe-test)"
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" tasks queues describe processPodcastTask --location=europe-west1 --project=echoscribe-test)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" logging read \"resource.type=cloud_function AND resource.labels.function_name=onPodcastUploaded AND severity>=ERROR AND timestamp>=\"\"2025-10-27T09:28:00Z\"\"\" --limit=50 --format=json --project=echoscribe-test)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services describe onpodcastuploaded --region=europe-west1 --project=echoscribe-test --format=json)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects get-iam-policy echoscribe-test --flatten=\"bindings[].members\" --filter=\"bindings.members:436441931185-compute@developer.gserviceaccount.com\" --format=\"table(bindings.role)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" tasks queues describe processPodcastTask --location=europe-west1 --project=echoscribe-test --format=\"value(name)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" functions describe processPodcastTask --region=europe-west1 --gen2 --project=echoscribe-test --format=json)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services describe processpodcasttask --region=europe-west1 --project=echoscribe-test --format=\"value(status.url)\")",
+      "Bash(del \"d:\\Projects\\EchoScribe\\.claude\\project-context.md\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" firestore databases describe --database=\"(default)\" --project=echoscribe-test --format=\"value(locationId)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" functions list --project=echoscribe-test --format=\"table(name,region)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" app describe --project=echoscribe-test --format=\"value(locationId)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" functions describe processPodcastTask --gen2 --project=echoscribe-test --format=\"value(serviceConfig.service)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services list --project=echoscribe-test --format=\"table(metadata.name,metadata.labels.goog-drz-cloudfunctions-location)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" firestore databases describe --database=\"(default)\" --project=echoscribe-test --format=\"get(locationId)\")"
     ],
     "deny": [],
     "ask": []

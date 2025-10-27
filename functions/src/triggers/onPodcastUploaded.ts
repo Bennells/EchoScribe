@@ -3,7 +3,8 @@ import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import { captureException } from "../lib/sentry";
-import { processPodcast } from "./processPodcast";
+import { enqueuePodcastProcessing } from "../lib/taskQueue";
+import { config } from "../config/environment";
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
@@ -14,9 +15,10 @@ const db = admin.firestore();
 
 // Listen to ALL Storage events in the default bucket
 // Firebase will automatically use the correct bucket based on the project
+// Region wird automatisch angepasst: TEST=europe-west1, PROD=europe-west3
 export const onPodcastUploaded = onObjectFinalized(
   {
-    region: "europe-west1",
+    region: config.region, // ✅ Automatisch: TEST=europe-west1, PROD=europe-west3
     // No bucket specified = listen to default project bucket
   },
   async (event) => {
@@ -71,13 +73,24 @@ export const onPodcastUploaded = onObjectFinalized(
       const podcastId = podcastRef.id;
       logger.info(`[onPodcastUploaded] ✅ Created podcast document: ${podcastId}`);
 
-      // Process podcast directly (in background)
-      logger.info(`[onPodcastUploaded] Starting podcast processing for: ${podcastId}`);
+      // Enqueue processing task (handles long-running Gemini API call)
+      logger.info(`[onPodcastUploaded] Enqueueing processing task for: ${podcastId}`);
 
-      // Run processing in background without waiting
-      processPodcast(podcastId, filePath).catch((error) => {
-        logger.error(`[onPodcastUploaded] Background processing failed for ${podcastId}:`, error);
-      });
+      try {
+        await enqueuePodcastProcessing(podcastId, filePath);
+        logger.info(`[onPodcastUploaded] ✅ Task enqueued successfully`);
+      } catch (enqueueError: any) {
+        logger.error(`[onPodcastUploaded] ❌ Failed to enqueue task:`, enqueueError);
+
+        // Update podcast status to error since we couldn't enqueue
+        await db.collection("podcasts").doc(podcastId).update({
+          status: "error",
+          errorMessage: `Failed to enqueue processing task: ${enqueueError.message}`,
+          errorAt: FieldValue.serverTimestamp(),
+        });
+
+        throw enqueueError;
+      }
 
       logger.info(`[onPodcastUploaded] ✅ Trigger completed successfully for: ${podcastId}`);
       logger.info("=".repeat(80));
