@@ -86,7 +86,8 @@
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" app describe --project=echoscribe-test --format=\"value(locationId)\")",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" functions describe processPodcastTask --gen2 --project=echoscribe-test --format=\"value(serviceConfig.service)\")",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services list --project=echoscribe-test --format=\"table(metadata.name,metadata.labels.goog-drz-cloudfunctions-location)\")",
-      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" firestore databases describe --database=\"(default)\" --project=echoscribe-test --format=\"get(locationId)\")"
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" firestore databases describe --database=\"(default)\" --project=echoscribe-test --format=\"get(locationId)\")",
+      "Bash(del \"d:\\Projects\\EchoScribe\\middleware.ts\")"
     ],
     "deny": [],
     "ask": []
