@@ -23,6 +23,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
     "@sentry/nextjs": "^10.22.0",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "firebase": "^10.12.0",
@@ -32,6 +33,7 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-hot-toast": "^2.4.1",
+    "react-syntax-highlighter": "^16.0.0",
     "stripe": "^14.25.0",
     "tailwind-merge": "^3.3.1",
     "zod": "^3.23.0"

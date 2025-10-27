@@ -11,6 +11,8 @@ import { ArrowLeft, Copy, Code, Eye, Tag, Calendar } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import type { Article } from "@/types/article";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export default function ArticleDetailPage() {
   const params = useParams();
@@ -201,7 +203,7 @@ export default function ArticleDetailPage() {
                   HTML kopieren
                 </Button>
                 <div
-                  className="prose prose-sm max-w-full p-6 border rounded-lg overflow-x-auto"
+                  className="prose prose-base max-w-full p-6 border rounded-lg overflow-x-auto prose-headings:font-bold prose-h1:text-3xl prose-h1:mb-4 prose-h2:text-2xl prose-h2:mb-3 prose-h3:text-xl prose-h3:mb-2 prose-p:mb-4 prose-p:leading-relaxed prose-ul:my-4 prose-ol:my-4 prose-li:mb-2"
                   dangerouslySetInnerHTML={{ __html: article.contentHTML }}
                 />
               </div>
@@ -239,9 +241,23 @@ export default function ArticleDetailPage() {
                   <Copy className="h-4 w-4 mr-2" />
                   Kopieren
                 </Button>
-                <pre className="p-6 bg-muted rounded-lg overflow-x-auto text-sm whitespace-pre-wrap break-words">
-                  <code className="break-words">{article.contentHTML}</code>
-                </pre>
+                <div className="rounded-lg overflow-hidden border max-w-full">
+                  <SyntaxHighlighter
+                    language="html"
+                    style={vscDarkPlus}
+                    showLineNumbers={true}
+                    wrapLines={true}
+                    wrapLongLines={true}
+                    customStyle={{
+                      margin: 0,
+                      borderRadius: 0,
+                      maxWidth: '100%',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    {article.contentHTML}
+                  </SyntaxHighlighter>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
