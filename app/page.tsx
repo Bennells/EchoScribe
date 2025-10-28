@@ -1,60 +1,94 @@
 import Link from "next/link";
 import { CookieBanner } from "@/components/features/cookie-banner";
+import {
+  Navigation,
+  HeroSection,
+  HowItWorks,
+  FeaturesGrid,
+  PricingTeaser,
+  FaqSection,
+  FinalCta,
+} from "@/components/features/landing";
 
 export default function Home() {
   return (
     <>
-      <main className="flex min-h-screen flex-col">
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="max-w-2xl text-center space-y-8">
-            <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-              EchoScribe
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              Wandeln Sie Podcasts automatisch in SEO-optimierte Blog-Artikel um
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center rounded-md bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
-              >
-                Jetzt starten
-              </Link>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-8 py-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                Preise ansehen
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-8 py-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                Anmelden
-              </Link>
-            </div>
-          </div>
-        </div>
+      <div className="flex min-h-screen flex-col">
+        {/* Sticky Navigation */}
+        <Navigation />
+
+        {/* Main Content */}
+        <main className="flex-1">
+          {/* Hero Section */}
+          <HeroSection />
+
+          {/* How It Works Section */}
+          <HowItWorks />
+
+          {/* Features Grid Section */}
+          <FeaturesGrid />
+
+          {/* Pricing Teaser Section */}
+          <PricingTeaser />
+
+          {/* FAQ Section */}
+          <FaqSection />
+
+          {/* Final CTA Section */}
+          <FinalCta />
+        </main>
 
         {/* Footer */}
-        <footer className="border-t py-6 px-8">
-          <div className="container mx-auto flex flex-col gap-4 md:flex-row md:justify-between md:items-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} EchoScribe. Alle Rechte vorbehalten.</p>
-            <div className="flex gap-6">
-              <Link href="/privacy" className="hover:text-primary transition-colors">
-                Datenschutz
-              </Link>
-              <Link href="/terms" className="hover:text-primary transition-colors">
-                AGB
-              </Link>
-              <Link href="/imprint" className="hover:text-primary transition-colors">
-                Impressum
-              </Link>
+        <footer className="border-t py-8 px-4 bg-muted/30">
+          <div className="container mx-auto max-w-7xl">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              {/* Logo & Copyright */}
+              <div className="flex flex-col items-center md:items-start gap-3">
+                <Link
+                  href="/"
+                  className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent"
+                >
+                  EchoScribe
+                </Link>
+                <p className="text-sm text-muted-foreground">
+                  &copy; {new Date().getFullYear()} EchoScribe. Alle Rechte
+                  vorbehalten.
+                </p>
+              </div>
+
+              {/* Links */}
+              <div className="flex flex-wrap justify-center gap-6 text-sm">
+                <Link
+                  href="/privacy"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Datenschutz
+                </Link>
+                <Link
+                  href="/terms"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  AGB
+                </Link>
+                <Link
+                  href="/imprint"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Impressum
+                </Link>
+                <a
+                  href="mailto:support@echoscribe.com"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Kontakt
+                </a>
+              </div>
             </div>
           </div>
         </footer>
-      </main>
+      </div>
 
+      {/* Cookie Banner */}
       <CookieBanner />
     </>
   );
