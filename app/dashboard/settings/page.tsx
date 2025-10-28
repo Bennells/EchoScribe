@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { getQuotaInfo } from "@/lib/firebase/quota";
 import toast from "react-hot-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Database } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/features/delete-account-dialog";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { useRouter } from "next/navigation";
@@ -142,6 +142,27 @@ export default function SettingsPage() {
               </p>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Datenschutz & DSGVO</CardTitle>
+          <CardDescription>
+            Einsicht und Export Ihrer gespeicherten Daten
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            Gemäß DSGVO Art. 15 haben Sie das Recht auf Auskunft über alle Ihre
+            gespeicherten Daten. Sie können Ihre Daten jederzeit einsehen und exportieren.
+          </p>
+          <Button variant="outline" asChild>
+            <a href="/dashboard/settings/my-data">
+              <Database className="mr-2 h-4 w-4" />
+              Meine Daten anzeigen
+            </a>
+          </Button>
         </CardContent>
       </Card>
 

@@ -46,18 +46,72 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">5. Ihre Rechte</h2>
-          <p>Sie haben folgende Rechte:</p>
-          <ul className="list-disc pl-6 space-y-2">
-            <li>Auskunft über Ihre gespeicherten Daten</li>
-            <li>Berichtigung unrichtiger Daten</li>
-            <li>Löschung Ihrer Daten</li>
-            <li>Einschränkung der Verarbeitung</li>
-            <li>Datenübertragbarkeit</li>
-            <li>Widerspruch gegen die Verarbeitung</li>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">5. Ihre Rechte nach DSGVO</h2>
+          <p>
+            Gemäß der Datenschutz-Grundverordnung (DSGVO) haben Sie umfassende Rechte bezüglich
+            Ihrer personenbezogenen Daten:
+          </p>
+
+          <h3 className="text-xl font-semibold mt-6 mb-3">Recht auf Auskunft (Art. 15 DSGVO)</h3>
+          <p>
+            Sie haben das Recht, jederzeit Auskunft über alle Ihre bei uns gespeicherten
+            personenbezogenen Daten zu erhalten. Dies umfasst:
+          </p>
+          <ul className="list-disc pl-6 space-y-2 mt-2">
+            <li>Welche Daten wir über Sie speichern</li>
+            <li>Zu welchem Zweck diese Daten verarbeitet werden</li>
+            <li>An wen Ihre Daten weitergegeben werden</li>
+            <li>Wie lange Ihre Daten gespeichert werden</li>
           </ul>
           <p className="mt-4">
-            Zur Ausübung Ihrer Rechte oder bei Fragen zum Datenschutz kontaktieren Sie uns bitte.
+            <strong>So nutzen Sie Ihr Auskunftsrecht:</strong> Als registrierter Nutzer können Sie
+            jederzeit in Ihren{" "}
+            <Link href="/dashboard/settings/my-data" className="underline text-primary hover:text-primary/80">
+              Kontoeinstellungen unter "Meine Daten"
+            </Link>{" "}
+            eine vollständige Übersicht aller gespeicherten Daten einsehen.
+          </p>
+
+          <h3 className="text-xl font-semibold mt-6 mb-3">Recht auf Datenportabilität (Art. 20 DSGVO)</h3>
+          <p>
+            Sie haben das Recht, Ihre Daten in einem strukturierten, gängigen und maschinenlesbaren
+            Format zu erhalten. Dies ermöglicht Ihnen, Ihre Daten zu einem anderen Anbieter zu
+            übertragen.
+          </p>
+          <p className="mt-2">
+            <strong>So exportieren Sie Ihre Daten:</strong> Nutzen Sie die Export-Funktion auf der{" "}
+            <Link href="/dashboard/settings/my-data" className="underline text-primary hover:text-primary/80">
+              "Meine Daten"
+            </Link>{" "}
+            Seite, um alle Ihre Daten als JSON-Datei herunterzuladen.
+          </p>
+
+          <h3 className="text-xl font-semibold mt-6 mb-3">Recht auf Löschung (Art. 17 DSGVO)</h3>
+          <p>
+            Sie haben das Recht, die Löschung Ihrer personenbezogenen Daten zu verlangen
+            ("Recht auf Vergessenwerden"). Nach der Löschung werden alle Ihre Daten innerhalb
+            von 30 Tagen vollständig entfernt.
+          </p>
+          <p className="mt-2">
+            <strong>So löschen Sie Ihr Konto:</strong> In den{" "}
+            <Link href="/dashboard/settings" className="underline text-primary hover:text-primary/80">
+              Einstellungen
+            </Link>{" "}
+            finden Sie die Option zur Kontolöschung.
+          </p>
+
+          <h3 className="text-xl font-semibold mt-6 mb-3">Weitere Rechte</h3>
+          <ul className="list-disc pl-6 space-y-2">
+            <li><strong>Recht auf Berichtigung (Art. 16 DSGVO):</strong> Korrektur unrichtiger Daten</li>
+            <li><strong>Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO):</strong> Temporäre Einschränkung</li>
+            <li><strong>Recht auf Widerspruch (Art. 21 DSGVO):</strong> Widerspruch gegen Datenverarbeitung</li>
+            <li><strong>Beschwerderecht:</strong> Beschwerde bei der zuständigen Datenschutzaufsichtsbehörde</li>
+          </ul>
+
+          <p className="mt-4 p-4 bg-muted rounded-lg">
+            <strong>Kontakt für Datenschutzanfragen:</strong><br />
+            Für die Ausübung weiterer Rechte oder bei Fragen zum Datenschutz kontaktieren Sie uns
+            bitte unter: support@echoscribe.de
           </p>
         </section>
 
