@@ -4,11 +4,11 @@ import Stripe from "stripe";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
   apiVersion: "2023-10-16",
 });
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const webhookSecret = (process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 
 export async function POST(request: NextRequest) {
   try {

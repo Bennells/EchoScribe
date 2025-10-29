@@ -5,7 +5,7 @@ import Stripe from "stripe";
 import { captureException, setUser, clearUser } from "../lib/sentry";
 import { config } from "../config/environment";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
   apiVersion: "2023-10-16",
 });
 
