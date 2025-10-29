@@ -32,7 +32,7 @@ export function HowItWorks() {
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold">
-            So einfach funktioniert's
+            So einfach funktioniert&apos;s
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Von der Audio-Datei zum fertigen Blog-Artikel in nur 3 Schritten

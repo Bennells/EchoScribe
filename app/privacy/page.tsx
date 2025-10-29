@@ -67,7 +67,7 @@ export default function PrivacyPage() {
             <strong>So nutzen Sie Ihr Auskunftsrecht:</strong> Als registrierter Nutzer können Sie
             jederzeit in Ihren{" "}
             <Link href="/dashboard/settings/my-data" className="underline text-primary hover:text-primary/80">
-              Kontoeinstellungen unter "Meine Daten"
+              Kontoeinstellungen unter &quot;Meine Daten&quot;
             </Link>{" "}
             eine vollständige Übersicht aller gespeicherten Daten einsehen.
           </p>
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
           <p className="mt-2">
             <strong>So exportieren Sie Ihre Daten:</strong> Nutzen Sie die Export-Funktion auf der{" "}
             <Link href="/dashboard/settings/my-data" className="underline text-primary hover:text-primary/80">
-              "Meine Daten"
+              &quot;Meine Daten&quot;
             </Link>{" "}
             Seite, um alle Ihre Daten als JSON-Datei herunterzuladen.
           </p>
@@ -89,7 +89,7 @@ export default function PrivacyPage() {
           <h3 className="text-xl font-semibold mt-6 mb-3">Recht auf Löschung (Art. 17 DSGVO)</h3>
           <p>
             Sie haben das Recht, die Löschung Ihrer personenbezogenen Daten zu verlangen
-            ("Recht auf Vergessenwerden"). Nach der Löschung werden alle Ihre Daten innerhalb
+            (&quot;Recht auf Vergessenwerden&quot;). Nach der Löschung werden alle Ihre Daten innerhalb
             von 30 Tagen vollständig entfernt.
           </p>
           <p className="mt-2">
