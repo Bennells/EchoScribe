@@ -94,7 +94,11 @@
       "Bash(git log:*)",
       "Bash(node:*)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions add STRIPE_SECRET_KEY --data-file=- --project=echoscribe-test)",
-      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions access latest --secret=STRIPE_WEBHOOK_SECRET --project=echoscribe-test)"
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions access latest --secret=STRIPE_WEBHOOK_SECRET --project=echoscribe-test)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets list --project=echoscribe-test --filter=\"name:STRIPE_PRICE\" --format=\"value(name)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions add STRIPE_PRICE_ID_STARTER_MONTHLY --data-file=- --project=echoscribe-test)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions add STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY --data-file=- --project=echoscribe-test)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions add STRIPE_PRICE_ID_BUSINESS_MONTHLY --data-file=- --project=echoscribe-test)"
     ],
     "deny": [],
     "ask": []
