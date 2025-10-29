@@ -38,11 +38,11 @@ export async function POST(request: NextRequest) {
 
     // Map tier to Stripe price ID
     const priceIdMap: Record<string, string | undefined> = {
-      starter: process.env.STRIPE_PRICE_ID_STARTER_MONTHLY,
-      professional: process.env.STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY,
-      business: process.env.STRIPE_PRICE_ID_BUSINESS_MONTHLY,
+      starter: process.env.STRIPE_PRICE_ID_STARTER_MONTHLY?.trim(),
+      professional: process.env.STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY?.trim(),
+      business: process.env.STRIPE_PRICE_ID_BUSINESS_MONTHLY?.trim(),
       // Legacy support for old Pro tier
-      pro: process.env.STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY || process.env.STRIPE_PRICE_ID_PRO_MONTHLY,
+      pro: process.env.STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY?.trim() || process.env.STRIPE_PRICE_ID_PRO_MONTHLY?.trim(),
     };
 
     const priceId = priceIdMap[tier];
