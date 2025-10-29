@@ -27,8 +27,6 @@ const tiers: PricingTierConfig[] = [
     description: "3 Podcasts insgesamt (Lifetime)",
     features: [
       "3 Podcast-Analysen (Lifetime)",
-      "Basis-Artikel-Generierung",
-      "Standard-Support",
     ],
     buttonText: "Aktueller Plan",
     buttonVariant: "outline",
@@ -41,8 +39,6 @@ const tiers: PricingTierConfig[] = [
     description: "15 Podcasts pro Monat",
     features: [
       "15 Podcast-Analysen pro Monat",
-      "Erweiterte Artikel-Generierung",
-      "E-Mail-Support",
       "Monatliche Quota-Zurücksetzung",
     ],
     buttonText: "Jetzt starten",
@@ -55,8 +51,6 @@ const tiers: PricingTierConfig[] = [
     description: "60 Podcasts pro Monat",
     features: [
       "60 Podcast-Analysen pro Monat",
-      "Premium-Artikel-Qualität",
-      "Prioritäts-Support",
       "Monatliche Quota-Zurücksetzung",
     ],
     popular: true,
@@ -70,8 +64,6 @@ const tiers: PricingTierConfig[] = [
     description: "150 Podcasts pro Monat",
     features: [
       "150 Podcast-Analysen pro Monat",
-      "Premium-Artikel-Qualität",
-      "Dedizierter Support",
       "Monatliche Quota-Zurücksetzung",
     ],
     buttonText: "Jetzt upgraden",

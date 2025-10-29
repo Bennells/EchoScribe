@@ -11,4 +11,6 @@ export interface Subscription {
   currentPeriodStart: Timestamp;
   currentPeriodEnd: Timestamp;
   cancelAtPeriodEnd: boolean;
+  canceledAt?: Timestamp; // When the user canceled the subscription
+  priceAmount?: number; // The price amount in EUR cents
 }

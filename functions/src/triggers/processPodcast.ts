@@ -110,9 +110,22 @@ export async function processPodcast(podcastId: string, storagePath: string) {
     // Increment user quota
     logger.info(`[processPodcast] Step 7: Incrementing user quota`);
     try {
-      await db.collection("users").doc(podcastData.userId).update({
+      // Get current user data to check tier
+      const userDoc = await db.collection("users").doc(podcastData.userId).get();
+      const userData = userDoc.data();
+      const isFree = !userData?.tier || userData?.tier === "free";
+
+      // Update quota - increment both used and freeLifetimeUsed for free tier
+      const updateData: any = {
         "quota.used": FieldValue.increment(1),
-      });
+      };
+
+      if (isFree) {
+        updateData["quota.freeLifetimeUsed"] = FieldValue.increment(1);
+        logger.info(`[processPodcast] User is on free tier, incrementing freeLifetimeUsed`);
+      }
+
+      await db.collection("users").doc(podcastData.userId).update(updateData);
       logger.info(`[processPodcast] ✅ Incremented quota for user ${podcastData.userId}`);
     } catch (quotaError: any) {
       logger.error(`[processPodcast] ⚠️ Failed to increment quota:`, quotaError);

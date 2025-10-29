@@ -122,7 +122,7 @@ export default function DashboardPricingPage() {
               <div>
                 <span className="text-sm font-medium">Quota-Nutzung: </span>
                 <span className="text-sm text-muted-foreground">
-                  {quotaInfo.used} / {isPro ? quotaInfo.total : "3"} Podcasts verwendet
+                  {quotaInfo.used} / {quotaInfo.total} Podcasts verwendet
                 </span>
               </div>
               {isPro && quotaInfo.subscriptionStatus === "active" && (

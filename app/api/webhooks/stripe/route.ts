@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import Stripe from "stripe";
 import { adminDb } from "@/lib/firebase/admin";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
   apiVersion: "2023-10-16",
@@ -155,8 +155,8 @@ async function handleCheckoutSessionCompleted(
     status: subscription.status,
     priceId: subscription.items.data[0].price.id,
     tier: tier,
-    currentPeriodStart: new Date(subscription.current_period_start * 1000),
-    currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+    currentPeriodStart: Timestamp.fromMillis(Math.floor(subscription.current_period_start * 1000)),
+    currentPeriodEnd: Timestamp.fromMillis(Math.floor(subscription.current_period_end * 1000)),
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
@@ -178,6 +178,11 @@ async function handleCheckoutSessionCompleted(
   // Update user document to reflect subscription and set quota
   console.log("Attempting to update user document in Firestore...");
   try {
+    // Get current user data to preserve freeLifetimeUsed
+    const userDoc = await adminDb.collection("users").doc(userId).get();
+    const userData = userDoc.data();
+    const freeLifetimeUsed = userData?.quota?.freeLifetimeUsed || 0;
+
     await adminDb
       .collection("users")
       .doc(userId)
@@ -186,11 +191,14 @@ async function handleCheckoutSessionCompleted(
         tier: tier,
         "quota.monthly": monthlyQuota,
         "quota.used": 0, // Reset usage when new subscription starts
-        "quota.resetAt": new Date(subscription.current_period_end * 1000),
+        "quota.freeLifetimeUsed": freeLifetimeUsed, // Preserve free tier usage history
+        "quota.resetAt": Timestamp.fromMillis(Math.floor(subscription.current_period_end * 1000)),
         updatedAt: FieldValue.serverTimestamp(),
       });
 
-    console.log("✅ User subscription status and tier updated:", userId, tier);
+    console.log(
+      `✅ User subscription status and tier updated: ${userId}, ${tier} (preserved freeLifetimeUsed: ${freeLifetimeUsed})`
+    );
   } catch (error) {
     console.error("❌ ERROR updating user in Firestore:", error);
     throw error;
@@ -307,8 +315,8 @@ async function processInvoicePayment(subscriptionId: string) {
     .doc(subscriptionId)
     .update({
       status: subscription.status,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      currentPeriodStart: Timestamp.fromMillis(Math.floor(subscription.current_period_start * 1000)),
+      currentPeriodEnd: Timestamp.fromMillis(Math.floor(subscription.current_period_end * 1000)),
       updatedAt: FieldValue.serverTimestamp(),
     });
 
@@ -324,7 +332,7 @@ async function processInvoicePayment(subscriptionId: string) {
         subscriptionStatus: subscription.status,
         tier: tier,
         "quota.monthly": monthlyQuota,
-        "quota.resetAt": new Date(subscription.current_period_end * 1000),
+        "quota.resetAt": Timestamp.fromMillis(Math.floor(subscription.current_period_end * 1000)),
         updatedAt: FieldValue.serverTimestamp(),
       });
 
@@ -351,14 +359,24 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     return; // Skip if subscription document hasn't been created yet
   }
 
-  // Update subscription document in Firestore
-  const subscriptionData = {
+  // Debug logging
+  console.log("Current period start:", subscription.current_period_start, "Type:", typeof subscription.current_period_start);
+  console.log("Current period end:", subscription.current_period_end, "Type:", typeof subscription.current_period_end);
+
+  // Update subscription document in Firestore - only include fields that exist
+  const subscriptionData: any = {
     status: subscription.status,
-    currentPeriodStart: new Date(subscription.current_period_start * 1000),
-    currentPeriodEnd: new Date(subscription.current_period_end * 1000),
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
     updatedAt: FieldValue.serverTimestamp(),
   };
+
+  // Only add timestamp fields if they exist
+  if (subscription.current_period_start) {
+    subscriptionData.currentPeriodStart = Timestamp.fromMillis(Math.floor(subscription.current_period_start * 1000));
+  }
+  if (subscription.current_period_end) {
+    subscriptionData.currentPeriodEnd = Timestamp.fromMillis(Math.floor(subscription.current_period_end * 1000));
+  }
 
   await adminDb
     .collection("subscriptions")
@@ -370,27 +388,31 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     const tier = subscriptionDoc.data()?.tier || "professional";
 
     if (userId) {
-      // Check if it's the start of a new billing period (quota reset)
-      const userDoc = await adminDb.collection("users").doc(userId).get();
-      const userData = userDoc.data();
-      const previousPeriodEnd = userData?.quota?.resetAt?.toDate();
-      const newPeriodEnd = new Date(subscription.current_period_end * 1000);
-
-      const shouldResetQuota =
-        !previousPeriodEnd ||
-        newPeriodEnd.getTime() > previousPeriodEnd.getTime();
-
       // Update user document
       const userUpdate: any = {
         subscriptionStatus: subscription.status,
-        "quota.resetAt": newPeriodEnd,
         updatedAt: FieldValue.serverTimestamp(),
       };
 
-      // Reset quota if it's a new billing period
-      if (shouldResetQuota) {
-        userUpdate["quota.used"] = 0;
-        console.log("Resetting quota for user:", userId);
+      // Only update quota reset time if current_period_end exists
+      if (subscription.current_period_end) {
+        // Check if it's the start of a new billing period (quota reset)
+        const userDoc = await adminDb.collection("users").doc(userId).get();
+        const userData = userDoc.data();
+        const previousPeriodEnd = userData?.quota?.resetAt?.toDate();
+        const newPeriodEnd = Timestamp.fromMillis(Math.floor(subscription.current_period_end * 1000));
+
+        const shouldResetQuota =
+          !previousPeriodEnd ||
+          newPeriodEnd.toMillis() > previousPeriodEnd.getTime();
+
+        userUpdate["quota.resetAt"] = newPeriodEnd;
+
+        // Reset quota if it's a new billing period
+        if (shouldResetQuota) {
+          userUpdate["quota.used"] = 0;
+          console.log("Resetting quota for user:", userId);
+        }
       }
 
       await adminDb
@@ -427,7 +449,12 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       });
 
     if (userId) {
-      // Revert user to free tier
+      // Get current user data to preserve freeLifetimeUsed
+      const userDoc = await adminDb.collection("users").doc(userId).get();
+      const userData = userDoc.data();
+      const freeLifetimeUsed = userData?.quota?.freeLifetimeUsed || 0;
+
+      // Revert user to free tier - restore original free tier usage
       await adminDb
         .collection("users")
         .doc(userId)
@@ -435,11 +462,13 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
           subscriptionStatus: "canceled",
           tier: "free",
           "quota.monthly": 3,
-          "quota.used": 0,
+          "quota.used": freeLifetimeUsed, // Restore original free tier usage
           updatedAt: FieldValue.serverTimestamp(),
         });
 
-      console.log("User subscription canceled and reverted to free tier:", userId);
+      console.log(
+        `User subscription canceled and reverted to free tier: ${userId} (freeLifetimeUsed: ${freeLifetimeUsed})`
+      );
     }
   }
 }

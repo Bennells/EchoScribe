@@ -15,6 +15,7 @@ export async function createUserDocument(userId: string, email: string): Promise
       quota: {
         monthly: 3, // Free tier: 3 podcasts total (lifetime limit, no reset)
         used: 0,
+        freeLifetimeUsed: 0, // Tracks lifetime free tier usage across subscription changes
       },
     };
 

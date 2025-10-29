@@ -14,5 +14,6 @@ export interface User {
     monthly: number;
     used: number;
     resetAt: Timestamp;
+    freeLifetimeUsed: number; // Tracks lifetime free tier usage across subscription changes
   };
 }
