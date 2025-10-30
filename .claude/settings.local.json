@@ -99,7 +99,10 @@
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions add STRIPE_PRICE_ID_STARTER_MONTHLY --data-file=- --project=echoscribe-test)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions add STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY --data-file=- --project=echoscribe-test)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions add STRIPE_PRICE_ID_BUSINESS_MONTHLY --data-file=- --project=echoscribe-test)",
-      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" auth application-default login)"
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" auth application-default login)",
+      "Bash(npm info:*)",
+      "Bash(npm view:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
