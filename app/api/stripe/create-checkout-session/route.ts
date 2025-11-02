@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminAuth } from "@/lib/firebase/admin";
+import { adminAuth, adminDb } from "@/lib/firebase/admin";
 
 const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
-  apiVersion: "2023-10-16",
+  apiVersion: "2024-11-20.acacia",
 });
 
 export async function POST(request: NextRequest) {
@@ -54,9 +54,66 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get or create Stripe Customer
+    let customerId: string;
+
+    // First, check if user already has a customerId stored in Firestore
+    const userDoc = await adminDb.collection("users").doc(userId).get();
+    const existingCustomerId = userDoc.data()?.stripeCustomerId;
+
+    if (existingCustomerId) {
+      // Verify the customer still exists in Stripe
+      try {
+        await stripe.customers.retrieve(existingCustomerId);
+        customerId = existingCustomerId;
+        console.log("Using existing Stripe customer:", customerId);
+      } catch (error) {
+        console.log("Existing customer not found in Stripe, creating new one");
+        existingCustomerId === undefined; // Will create new one below
+      }
+    }
+
+    if (!existingCustomerId) {
+      // Check if a customer with this email already exists in Stripe
+      const existingCustomers = await stripe.customers.list({
+        email: userEmail,
+        limit: 1,
+      });
+
+      if (existingCustomers.data.length > 0) {
+        customerId = existingCustomers.data[0].id;
+        console.log("Found existing Stripe customer by email:", customerId);
+      } else {
+        // Create new Stripe customer
+        const customer = await stripe.customers.create({
+          email: userEmail,
+          metadata: {
+            firebaseUID: userId,
+          },
+          preferred_locales: ["de"], // German language for emails
+        });
+        customerId = customer.id;
+        console.log("Created new Stripe customer:", customerId);
+        console.log("Customer email:", userEmail);
+        console.log("Customer locale: de (German)");
+      }
+
+      // Store customer ID in Firestore
+      await adminDb.collection("users").doc(userId).set(
+        {
+          stripeCustomerId: customerId,
+        },
+        { merge: true }
+      );
+    }
+
     // Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
-      customer_email: userEmail,
+    // IMPORTANT: Set to false for Kleinunternehmer (§ 19 UStG - no VAT)
+    // If you become VAT-registered later, change this to true
+    const enableStripeTax = false;
+
+    const sessionConfig: any = {
+      customer: customerId, // Use customer ID instead of customer_email
       payment_method_types: ["card", "sepa_debit"],
       line_items: [
         {
@@ -71,7 +128,24 @@ export async function POST(request: NextRequest) {
         userId: userId,
         tier: tier,
       },
-    });
+      subscription_data: {
+        metadata: {
+          userId: userId,
+          tier: tier,
+        },
+      },
+    };
+
+    // Only enable automatic tax and related features if enableStripeTax is true
+    // For Kleinunternehmer (§ 19 UStG): Keep enableStripeTax = false (no VAT)
+    // For regular VAT registration: Change enableStripeTax = true
+    if (enableStripeTax) {
+      sessionConfig.automatic_tax = { enabled: true };
+      sessionConfig.customer_update = { address: "auto" };
+      sessionConfig.tax_id_collection = { enabled: true };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (error: any) {

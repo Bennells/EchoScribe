@@ -5,7 +5,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
-  apiVersion: "2023-10-16",
+  apiVersion: "2024-11-20.acacia",
 });
 
 const webhookSecret = (process.env.STRIPE_WEBHOOK_SECRET || "").trim();
@@ -59,6 +59,20 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      case "invoice.created": {
+        console.log("Processing invoice.created event");
+        const invoice = event.data.object as Stripe.Invoice;
+        await handleInvoiceCreated(invoice);
+        break;
+      }
+
+      case "invoice.finalized": {
+        console.log("Processing invoice.finalized event");
+        const invoice = event.data.object as Stripe.Invoice;
+        await handleInvoiceFinalized(invoice);
+        break;
+      }
+
       case "invoice.payment_succeeded": {
         console.log("Processing invoice.payment_succeeded event");
         const invoice = event.data.object as Stripe.Invoice;
@@ -70,6 +84,13 @@ export async function POST(request: NextRequest) {
         console.log("Processing invoice.paid event");
         const invoice = event.data.object as Stripe.Invoice;
         await handleInvoicePaymentSucceeded(invoice);
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        console.log("Processing invoice.payment_failed event");
+        const invoice = event.data.object as Stripe.Invoice;
+        await handleInvoicePaymentFailed(invoice);
         break;
       }
 
@@ -266,11 +287,29 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   }
 
   console.log("Subscription ID:", subscriptionId);
-  await processInvoicePayment(subscriptionId);
+  await processInvoicePayment(subscriptionId, invoice.id);
 }
 
-async function processInvoicePayment(subscriptionId: string) {
+async function processInvoicePayment(subscriptionId: string, invoiceId?: string) {
   console.log("Processing invoice payment for subscription:", subscriptionId);
+
+  // Update invoice status to paid if invoiceId is provided
+  if (invoiceId) {
+    try {
+      await adminDb
+        .collection("invoices")
+        .doc(invoiceId)
+        .update({
+          status: "paid",
+          paidAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      console.log("✅ Invoice marked as paid:", invoiceId);
+    } catch (error) {
+      console.error("❌ ERROR updating invoice status:", error);
+      // Don't throw - continue with subscription processing
+    }
+  }
 
   // Get the subscription document to retrieve userId and tier
   const subscriptionDoc = await adminDb
@@ -470,5 +509,176 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
         `User subscription canceled and reverted to free tier: ${userId} (freeLifetimeUsed: ${freeLifetimeUsed})`
       );
     }
+  }
+}
+
+// ============================================================================
+// Invoice Event Handlers
+// ============================================================================
+
+/**
+ * Handle invoice.created event
+ * Stores invoice reference in Firestore when invoice is first created
+ */
+async function handleInvoiceCreated(invoice: Stripe.Invoice) {
+  console.log("=== INVOICE CREATED ===");
+  console.log("Invoice ID:", invoice.id);
+  console.log("Invoice number:", invoice.number);
+  console.log("Customer:", invoice.customer);
+  console.log("Amount due:", invoice.amount_due / 100, invoice.currency);
+
+  const subscriptionId = invoice.subscription as string;
+
+  if (!subscriptionId) {
+    console.log("No subscription ID in invoice, skipping storage");
+    return;
+  }
+
+  try {
+    // Get subscription to retrieve userId
+    const subscriptionDoc = await adminDb
+      .collection("subscriptions")
+      .doc(subscriptionId)
+      .get();
+    const userId = subscriptionDoc.data()?.userId;
+
+    if (!userId) {
+      console.log("⚠️ WARNING: No userId found in subscription, invoice will be stored without userId");
+    }
+
+    // Store invoice reference in Firestore
+    await adminDb
+      .collection("invoices")
+      .doc(invoice.id)
+      .set({
+        invoiceId: invoice.id,
+        invoiceNumber: invoice.number || null,
+        subscriptionId: subscriptionId,
+        customerId: invoice.customer as string,
+        userId: userId || null, // Add userId from subscription
+        amountDue: invoice.amount_due,
+        total: invoice.total || invoice.amount_due,
+        tax: invoice.tax || 0,
+        subtotal: invoice.subtotal || invoice.amount_due,
+        currency: invoice.currency,
+        status: invoice.status || "draft",
+        invoicePdf: invoice.invoice_pdf || null,
+        hostedInvoiceUrl: invoice.hosted_invoice_url || null,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+
+    console.log("✅ Invoice stored in Firestore:", invoice.id, "for user:", userId);
+
+    // Safety net: Finalize invoice if still in draft status
+    // This ensures emails are sent even if auto_advance didn't trigger
+    if (invoice.status === "draft") {
+      console.log("⚠️ Invoice is still in draft status, finalizing to trigger email...");
+      try {
+        const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id, {
+          auto_advance: true, // Automatically attempt payment
+        });
+        console.log("✅ Invoice finalized manually, email will be sent:", finalizedInvoice.id);
+      } catch (finalizeError: any) {
+        console.error("❌ ERROR finalizing invoice:", finalizeError.message);
+        // Don't throw - this is a safety net, not critical
+      }
+    } else {
+      console.log("ℹ️ Invoice already in correct status for email:", invoice.status);
+    }
+  } catch (error) {
+    console.error("❌ ERROR storing invoice in Firestore:", error);
+    throw error;
+  }
+}
+
+/**
+ * Handle invoice.finalized event
+ * Updates invoice with finalized details including tax calculations
+ */
+async function handleInvoiceFinalized(invoice: Stripe.Invoice) {
+  console.log("=== INVOICE FINALIZED ===");
+  console.log("Invoice ID:", invoice.id);
+  console.log("Invoice number:", invoice.number);
+  console.log("Total with tax:", invoice.total / 100, invoice.currency);
+  console.log("Tax amount:", invoice.tax ? invoice.tax / 100 : 0, invoice.currency);
+  console.log("Subtotal:", invoice.subtotal / 100, invoice.currency);
+
+  try {
+    // Update invoice document with finalized details
+    await adminDb
+      .collection("invoices")
+      .doc(invoice.id)
+      .update({
+        status: "finalized",
+        invoiceNumber: invoice.number || null,
+        total: invoice.total,
+        tax: invoice.tax || 0,
+        subtotal: invoice.subtotal,
+        invoicePdf: invoice.invoice_pdf || null,
+        hostedInvoiceUrl: invoice.hosted_invoice_url || null,
+        finalizedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+    console.log("✅ Invoice finalized in Firestore:", invoice.id);
+  } catch (error) {
+    console.error("❌ ERROR updating finalized invoice:", error);
+    // Don't throw - this is not critical
+  }
+}
+
+/**
+ * Handle invoice.payment_failed event
+ * Updates subscription status and notifies about payment failure
+ */
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+  console.log("=== INVOICE PAYMENT FAILED ===");
+  console.log("Invoice ID:", invoice.id);
+  console.log("Customer:", invoice.customer);
+  console.log("Amount due:", invoice.amount_due / 100, invoice.currency);
+
+  const subscriptionId = invoice.subscription as string;
+
+  if (!subscriptionId) {
+    console.log("No subscription ID in invoice, skipping");
+    return;
+  }
+
+  try {
+    // Update invoice status
+    await adminDb
+      .collection("invoices")
+      .doc(invoice.id)
+      .update({
+        status: "open",
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+    // Get userId from subscription document
+    const subscriptionDoc = await adminDb
+      .collection("subscriptions")
+      .doc(subscriptionId)
+      .get();
+
+    if (subscriptionDoc.exists) {
+      const userId = subscriptionDoc.data()?.userId;
+
+      if (userId) {
+        // Update user document to reflect payment issue
+        await adminDb
+          .collection("users")
+          .doc(userId)
+          .update({
+            subscriptionStatus: "past_due",
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+
+        console.log("⚠️ Payment failed for user:", userId);
+        console.log("User status updated to past_due");
+      }
+    }
+  } catch (error) {
+    console.error("❌ ERROR handling payment failure:", error);
+    throw error;
   }
 }

@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { getQuotaInfo } from "@/lib/firebase/quota";
 import { getActiveSubscription } from "@/lib/firebase/subscription";
 import toast from "react-hot-toast";
-import { Database, AlertCircle } from "lucide-react";
+import { Database, AlertCircle, FileText } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/features/delete-account-dialog";
 import { CancelSubscriptionDialog } from "@/components/features/subscription/cancel-subscription-dialog";
 import { ReactivateSubscriptionDialog } from "@/components/features/subscription/reactivate-subscription-dialog";
@@ -360,6 +360,59 @@ export default function SettingsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Rechnungen & Zahlungen - nur für Pro-Nutzer */}
+      {quotaInfo?.tier && quotaInfo.tier !== "free" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Rechnungen & Zahlungen</CardTitle>
+            <CardDescription>
+              Verwalten Sie Ihre Zahlungsmethoden und laden Sie Rechnungen herunter
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Zugriff auf alle Ihre Rechnungen, Zahlungsmethoden und Abrechnungsdetails.
+              Alle Rechnungen enthalten die erforderlichen Angaben nach § 14 UStG und können
+              für Ihre Buchhaltung verwendet werden.
+            </p>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  setLoading(true);
+                  const response = await fetch("/api/stripe/create-portal-session", {
+                    method: "POST",
+                  });
+
+                  if (!response.ok) {
+                    throw new Error("Fehler beim Öffnen des Kundenportals");
+                  }
+
+                  const data = await response.json();
+                  if (data.url) {
+                    window.location.href = data.url;
+                  }
+                } catch (error) {
+                  console.error("Error opening customer portal:", error);
+                  toast.error("Fehler beim Öffnen des Kundenportals");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Rechnungen & Zahlungen verwalten
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Sie werden zum sicheren Stripe-Kundenportal weitergeleitet, wo Sie Ihre
+              Rechnungen herunterladen, Zahlungsmethoden verwalten und Ihre Abrechnungsdetails
+              einsehen können.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="border-destructive">
         <CardHeader>
