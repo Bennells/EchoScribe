@@ -49,11 +49,5 @@ service cloud.firestore {
       allow read: if isOwner(resource.data.userId);
       allow write: if false; // Only via Stripe Webhooks
     }
-
-    // Invoices collection
-    match /invoices/{invoiceId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow write: if false; // Only via Stripe Webhooks
-    }
   }
 }
