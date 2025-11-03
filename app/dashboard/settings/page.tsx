@@ -13,8 +13,6 @@ import { CancelSubscriptionDialog } from "@/components/features/subscription/can
 import { ReactivateSubscriptionDialog } from "@/components/features/subscription/reactivate-subscription-dialog";
 import { ChangeEmailDialog } from "@/components/features/settings/change-email-dialog";
 import { EmailVerificationBanner } from "@/components/features/settings/email-verification-banner";
-import { httpsCallable } from "firebase/functions";
-import { functions } from "@/lib/firebase/config";
 import { useRouter } from "next/navigation";
 import type { Subscription } from "@/types/subscription";
 
@@ -196,11 +194,16 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async () => {
     try {
-      const deleteUserAccount = httpsCallable(functions, "deleteUserAccount");
-
       toast.loading("Konto wird gelöscht...", { id: "delete-account" });
 
-      await deleteUserAccount();
+      const response = await fetch("/api/account/delete", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Fehler beim Löschen des Kontos");
+      }
 
       toast.success("Konto erfolgreich gelöscht", { id: "delete-account" });
 
@@ -210,7 +213,7 @@ export default function SettingsPage() {
     } catch (error: any) {
       console.error("Delete account error:", error);
       toast.error(
-        "Fehler beim Löschen des Kontos. Bitte versuchen Sie es erneut.",
+        error.message || "Fehler beim Löschen des Kontos. Bitte versuchen Sie es erneut.",
         { id: "delete-account" }
       );
       throw error; // Re-throw to keep dialog loading state

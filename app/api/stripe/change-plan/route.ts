@@ -155,16 +155,6 @@ export async function POST(request: NextRequest) {
       "quota.monthly": newQuota,
     });
 
-    // Log the change for audit purposes
-    await adminDb.collection("subscription_changes").add({
-      userId,
-      oldTier: currentTier,
-      newTier,
-      stripeSubscriptionId,
-      timestamp: Timestamp.now(),
-      initiatedBy: "user",
-    });
-
     return NextResponse.json({
       success: true,
       tier: newTier,

@@ -418,17 +418,6 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
           updatedAt: FieldValue.serverTimestamp(),
         });
 
-      // Log payment failure for audit purposes
-      await adminDb.collection("payment_failures").add({
-        userId,
-        subscriptionId,
-        customerId,
-        invoiceId: invoice.id,
-        amountDue: invoice.amount_due,
-        attemptCount: invoice.attempt_count,
-        timestamp: FieldValue.serverTimestamp(),
-      });
-
       console.log(`Payment failed for user ${userId}, status set to past_due`);
     }
   }

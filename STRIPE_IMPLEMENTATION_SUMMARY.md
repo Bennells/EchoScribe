@@ -115,7 +115,7 @@ Subscription Ends:
   customer.subscription.deleted → Revert to free tier → Restore freeLifetimeUsed
 
 Payment Failure:
-  invoice.payment_failed → Set status to past_due → Log to payment_failures collection
+  invoice.payment_failed → Set status to past_due → User notified via Stripe
 ```
 
 ### Firestore Data Structure
@@ -162,30 +162,10 @@ Payment Failure:
 }
 ```
 
-**subscription_changes collection (audit):**
-```typescript
-{
-  userId: string,
-  oldTier: string,
-  newTier: string,
-  stripeSubscriptionId: string,
-  timestamp: Timestamp,
-  initiatedBy: "user"
-}
-```
-
-**payment_failures collection (audit):**
-```typescript
-{
-  userId: string,
-  subscriptionId: string,
-  customerId: string,
-  invoiceId: string,
-  amountDue: number,
-  attemptCount: number,
-  timestamp: Timestamp
-}
-```
+**Note:** Subscription change history and payment failures are tracked by Stripe's own systems. Access this data via:
+- Stripe Dashboard → Customers → Subscriptions (for subscription history)
+- Stripe Dashboard → Payments → Failed (for payment failures)
+- Stripe API Events (30-day history with `previous_attributes`)
 
 ## Features
 
