@@ -2,7 +2,7 @@ import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
-import { getFunctions, Functions, connectFunctionsEmulator } from "firebase/functions";
+import { getFunctions, Functions } from "firebase/functions";
 
 // Firebase configuration using NEXT_PUBLIC_* environment variables
 // These are replaced at build time by Next.js with literal values
@@ -32,11 +32,6 @@ if (typeof window !== "undefined") {
 
   // Initialize Functions with europe-west1 region (where our functions are deployed)
   functionsInstance = getFunctions(app, "europe-west1");
-
-  // Connect to emulator in development
-  if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true") {
-    connectFunctionsEmulator(functionsInstance, "localhost", 5001);
-  }
 }
 
 // Export instances - these will be undefined during SSR/SSG

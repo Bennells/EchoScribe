@@ -16,7 +16,6 @@
       "Bash(git rm:*)",
       "Bash(test:*)",
       "Bash(npx shadcn:*)",
-      "Bash(firebase emulators:start:*)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
