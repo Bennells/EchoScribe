@@ -5,7 +5,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2023-10-16",
 });
 
 const webhookSecret = (process.env.STRIPE_WEBHOOK_SECRET || "").trim();
@@ -59,29 +59,24 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      case "invoice.payment_succeeded": {
-        console.log("Processing invoice.payment_succeeded event");
-        const invoice = event.data.object as Stripe.Invoice;
-        await handleInvoicePaymentSucceeded(invoice);
-        break;
-      }
-
-      case "invoice.paid": {
-        console.log("Processing invoice.paid event");
-        const invoice = event.data.object as Stripe.Invoice;
-        await handleInvoicePaymentSucceeded(invoice);
-        break;
-      }
-
       case "customer.subscription.updated": {
+        console.log("Processing customer.subscription.updated event");
         const subscription = event.data.object as Stripe.Subscription;
         await handleSubscriptionUpdated(subscription);
         break;
       }
 
       case "customer.subscription.deleted": {
+        console.log("Processing customer.subscription.deleted event");
         const subscription = event.data.object as Stripe.Subscription;
         await handleSubscriptionDeleted(subscription);
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        console.log("Processing invoice.payment_failed event");
+        const invoice = event.data.object as Stripe.Invoice;
+        await handleInvoicePaymentFailed(invoice);
         break;
       }
 
@@ -134,8 +129,46 @@ async function handleCheckoutSessionCompleted(
     return;
   }
 
-  // Retrieve the subscription details
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  // Retrieve the subscription details to get the default payment method
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+    expand: ["default_payment_method"],
+  });
+
+  // Extract payment method details if available
+  let paymentMethodData: any = null;
+  if (subscription.default_payment_method) {
+    const paymentMethod = subscription.default_payment_method as Stripe.PaymentMethod;
+
+    console.log("Payment method found:", paymentMethod.id);
+    console.log("Payment method type:", paymentMethod.type);
+
+    // Store relevant payment method information
+    paymentMethodData = {
+      id: paymentMethod.id,
+      type: paymentMethod.type,
+      created: paymentMethod.created,
+    };
+
+    // Add type-specific details
+    if (paymentMethod.type === "card" && paymentMethod.card) {
+      paymentMethodData.card = {
+        brand: paymentMethod.card.brand,
+        last4: paymentMethod.card.last4,
+        expMonth: paymentMethod.card.exp_month,
+        expYear: paymentMethod.card.exp_year,
+      };
+      console.log("Card details:", paymentMethodData.card);
+    } else if (paymentMethod.type === "sepa_debit" && paymentMethod.sepa_debit) {
+      paymentMethodData.sepa_debit = {
+        last4: paymentMethod.sepa_debit.last4,
+        bankCode: paymentMethod.sepa_debit.bank_code,
+        country: paymentMethod.sepa_debit.country,
+      };
+      console.log("SEPA details:", paymentMethodData.sepa_debit);
+    }
+  } else {
+    console.log("No default payment method found on subscription");
+  }
 
   // Map tier to quota limits
   const quotaLimits: Record<string, number> = {
@@ -148,7 +181,7 @@ async function handleCheckoutSessionCompleted(
   const monthlyQuota = quotaLimits[tier] || 60;
 
   // Create subscription document in Firestore
-  const subscriptionData = {
+  const subscriptionData: any = {
     userId: userId,
     stripeCustomerId: customerId,
     stripeSubscriptionId: subscriptionId,
@@ -161,6 +194,12 @@ async function handleCheckoutSessionCompleted(
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   };
+
+  // Add payment method if available
+  if (paymentMethodData) {
+    subscriptionData.paymentMethod = paymentMethodData;
+    console.log("Payment method will be saved to Firestore");
+  }
 
   console.log("Attempting to create subscription document in Firestore...");
   try {
@@ -199,144 +238,6 @@ async function handleCheckoutSessionCompleted(
     console.log(
       `✅ User subscription status and tier updated: ${userId}, ${tier} (preserved freeLifetimeUsed: ${freeLifetimeUsed})`
     );
-  } catch (error) {
-    console.error("❌ ERROR updating user in Firestore:", error);
-    throw error;
-  }
-}
-
-async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
-  console.log("=== INVOICE PAYMENT SUCCEEDED ===");
-  console.log("Invoice ID:", invoice.id);
-  console.log("Invoice subscription:", invoice.subscription);
-  console.log("Invoice customer:", invoice.customer);
-  console.log("Invoice metadata:", invoice.metadata);
-  console.log("Full invoice object:", JSON.stringify(invoice, null, 2));
-
-  // Try to get subscription ID from multiple possible locations
-  let subscriptionId = invoice.subscription as string;
-
-  // If not found at top level, try nested in parent.subscription_details
-  if (!subscriptionId && (invoice as any).parent?.subscription_details?.subscription) {
-    subscriptionId = (invoice as any).parent.subscription_details.subscription;
-    console.log("Found subscription ID in parent.subscription_details:", subscriptionId);
-  }
-
-  // If still not found, try to get from line items
-  if (!subscriptionId && invoice.lines?.data?.length > 0) {
-    const lineItem = invoice.lines.data[0];
-    if ((lineItem as any).parent?.subscription_item_details?.subscription) {
-      subscriptionId = (lineItem as any).parent.subscription_item_details.subscription;
-      console.log("Found subscription ID in line item:", subscriptionId);
-    }
-  }
-
-  if (!subscriptionId) {
-    console.log("No subscription ID in invoice. Attempting to find subscription by customer ID...");
-
-    // Try to find the subscription by customer ID
-    const customerId = invoice.customer as string;
-    if (customerId) {
-      console.log("Looking up subscriptions for customer:", customerId);
-
-      try {
-        const subscriptions = await stripe.subscriptions.list({
-          customer: customerId,
-          limit: 1,
-          status: 'active',
-        });
-
-        if (subscriptions.data.length > 0) {
-          const foundSubscription = subscriptions.data[0];
-          console.log("Found active subscription:", foundSubscription.id);
-
-          // Use the found subscription ID
-          await processInvoicePayment(foundSubscription.id);
-          return;
-        } else {
-          console.log("No active subscriptions found for customer");
-        }
-      } catch (error) {
-        console.error("Error looking up subscriptions:", error);
-      }
-    }
-
-    console.log("Cannot process invoice without subscription ID");
-    return;
-  }
-
-  console.log("Subscription ID:", subscriptionId);
-  await processInvoicePayment(subscriptionId, invoice.id);
-}
-
-async function processInvoicePayment(subscriptionId: string, invoiceId?: string) {
-  console.log("Processing invoice payment for subscription:", subscriptionId);
-
-  // Get the subscription document to retrieve userId and tier
-  const subscriptionDoc = await adminDb
-    .collection("subscriptions")
-    .doc(subscriptionId)
-    .get();
-
-  if (!subscriptionDoc.exists) {
-    console.log("Subscription document doesn't exist yet, this might be the first payment. Waiting for checkout.session.completed to create it.");
-    return;
-  }
-
-  const subscriptionData = subscriptionDoc.data();
-  const userId = subscriptionData?.userId;
-  const tier = subscriptionData?.tier || "professional";
-
-  if (!userId) {
-    console.error("ERROR: No userId found in subscription document");
-    return;
-  }
-
-  console.log("User ID:", userId);
-  console.log("Tier:", tier);
-
-  // Retrieve the full subscription from Stripe
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-
-  // Map tier to quota limits
-  const quotaLimits: Record<string, number> = {
-    starter: 15,
-    professional: 60,
-    business: 150,
-    pro: 60, // Legacy support
-  };
-
-  const monthlyQuota = quotaLimits[tier] || 60;
-
-  // Update subscription document with latest status
-  console.log("Updating subscription document...");
-  await adminDb
-    .collection("subscriptions")
-    .doc(subscriptionId)
-    .update({
-      status: subscription.status,
-      currentPeriodStart: Timestamp.fromMillis(Math.floor(subscription.current_period_start * 1000)),
-      currentPeriodEnd: Timestamp.fromMillis(Math.floor(subscription.current_period_end * 1000)),
-      updatedAt: FieldValue.serverTimestamp(),
-    });
-
-  console.log("✅ Subscription updated in Firestore");
-
-  // Update user document - ensure tier and quota are set correctly
-  console.log("Updating user document with tier and quota...");
-  try {
-    await adminDb
-      .collection("users")
-      .doc(userId)
-      .update({
-        subscriptionStatus: subscription.status,
-        tier: tier,
-        "quota.monthly": monthlyQuota,
-        "quota.resetAt": Timestamp.fromMillis(Math.floor(subscription.current_period_end * 1000)),
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-
-    console.log("✅ User subscription status and tier updated after payment:", userId, tier);
   } catch (error) {
     console.error("❌ ERROR updating user in Firestore:", error);
     throw error;
@@ -469,6 +370,66 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       console.log(
         `User subscription canceled and reverted to free tier: ${userId} (freeLifetimeUsed: ${freeLifetimeUsed})`
       );
+    }
+  }
+}
+
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+  console.log("=== INVOICE PAYMENT FAILED ===");
+  console.log("Invoice ID:", invoice.id);
+  console.log("Customer ID:", invoice.customer);
+  console.log("Subscription ID:", invoice.subscription);
+  console.log("Amount due:", invoice.amount_due);
+  console.log("Attempt count:", invoice.attempt_count);
+
+  const subscriptionId = invoice.subscription as string;
+  const customerId = invoice.customer as string;
+
+  if (!subscriptionId) {
+    console.log("No subscription ID found in failed invoice");
+    return;
+  }
+
+  // Find the subscription document
+  const subscriptionDoc = await adminDb
+    .collection("subscriptions")
+    .doc(subscriptionId)
+    .get();
+
+  if (subscriptionDoc.exists) {
+    const userId = subscriptionDoc.data()?.userId;
+
+    if (userId) {
+      // Update subscription status to past_due
+      await adminDb
+        .collection("subscriptions")
+        .doc(subscriptionId)
+        .update({
+          status: "past_due",
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+
+      // Update user document with past_due status
+      await adminDb
+        .collection("users")
+        .doc(userId)
+        .update({
+          subscriptionStatus: "past_due",
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+
+      // Log payment failure for audit purposes
+      await adminDb.collection("payment_failures").add({
+        userId,
+        subscriptionId,
+        customerId,
+        invoiceId: invoice.id,
+        amountDue: invoice.amount_due,
+        attemptCount: invoice.attempt_count,
+        timestamp: FieldValue.serverTimestamp(),
+      });
+
+      console.log(`Payment failed for user ${userId}, status set to past_due`);
     }
   }
 }

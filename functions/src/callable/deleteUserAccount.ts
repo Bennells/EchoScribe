@@ -12,6 +12,7 @@ const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
 export const deleteUserAccount = onCall(
   {
     region: config.region, // ✅ Automatisch: TEST=europe-west1, PROD=europe-west3
+    cors: true, // Enable CORS for all origins
   },
   async (request) => {
     // Check authentication

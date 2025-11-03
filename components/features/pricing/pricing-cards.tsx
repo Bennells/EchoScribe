@@ -98,7 +98,16 @@ export function PricingCards({
       return "Kostenlos";
     }
 
-    return "Jetzt upgraden";
+    // Determine if this is an upgrade or downgrade
+    const tierOrder = ["free", "starter", "professional", "business"];
+    const currentIndex = tierOrder.indexOf(currentTier || "free");
+    const targetIndex = tierOrder.indexOf(tier.id);
+
+    if (targetIndex > currentIndex) {
+      return "Zu diesem Plan wechseln";
+    } else {
+      return "Zu diesem Plan wechseln";
+    }
   };
 
   const isButtonDisabled = (tier: PricingTierConfig) => {

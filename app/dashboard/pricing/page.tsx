@@ -2,8 +2,10 @@
 
 import { PricingCards, PricingTier } from "@/components/features/pricing/pricing-cards";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChangeTierDialog } from "@/components/features/subscription/change-tier-dialog";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/firebase/auth-context";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getQuotaInfo } from "@/lib/firebase/quota";
 import toast from "react-hot-toast";
 
@@ -12,12 +14,22 @@ export default function DashboardPricingPage() {
   const [loading, setLoading] = useState(false);
   const [loadingTier, setLoadingTier] = useState<PricingTier | null>(null);
   const [quotaInfo, setQuotaInfo] = useState<any>(null);
+  const [showChangeTierDialog, setShowChangeTierDialog] = useState(false);
+  const [pendingTierChange, setPendingTierChange] = useState<PricingTier | null>(null);
+  const dialogTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (user) {
       loadQuotaInfo();
     }
   }, [user]);
+
+  // Trigger dialog when pendingTierChange is set
+  useEffect(() => {
+    if (pendingTierChange && dialogTriggerRef.current) {
+      dialogTriggerRef.current.click();
+    }
+  }, [pendingTierChange]);
 
   const loadQuotaInfo = async () => {
     if (!user) return;
@@ -40,42 +52,6 @@ export default function DashboardPricingPage() {
     }
   };
 
-  const handleSelectTier = async (tier: PricingTier) => {
-    if (tier === "free") {
-      toast.error("Sie können nicht zum Free-Plan downgraden. Bitte kündigen Sie Ihr Abo in den Einstellungen.");
-      return;
-    }
-
-    setLoading(true);
-    setLoadingTier(tier);
-
-    try {
-      const response = await fetch("/api/stripe/create-checkout-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ tier }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Fehler beim Erstellen der Checkout-Session");
-      }
-
-      const { url } = await response.json();
-
-      if (url) {
-        window.location.href = url;
-      }
-    } catch (error: any) {
-      console.error("Checkout error:", error);
-      toast.error("Fehler beim Upgrade. Bitte versuchen Sie es erneut.");
-    } finally {
-      setLoading(false);
-      setLoadingTier(null);
-    }
-  };
-
   const getCurrentTier = (): PricingTier => {
     if (!quotaInfo) return "free";
 
@@ -94,6 +70,83 @@ export default function DashboardPricingPage() {
   };
 
   const currentTier = getCurrentTier();
+
+  const handleSelectTier = async (tier: PricingTier) => {
+    if (tier === "free") {
+      toast.error("Sie können nicht zum Free-Plan downgraden. Bitte kündigen Sie Ihr Abo in den Einstellungen.");
+      return;
+    }
+
+    // Check if user has an active subscription
+    const hasActiveSubscription = quotaInfo?.subscriptionStatus === "active" && currentTier !== "free";
+
+    if (hasActiveSubscription) {
+      // Show confirmation dialog for plan changes
+      setPendingTierChange(tier);
+    } else {
+      // No active subscription - proceed directly to checkout
+      await executeTierChange(tier);
+    }
+  };
+
+  const executeTierChange = async (tier: PricingTier) => {
+    setLoading(true);
+    setLoadingTier(tier);
+
+    try {
+      // Check if user has an active subscription
+      const hasActiveSubscription = quotaInfo?.subscriptionStatus === "active" && currentTier !== "free";
+
+      if (hasActiveSubscription) {
+        // User has active subscription - use change-plan API
+        const response = await fetch("/api/stripe/change-plan", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ tier }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Fehler beim Ändern des Plans");
+        }
+
+        const result = await response.json();
+        toast.success("Plan erfolgreich geändert!");
+
+        // Reload quota info to reflect new tier
+        await loadQuotaInfo();
+      } else {
+        // User doesn't have active subscription - create new checkout session
+        const response = await fetch("/api/stripe/create-checkout-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ tier }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Fehler beim Erstellen der Checkout-Session");
+        }
+
+        const { url } = await response.json();
+
+        if (url) {
+          window.location.href = url;
+        }
+      }
+    } catch (error: any) {
+      console.error("Tier selection error:", error);
+      toast.error(error.message || "Fehler beim Ändern des Plans. Bitte versuchen Sie es erneut.");
+    } finally {
+      setLoading(false);
+      setLoadingTier(null);
+      setPendingTierChange(null);
+    }
+  };
+
   const isPro = quotaInfo?.isPro;
 
   return (
@@ -146,6 +199,21 @@ export default function DashboardPricingPage() {
           loadingTier={loadingTier}
         />
       </div>
+
+      {/* Hidden dialog trigger and dialog */}
+      {pendingTierChange && currentTier !== "free" && (
+        <ChangeTierDialog
+          currentTier={currentTier as "starter" | "professional" | "business"}
+          newTier={pendingTierChange as "starter" | "professional" | "business"}
+          onConfirm={async () => {
+            await executeTierChange(pendingTierChange);
+          }}
+        >
+          <Button ref={dialogTriggerRef} style={{ display: "none" }}>
+            Hidden Trigger
+          </Button>
+        </ChangeTierDialog>
+      )}
 
       {/* Additional Info */}
       <Card>

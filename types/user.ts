@@ -6,6 +6,7 @@ export interface User {
   id: string;
   email: string;
   createdAt: Timestamp;
+  emailUpdatedAt?: Timestamp; // Timestamp of last email change
   subscriptionStatus: "free" | "active" | "cancelled" | "past_due";
   tier?: UserTier;
   subscriptionId?: string;

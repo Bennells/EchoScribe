@@ -7,11 +7,14 @@ import { useState, useEffect } from "react";
 import { getQuotaInfo } from "@/lib/firebase/quota";
 import { getActiveSubscription } from "@/lib/firebase/subscription";
 import toast from "react-hot-toast";
-import { Database, AlertCircle, FileText } from "lucide-react";
+import { Database, AlertCircle, CreditCard } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/features/delete-account-dialog";
 import { CancelSubscriptionDialog } from "@/components/features/subscription/cancel-subscription-dialog";
 import { ReactivateSubscriptionDialog } from "@/components/features/subscription/reactivate-subscription-dialog";
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { ChangeEmailDialog } from "@/components/features/settings/change-email-dialog";
+import { EmailVerificationBanner } from "@/components/features/settings/email-verification-banner";
+import { httpsCallable } from "firebase/functions";
+import { functions } from "@/lib/firebase/config";
 import { useRouter } from "next/navigation";
 import type { Subscription } from "@/types/subscription";
 
@@ -23,6 +26,7 @@ export default function SettingsPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [reactivateLoading, setReactivateLoading] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -162,9 +166,36 @@ export default function SettingsPage() {
     }
   };
 
+  const handleOpenBillingPortal = async () => {
+    setPortalLoading(true);
+    try {
+      const response = await fetch("/api/stripe/create-portal-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          returnUrl: window.location.href,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Fehler beim Öffnen des Abrechnungsportals");
+      }
+
+      // Redirect to Stripe Customer Portal
+      window.location.href = data.url;
+    } catch (error: any) {
+      console.error("Portal error:", error);
+      toast.error(error.message || "Fehler beim Öffnen des Abrechnungsportals. Bitte versuchen Sie es erneut.");
+      setPortalLoading(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     try {
-      const functions = getFunctions();
       const deleteUserAccount = httpsCallable(functions, "deleteUserAccount");
 
       toast.loading("Konto wird gelöscht...", { id: "delete-account" });
@@ -186,6 +217,12 @@ export default function SettingsPage() {
     }
   };
 
+  const handleEmailChanged = async () => {
+    // Reload quota and subscription info after email change
+    await loadQuotaInfo();
+    await loadSubscription();
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -195,6 +232,13 @@ export default function SettingsPage() {
         </p>
       </div>
 
+      {user && (
+        <EmailVerificationBanner
+          userId={user.uid}
+          onVerificationComplete={handleEmailChanged}
+        />
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Konto</CardTitle>
@@ -202,7 +246,16 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-sm font-medium">E-Mail</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium">E-Mail</label>
+              {user && (
+                <ChangeEmailDialog
+                  currentEmail={user.email || ""}
+                  userId={user.uid}
+                  onEmailChanged={handleEmailChanged}
+                />
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">{user?.email}</p>
           </div>
           <div>
@@ -361,55 +414,33 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Rechnungen & Zahlungen - nur für Pro-Nutzer */}
+      {/* Zahlungsmethode & Rechnungen - nur für bezahlte Abonnements */}
       {quotaInfo?.tier && quotaInfo.tier !== "free" && (
         <Card>
           <CardHeader>
-            <CardTitle>Rechnungen & Zahlungen</CardTitle>
+            <CardTitle>Zahlungsdetails & Rechnungen</CardTitle>
             <CardDescription>
-              Verwalten Sie Ihre Zahlungsmethoden und laden Sie Rechnungen herunter
+              Verwalten Sie Ihre Zahlungsmethode und greifen Sie auf Ihre Rechnungen zu
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Zugriff auf alle Ihre Rechnungen, Zahlungsmethoden und Abrechnungsdetails.
-              Alle Rechnungen enthalten die erforderlichen Angaben nach § 14 UStG und können
-              für Ihre Buchhaltung verwendet werden.
+              Im Stripe-Kundenportal können Sie:
             </p>
+            <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+              <li>Ihre Zahlungsmethode aktualisieren</li>
+              <li>Rechnungshistorie einsehen und herunterladen</li>
+              <li>Ihre Rechnungsadresse ändern</li>
+              <li>Zahlungsdetails verwalten</li>
+            </ul>
             <Button
-              variant="outline"
-              onClick={async () => {
-                try {
-                  setLoading(true);
-                  const response = await fetch("/api/stripe/create-portal-session", {
-                    method: "POST",
-                  });
-
-                  if (!response.ok) {
-                    throw new Error("Fehler beim Öffnen des Kundenportals");
-                  }
-
-                  const data = await response.json();
-                  if (data.url) {
-                    window.location.href = data.url;
-                  }
-                } catch (error) {
-                  console.error("Error opening customer portal:", error);
-                  toast.error("Fehler beim Öffnen des Kundenportals");
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              disabled={loading}
+              onClick={handleOpenBillingPortal}
+              disabled={portalLoading}
+              className="w-full sm:w-auto"
             >
-              <FileText className="mr-2 h-4 w-4" />
-              Rechnungen & Zahlungen verwalten
+              <CreditCard className="mr-2 h-4 w-4" />
+              {portalLoading ? "Wird geöffnet..." : "Abrechnungsportal öffnen"}
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Sie werden zum sicheren Stripe-Kundenportal weitergeleitet, wo Sie Ihre
-              Rechnungen herunterladen, Zahlungsmethoden verwalten und Ihre Abrechnungsdetails
-              einsehen können.
-            </p>
           </CardContent>
         </Card>
       )}

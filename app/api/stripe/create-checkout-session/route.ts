@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 
 const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2023-10-16",
 });
 
 export async function POST(request: NextRequest) {
@@ -55,11 +55,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get or create Stripe Customer
-    let customerId: string;
+    let customerId: string = "";
 
     // First, check if user already has a customerId stored in Firestore
     const userDoc = await adminDb.collection("users").doc(userId).get();
-    const existingCustomerId = userDoc.data()?.stripeCustomerId;
+    let existingCustomerId = userDoc.data()?.stripeCustomerId;
 
     if (existingCustomerId) {
       // Verify the customer still exists in Stripe
@@ -69,11 +69,11 @@ export async function POST(request: NextRequest) {
         console.log("Using existing Stripe customer:", customerId);
       } catch (error) {
         console.log("Existing customer not found in Stripe, creating new one");
-        existingCustomerId === undefined; // Will create new one below
+        existingCustomerId = undefined; // Will create new one below
       }
     }
 
-    if (!existingCustomerId) {
+    if (!existingCustomerId || !customerId) {
       // Check if a customer with this email already exists in Stripe
       const existingCustomers = await stripe.customers.list({
         email: userEmail,
@@ -112,6 +112,15 @@ export async function POST(request: NextRequest) {
     // If you become VAT-registered later, change this to true
     const enableStripeTax = false;
 
+    // Detect if running in local development
+    const origin = request.headers.get("origin") || "";
+    const isLocalhost = origin.includes("localhost") || origin.includes("127.0.0.1");
+
+    console.log("Creating checkout session:");
+    console.log("- Origin:", origin);
+    console.log("- Is localhost:", isLocalhost);
+    console.log("- Tier:", tier);
+
     const sessionConfig: any = {
       customer: customerId, // Use customer ID instead of customer_email
       payment_method_types: ["card", "sepa_debit"],
@@ -122,8 +131,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: "subscription",
-      success_url: `${request.headers.get("origin")}/dashboard/settings?success=true`,
-      cancel_url: `${request.headers.get("origin")}/dashboard/settings?canceled=true`,
+      success_url: `${origin}/dashboard/settings?success=true`,
+      cancel_url: `${origin}/dashboard/settings?canceled=true`,
       metadata: {
         userId: userId,
         tier: tier,
@@ -134,6 +143,8 @@ export async function POST(request: NextRequest) {
           tier: tier,
         },
       },
+      // In subscription mode, payment method is automatically saved to the customer
+      // and set as the default payment method for the subscription
     };
 
     // Only enable automatic tax and related features if enableStripeTax is true

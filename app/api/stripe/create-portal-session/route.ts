@@ -6,10 +6,10 @@ const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
   apiVersion: "2023-10-16",
 });
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     // Get the Firebase token from cookies
-    const token = request.cookies.get("firebase-token")?.value;
+    const token = req.cookies.get("firebase-token")?.value;
 
     if (!token) {
       return NextResponse.json(
@@ -23,41 +23,42 @@ export async function POST(request: NextRequest) {
     const userId = decodedToken.uid;
 
     // Get user's Stripe customer ID from Firestore
-    const subscriptionsRef = adminDb.collection("subscriptions");
-    const snapshot = await subscriptionsRef
-      .where("userId", "==", userId)
-      .where("status", "==", "active")
-      .limit(1)
-      .get();
+    const userDoc = await adminDb.collection("users").doc(userId).get();
 
-    if (snapshot.empty) {
+    if (!userDoc.exists) {
       return NextResponse.json(
-        { error: "Kein aktives Abonnement gefunden" },
+        { error: "Benutzer nicht gefunden" },
         { status: 404 }
       );
     }
 
-    const subscriptionData = snapshot.docs[0].data();
-    const customerId = subscriptionData.stripeCustomerId;
+    const userData = userDoc.data();
+    const customerId = userData?.stripeCustomerId;
 
     if (!customerId) {
       return NextResponse.json(
-        { error: "Stripe-Kunde nicht gefunden" },
-        { status: 404 }
+        { error: "Kein Stripe-Kunde gefunden. Bitte erstellen Sie zuerst ein Abonnement." },
+        { status: 400 }
       );
     }
 
-    // Create Stripe Customer Portal Session
-    const session = await stripe.billingPortal.sessions.create({
+    // Get return URL from request body or use default
+    const body = await req.json();
+    const returnUrl = body.returnUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/settings`;
+
+    // Create Stripe Customer Portal session
+    const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${request.headers.get("origin")}/dashboard/settings`,
+      return_url: returnUrl,
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({
+      url: portalSession.url,
+    });
   } catch (error: any) {
-    console.error("Stripe portal session error:", error);
+    console.error("Error creating portal session:", error);
     return NextResponse.json(
-      { error: "Fehler beim Erstellen der Portal-Session" },
+      { error: error.message || "Fehler beim Erstellen der Portal-Sitzung" },
       { status: 500 }
     );
   }
