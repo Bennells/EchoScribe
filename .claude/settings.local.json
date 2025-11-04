@@ -116,7 +116,9 @@
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" logging read \"resource.type=cloud_function AND resource.labels.function_name=deleteUserAccount AND timestamp>=\"\"2025-10-30T00:00:00Z\"\"\" --limit=30 --format=json --project=echoscribe-test)",
       "Bash(del \"d:\\Projects\\EchoScribe\\app\\api\\stripe\\create-portal-session\\route.ts\")",
       "Bash(del \"d:\\Projects\\EchoScribe\\lib\\rate-limit.ts\")",
-      "Bash(del \"d:\\Projects\\EchoScribe\\functions\\src\\callable\\deleteUserAccount.ts\")"
+      "Bash(del \"d:\\Projects\\EchoScribe\\functions\\src\\callable\\deleteUserAccount.ts\")",
+      "Bash(firebase auth:export:*)",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []

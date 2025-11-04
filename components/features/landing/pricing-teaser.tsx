@@ -7,22 +7,19 @@ const pricingTiers = [
   {
     name: "Free",
     price: "€0",
-    description: "Perfekt zum Ausprobieren",
+    description: "3 Podcasts insgesamt (Lifetime)",
     features: [
       "3 Podcast-Analysen (Lifetime)",
-      "Basis-Artikel-Generierung",
-      "Standard-Support",
     ],
   },
   {
     name: "Starter",
     price: "€9,99",
     period: "/Monat",
-    description: "Für regelmäßige Content-Creator",
+    description: "15 Podcasts pro Monat",
     features: [
       "15 Podcast-Analysen pro Monat",
-      "Erweiterte Artikel-Generierung",
-      "E-Mail-Support",
+      "Monatliche Quota-Zurücksetzung",
     ],
     popular: true,
   },
@@ -30,11 +27,10 @@ const pricingTiers = [
     name: "Professional",
     price: "€24,99",
     period: "/Monat",
-    description: "Für professionelle Podcaster",
+    description: "60 Podcasts pro Monat",
     features: [
       "60 Podcast-Analysen pro Monat",
-      "Premium-Artikel-Qualität",
-      "Prioritäts-Support",
+      "Monatliche Quota-Zurücksetzung",
     ],
   },
 ];
