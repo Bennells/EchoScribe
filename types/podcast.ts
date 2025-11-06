@@ -5,7 +5,8 @@ export type PodcastStatus =
   | "queued"
   | "processing"
   | "completed"
-  | "error";
+  | "error"
+  | "quota_exceeded";
 
 export interface Podcast {
   id: string;
@@ -21,5 +22,7 @@ export interface Podcast {
   errorMessage?: string;
   errorAt?: Timestamp;
   articleId?: string;
-  duration?: number;
+  duration?: number; // Server-verified duration (source of truth for billing)
+  clientReportedDuration?: number; // What client reported (for comparison)
+  durationVerified?: boolean; // Whether server has validated duration
 }

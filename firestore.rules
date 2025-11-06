@@ -24,8 +24,9 @@ service cloud.firestore {
                     && !exists(/databases/$(database)/documents/users/$(userId))
                     && request.resource.data.email == request.auth.token.email
                     && request.resource.data.subscriptionStatus == "free"
-                    && request.resource.data.quota.monthly == 3
-                    && request.resource.data.quota.used == 0;
+                    && request.resource.data.quota.monthly == 100  // Free tier: 100 minutes per month
+                    && request.resource.data.quota.used == 0
+                    && request.resource.data.quota.resetAt is timestamp;  // Ensure resetAt is set
       allow update, delete: if false; // Quota updates only via Cloud Functions
     }
 

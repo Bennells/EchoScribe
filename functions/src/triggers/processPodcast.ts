@@ -18,6 +18,8 @@ export async function processPodcast(podcastId: string, storagePath: string) {
   logger.info(`[processPodcast] Storage path: ${storagePath}`);
   logger.info("=".repeat(80));
 
+  let podcastData: any = null; // Make available in catch block for quota refund
+
   try {
     // Update status to processing
     logger.info(`[processPodcast] Step 1: Updating podcast ${podcastId} status to processing`);
@@ -34,7 +36,7 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       throw new Error("Podcast document not found");
     }
 
-    const podcastData = podcastDoc.data();
+    podcastData = podcastDoc.data();
     if (!podcastData) {
       throw new Error("Podcast data is empty");
     }
@@ -44,6 +46,7 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       fileName: podcastData.fileName,
       fileSize: podcastData.fileSize,
       contentType: podcastData.contentType,
+      duration: podcastData.duration,
     });
 
     // Download audio file from Storage
@@ -107,26 +110,22 @@ export async function processPodcast(podcastId: string, storagePath: string) {
     });
     logger.info(`[processPodcast] ✅ Podcast status updated to 'completed'`);
 
-    // Increment user quota
-    logger.info(`[processPodcast] Step 7: Incrementing user quota`);
+    // Increment user quota by podcast duration in minutes
+    logger.info(`[processPodcast] Step 7: Incrementing user quota by ${podcastData.duration || 0} minutes`);
     try {
-      // Get current user data to check tier
-      const userDoc = await db.collection("users").doc(podcastData.userId).get();
-      const userData = userDoc.data();
-      const isFree = !userData?.tier || userData?.tier === "free";
+      const minutesToIncrement = podcastData.duration || 0;
 
-      // Update quota - increment both used and freeLifetimeUsed for free tier
-      const updateData: any = {
-        "quota.used": FieldValue.increment(1),
-      };
+      if (minutesToIncrement > 0) {
+        // Update quota - increment by minutes used
+        const updateData: any = {
+          "quota.used": FieldValue.increment(minutesToIncrement),
+        };
 
-      if (isFree) {
-        updateData["quota.freeLifetimeUsed"] = FieldValue.increment(1);
-        logger.info(`[processPodcast] User is on free tier, incrementing freeLifetimeUsed`);
+        await db.collection("users").doc(podcastData.userId).update(updateData);
+        logger.info(`[processPodcast] ✅ Incremented quota by ${minutesToIncrement} minutes for user ${podcastData.userId}`);
+      } else {
+        logger.warn(`[processPodcast] ⚠️ Podcast has no duration, skipping quota increment`);
       }
-
-      await db.collection("users").doc(podcastData.userId).update(updateData);
-      logger.info(`[processPodcast] ✅ Incremented quota for user ${podcastData.userId}`);
     } catch (quotaError: any) {
       logger.error(`[processPodcast] ⚠️ Failed to increment quota:`, quotaError);
       // Don't fail the whole process if quota update fails
@@ -165,6 +164,25 @@ export async function processPodcast(podcastId: string, storagePath: string) {
         updateErrorMessage: updateError.message,
         updateErrorCode: updateError.code,
       });
+    }
+
+    // Refund quota since processing failed
+    if (podcastData && podcastData.userId && podcastData.duration) {
+      try {
+        logger.info(`[processPodcast] Refunding quota for failed processing: ${podcastData.duration} minutes`);
+        await db.collection("users").doc(podcastData.userId).update({
+          "quota.used": FieldValue.increment(-podcastData.duration),
+        });
+        logger.info(`[processPodcast] ✅ Quota refunded: ${podcastData.duration} minutes`);
+      } catch (refundError: any) {
+        logger.error(`[processPodcast] ❌ Failed to refund quota:`, {
+          refundErrorMessage: refundError.message,
+          userId: podcastData.userId,
+          duration: podcastData.duration,
+        });
+      }
+    } else {
+      logger.warn(`[processPodcast] ⚠️ Could not refund quota - missing podcastData, userId or duration`);
     }
 
     throw error;

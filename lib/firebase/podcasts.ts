@@ -19,13 +19,16 @@ import type { Podcast } from "@/types/podcast";
 export async function createPodcast(
   userId: string,
   file: File,
+  duration: number,
   onProgress?: (progress: number) => void
 ): Promise<{ uploadTask: UploadTask; storagePath: string }> {
-  // Generate storage path
-  const storagePath = `podcasts/${userId}/${Date.now()}_${file.name}`;
+  // Generate storage path with duration in filename
+  // Format: {timestamp}_{duration}min_{filename}
+  const storagePath = `podcasts/${userId}/${Date.now()}_${duration}min_${file.name}`;
 
   // Upload directly to Storage (no Firestore document yet)
   // The Cloud Function will create the Firestore document when upload completes
+  // and extract duration from the filename
   const storageRef = ref(storage, storagePath);
   const uploadTask = uploadBytesResumable(storageRef, file);
 

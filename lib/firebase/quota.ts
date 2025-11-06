@@ -2,7 +2,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "./config";
 import type { User } from "@/types/user";
 
-export async function checkQuota(userId: string): Promise<boolean> {
+export async function checkQuota(userId: string, minutesNeeded: number = 0): Promise<boolean> {
   const userDoc = await getDoc(doc(db, "users", userId));
 
   if (!userDoc.exists()) {
@@ -12,12 +12,12 @@ export async function checkQuota(userId: string): Promise<boolean> {
   const userData = userDoc.data() as User;
   const quota = userData.quota;
 
-  // All tiers (free, starter, professional, business) have monthly limits
-  // Check if user has quota remaining
-  return quota.used < quota.monthly;
+  // All tiers (free, starter, professional, business) have monthly limits in minutes
+  // Check if user has enough quota remaining
+  return (quota.used + minutesNeeded) <= quota.monthly;
 }
 
-export async function incrementQuota(userId: string): Promise<void> {
+export async function incrementQuota(userId: string, minutes: number): Promise<void> {
   const userRef = doc(db, "users", userId);
   const userDoc = await getDoc(userRef);
 
@@ -26,7 +26,7 @@ export async function incrementQuota(userId: string): Promise<void> {
   }
 
   const userData = userDoc.data() as User;
-  const newUsed = userData.quota.used + 1;
+  const newUsed = userData.quota.used + minutes;
 
   await updateDoc(userRef, {
     "quota.used": newUsed,

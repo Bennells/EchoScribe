@@ -118,7 +118,8 @@
       "Bash(del \"d:\\Projects\\EchoScribe\\lib\\rate-limit.ts\")",
       "Bash(del \"d:\\Projects\\EchoScribe\\functions\\src\\callable\\deleteUserAccount.ts\")",
       "Bash(firebase auth:export:*)",
-      "Bash(nul)"
+      "Bash(nul)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" logging read \"resource.type=cloud_function AND resource.labels.function_name=onPodcastUploaded AND timestamp>=\"\"2025-11-06T18:00:00Z\"\"\" --limit=30 --format=json --project=echoscribe-test)"
     ],
     "deny": [],
     "ask": []

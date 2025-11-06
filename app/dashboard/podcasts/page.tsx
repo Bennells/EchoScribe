@@ -9,16 +9,25 @@ import { ProcessingStatus } from "@/components/features/podcast-upload/processin
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import toast from "react-hot-toast";
-import { Trash2, FileAudio, Clock, CheckCircle, AlertCircle, ExternalLink } from "lucide-react";
+import { Trash2, FileAudio, Clock, CheckCircle, AlertCircle, ExternalLink, X, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import type { Podcast } from "@/types/podcast";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { getAudioDurations } from "@/lib/audio/get-duration";
+
+interface FileWithDuration {
+  file: File;
+  duration: number; // in minutes
+}
 
 export default function PodcastsPage() {
   const { user } = useAuth();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<FileWithDuration[]>([]);
+  const [loadingDurations, setLoadingDurations] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
@@ -28,8 +37,23 @@ export default function PodcastsPage() {
   useEffect(() => {
     if (user) {
       // Subscribe to real-time podcast updates
-      const unsubscribePodcasts = subscribeToUserPodcasts(user.uid, (podcasts) => {
-        setPodcasts(podcasts);
+      const unsubscribePodcasts = subscribeToUserPodcasts(user.uid, (newPodcasts) => {
+        // Check for quota_exceeded podcasts (newly added)
+        const quotaExceededPodcasts = newPodcasts.filter(p => p.status === "quota_exceeded");
+
+        // Find newly quota_exceeded podcasts (not in previous state)
+        const previousQuotaExceeded = podcasts.filter(p => p.status === "quota_exceeded").map(p => p.id);
+        const newQuotaExceeded = quotaExceededPodcasts.filter(p => !previousQuotaExceeded.includes(p.id));
+
+        // Show toast for new quota_exceeded podcasts
+        newQuotaExceeded.forEach(podcast => {
+          toast.error(
+            `Upload abgelehnt: ${podcast.fileName}\n${podcast.errorMessage || 'Quota überschritten'}`,
+            { duration: 10000 }
+          );
+        });
+
+        setPodcasts(newPodcasts);
         setLoading(false);
       });
 
@@ -62,7 +86,7 @@ export default function PodcastsPage() {
         unsubscribeQuota();
       };
     }
-  }, [user]);
+  }, [user, podcasts]);
 
   const loadPodcasts = async () => {
     if (!user) return;
@@ -77,48 +101,96 @@ export default function PodcastsPage() {
     }
   };
 
-  const handleFileSelect = (file: File) => {
-    setSelectedFile(file);
+  const handleFileSelect = async (files: File[]) => {
+    try {
+      setLoadingDurations(true);
+      // Extract audio durations using browser Audio API
+      const durations = await getAudioDurations(files);
+      const filesWithDurations = files.map((file, index) => ({
+        file,
+        duration: durations[index] || 0
+      }));
+      setSelectedFiles(prev => [...prev, ...filesWithDurations]);
+    } catch (error) {
+      console.error("Error extracting audio durations:", error);
+      toast.error("Fehler beim Extrahieren der Audio-Dauer");
+      // Add files with 0 duration on error
+      const filesWithZeroDuration = files.map(file => ({ file, duration: 0 }));
+      setSelectedFiles(prev => [...prev, ...filesWithZeroDuration]);
+    } finally {
+      setLoadingDurations(false);
+    }
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !user) return;
+    if (selectedFiles.length === 0 || !user) return;
 
     // Prevent multiple simultaneous uploads
     if (uploading) return;
 
     try {
-      // Double-check quota including pending uploads
+      // Double-check quota including pending uploads (minute-based)
       const currentQuotaInfo = await getQuotaInfo(user.uid);
-      const pendingUploads = podcasts.filter(p =>
-        p.status === "uploaded" || p.status === "queued" || p.status === "processing"
-      ).length;
+      const pendingMinutes = podcasts
+        .filter(p => p.status === "uploaded" || p.status === "queued" || p.status === "processing")
+        .reduce((sum, p) => sum + (p.duration || 0), 0);
 
-      // For non-pro users, check if they have quota available considering pending uploads
-      if (!currentQuotaInfo.isPro && currentQuotaInfo.used + pendingUploads >= currentQuotaInfo.total) {
-        toast.error("Quota erreicht. Bitte warten Sie, bis die Verarbeitung abgeschlossen ist, oder upgraden Sie Ihr Abo.");
+      // Check if user has enough quota for all uploads
+      const totalRequiredMinutes = selectedFiles.reduce((sum, f) => sum + f.duration, 0);
+      const totalRequired = currentQuotaInfo.used + pendingMinutes + totalRequiredMinutes;
+
+      if (totalRequired > currentQuotaInfo.total) {
+        const available = currentQuotaInfo.total - currentQuotaInfo.used - pendingMinutes;
+        toast.error(`Nicht genügend Minuten. Benötigt: ${totalRequiredMinutes} Min., Verfügbar: ${available} Min.`);
         return;
       }
 
       setUploading(true);
-      setUploadProgress(0);
 
-      // Start upload to Storage
-      const { uploadTask, storagePath } = await createPodcast(
-        user.uid,
-        selectedFile,
-        (progress) => {
-          setUploadProgress(progress);
+      let successCount = 0;
+      let errorCount = 0;
+
+      // Upload files sequentially to avoid overwhelming the system
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const { file, duration } = selectedFiles[i];
+
+        try {
+          // Calculate overall progress
+          const baseProgress = (i / selectedFiles.length) * 100;
+          const fileProgressWeight = 100 / selectedFiles.length;
+
+          // Start upload to Storage with duration
+          const { uploadTask } = await createPodcast(
+            user.uid,
+            file,
+            duration,
+            (fileProgress) => {
+              const totalProgress = baseProgress + (fileProgress * fileProgressWeight / 100);
+              setUploadProgress(totalProgress);
+            }
+          );
+
+          // Wait for upload to complete
+          await uploadTask;
+          successCount++;
+
+        } catch (error: any) {
+          console.error(`Upload error for ${file.name}:`, error);
+          errorCount++;
         }
-      );
+      }
 
-      // Wait for upload to complete
-      await uploadTask;
-
-      toast.success("Podcast erfolgreich hochgeladen! Verarbeitung läuft...");
+      // Show summary message
+      if (errorCount === 0) {
+        toast.success(`${successCount} Podcast${successCount !== 1 ? 's' : ''} erfolgreich hochgeladen! Verarbeitung läuft...`);
+      } else if (successCount > 0) {
+        toast.success(`${successCount} von ${selectedFiles.length} Podcasts hochgeladen. ${errorCount} fehlgeschlagen.`);
+      } else {
+        toast.error(`Alle ${errorCount} Uploads fehlgeschlagen.`);
+      }
 
       // Reset upload state to allow immediate re-upload
-      setSelectedFile(null);
+      setSelectedFiles([]);
       setUploadProgress(0);
       setUploading(false);
 
@@ -176,10 +248,20 @@ export default function PodcastsPage() {
             <span className="text-sm">Fehler</span>
           </div>
         );
+      case "quota_exceeded":
+        return (
+          <div className="flex items-center gap-1 text-orange-600">
+            <AlertCircle className="h-4 w-4" />
+            <span className="text-sm">Quota überschritten</span>
+          </div>
+        );
       default:
         return <span className="text-sm text-muted-foreground">{status}</span>;
     }
   };
+
+  // Filter quota_exceeded podcasts for alert
+  const quotaExceededPodcasts = podcasts.filter(p => p.status === "quota_exceeded");
 
   return (
     <div className="space-y-8">
@@ -190,24 +272,30 @@ export default function PodcastsPage() {
         </p>
       </div>
 
-      {/* Quota Info */}
-      {quotaInfo && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Ihre Quota</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-muted-foreground">
-                {quotaInfo.used} von {quotaInfo.total} Podcasts verwendet
-              </span>
-              <span className="text-sm font-medium">
-                {quotaInfo.remaining} übrig
-              </span>
-            </div>
-            <Progress value={(quotaInfo.used / quotaInfo.total) * 100} />
-          </CardContent>
-        </Card>
+      {/* Quota Exceeded Alert */}
+      {quotaExceededPodcasts.length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>
+            {quotaExceededPodcasts.length} Upload{quotaExceededPodcasts.length > 1 ? 's' : ''} fehlgeschlagen
+          </AlertTitle>
+          <AlertDescription>
+            <p className="mb-2">
+              Ihre Quota hat nicht für alle Dateien gereicht. Die folgenden Uploads wurden abgelehnt:
+            </p>
+            <ul className="list-disc list-inside space-y-1">
+              {quotaExceededPodcasts.map(p => (
+                <li key={p.id} className="text-sm">
+                  <span className="font-medium">{p.fileName}</span>
+                  {p.duration && ` (${p.duration} Min)`}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-sm">
+              Diese Dateien wurden nicht gespeichert und zählen nicht zu Ihrer Quota.
+            </p>
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Upload Section */}
@@ -221,15 +309,33 @@ export default function PodcastsPage() {
         <CardContent className="space-y-4">
           <UploadZone
             onFileSelect={handleFileSelect}
-            disabled={uploading}
-            selectedFile={selectedFile}
-            onClearFile={() => setSelectedFile(null)}
+            disabled={uploading || loadingDurations}
+            selectedFiles={selectedFiles.map(f => f.file)}
+            onClearFile={(index) => {
+              if (index !== undefined) {
+                setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+              } else {
+                setSelectedFiles([]);
+              }
+            }}
           />
 
-          {selectedFile && !uploading && (
-            <Button onClick={handleUpload} className="w-full">
-              Jetzt hochladen
-            </Button>
+          {loadingDurations && (
+            <div className="text-center text-sm text-muted-foreground">
+              Lade Audio-Dauer...
+            </div>
+          )}
+
+          {selectedFiles.length > 0 && !uploading && !loadingDurations && (
+            <div className="space-y-2">
+              <div className="text-sm text-muted-foreground">
+                {selectedFiles.length} Datei{selectedFiles.length !== 1 ? 'en' : ''} ausgewählt
+                ({selectedFiles.reduce((sum, f) => sum + f.duration, 0).toFixed(1)} Min.)
+              </div>
+              <Button onClick={handleUpload} className="w-full">
+                {selectedFiles.length === 1 ? 'Jetzt hochladen' : `${selectedFiles.length} Dateien hochladen`}
+              </Button>
+            </div>
           )}
 
           {uploading && (
@@ -264,7 +370,11 @@ export default function PodcastsPage() {
               {podcasts.map((podcast) => (
                 <div
                   key={podcast.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className={`flex items-center justify-between p-4 border rounded-lg ${
+                    podcast.status === "quota_exceeded"
+                      ? "border-red-300 bg-red-50/50"
+                      : ""
+                  }`}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <FileAudio className="h-8 w-8 text-primary flex-shrink-0" />

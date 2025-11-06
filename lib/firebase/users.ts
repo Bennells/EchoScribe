@@ -1,5 +1,6 @@
 import { doc, setDoc, Timestamp } from "firebase/firestore";
 import { db } from "./config";
+import { TIER_LIMITS } from "@/lib/constants/pricing";
 
 /**
  * Create user document in Firestore after successful registration
@@ -8,14 +9,19 @@ import { db } from "./config";
 export async function createUserDocument(userId: string, email: string): Promise<void> {
   try {
     const userRef = doc(db, "users", userId);
+
+    // Calculate resetAt (first day of next month)
+    const now = new Date();
+    const resetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
     const userData = {
       email,
       createdAt: Timestamp.now(),
       subscriptionStatus: "free",
       quota: {
-        monthly: 3, // Free tier: 3 podcasts total (lifetime limit, no reset)
+        monthly: TIER_LIMITS.free, // Free tier: 100 minutes per month
         used: 0,
-        freeLifetimeUsed: 0, // Tracks lifetime free tier usage across subscription changes
+        resetAt: Timestamp.fromDate(resetDate),
       },
     };
 

@@ -2,14 +2,21 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    // Helper function to check if user is within quota
+    function isWithinQuota(userId) {
+      let userDoc = firestore.get(/databases/(default)/documents/users/$(userId));
+      return userDoc.data.quota.used < userDoc.data.quota.monthly;
+    }
+
     // Podcasts storage
     match /podcasts/{userId}/{filename} {
-      // Max 500 MB, only audio files
+      // Max 500 MB, only audio files, within quota
       allow read, delete: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null
                     && request.auth.uid == userId
                     && request.resource.size < 500 * 1024 * 1024
-                    && request.resource.contentType.matches('audio/.*');
+                    && request.resource.contentType.matches('audio/.*')
+                    && isWithinQuota(userId);
     }
   }
 }

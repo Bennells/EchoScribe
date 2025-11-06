@@ -24,34 +24,42 @@ const tiers: PricingTierConfig[] = [
     id: "free",
     name: "Free",
     price: "€0",
-    description: "3 Podcasts insgesamt (Lifetime)",
+    description: "100 Minuten pro Monat",
     features: [
-      "3 Podcast-Analysen (Lifetime)",
+      "100 Minuten pro Monat",
+      "~3-4 Episoden (30 Min)",
+      "Alle SEO-Features",
+      "Monatliche Zurücksetzung",
     ],
-    buttonText: "Aktueller Plan",
+    buttonText: "Kostenlos starten",
     buttonVariant: "outline",
   },
   {
     id: "starter",
     name: "Starter",
-    price: "€9,99",
-    priceAmount: 9.99,
-    description: "15 Podcasts pro Monat",
+    price: "€19",
+    priceAmount: 19,
+    description: "240 Minuten pro Monat",
     features: [
-      "15 Podcast-Analysen pro Monat",
-      "Monatliche Quota-Zurücksetzung",
+      "240 Minuten pro Monat",
+      "~6-8 Episoden (30-40 Min)",
+      "Komplettes SEO-Paket",
+      "Export (Markdown & HTML)",
     ],
     buttonText: "Jetzt starten",
   },
   {
     id: "professional",
     name: "Professional",
-    price: "€24,99",
-    priceAmount: 24.99,
-    description: "60 Podcasts pro Monat",
+    price: "€49",
+    priceAmount: 49,
+    description: "600 Minuten pro Monat",
     features: [
-      "60 Podcast-Analysen pro Monat",
-      "Monatliche Quota-Zurücksetzung",
+      "600 Minuten pro Monat",
+      "~15-20 Episoden",
+      "Alles aus Starter",
+      "Bulk Upload",
+      "Eigener Schreibstil",
     ],
     popular: true,
     buttonText: "Jetzt upgraden",
@@ -59,12 +67,15 @@ const tiers: PricingTierConfig[] = [
   {
     id: "business",
     name: "Business",
-    price: "€49,99",
-    priceAmount: 49.99,
-    description: "150 Podcasts pro Monat",
+    price: "€149",
+    priceAmount: 149,
+    description: "2000 Minuten pro Monat",
     features: [
-      "150 Podcast-Analysen pro Monat",
-      "Monatliche Quota-Zurücksetzung",
+      "2000 Minuten pro Monat",
+      "~50-65 Episoden",
+      "Alles aus Professional",
+      "API Zugang (bald)",
+      "Prioritäts-Support",
     ],
     buttonText: "Jetzt upgraden",
   },
@@ -126,23 +137,29 @@ export function PricingCards({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
-      {tiers.map((tier) => (
-        <Card
-          key={tier.id}
-          className={cn(
-            "relative flex flex-col",
-            tier.popular && "border-primary shadow-lg scale-105",
-            currentTier === tier.id && "border-primary"
-          )}
-        >
-          {tier.popular && (
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
-                Beliebteste Wahl
-              </span>
-            </div>
-          )}
+    <div className="space-y-4 w-full">
+      <div className="text-center">
+        <p className="text-sm text-muted-foreground">
+          💰 <span className="font-medium">20% sparen</span> mit Jahresabo
+        </p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+        {tiers.map((tier) => (
+          <Card
+            key={tier.id}
+            className={cn(
+              "relative flex flex-col",
+              tier.popular && "border-primary shadow-lg scale-105",
+              currentTier === tier.id && "border-primary"
+            )}
+          >
+            {tier.popular && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                  AM BELIEBTESTEN
+                </span>
+              </div>
+            )}
 
           <CardHeader>
             <CardTitle className="text-2xl">{tier.name}</CardTitle>
@@ -184,6 +201,7 @@ export function PricingCards({
           </CardContent>
         </Card>
       ))}
+      </div>
     </div>
   );
 }

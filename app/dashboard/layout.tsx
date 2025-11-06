@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { Home, FileAudio, FileText, Settings, LogOut, CreditCard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getQuotaInfo } from "@/lib/firebase/quota";
+import { UsageIndicator } from "@/components/dashboard/usage-indicator";
 
 export default function DashboardLayout({
   children,
@@ -118,6 +119,7 @@ export default function DashboardLayout({
 
         {/* Main Content */}
         <main className="flex-1">
+          <UsageIndicator />
           <div className="h-full p-8">
             <ErrorBoundary>{children}</ErrorBoundary>
           </div>

@@ -264,21 +264,13 @@ export default function SettingsPage() {
           <div>
             <label className="text-sm font-medium">Konto-Typ</label>
             <p className="text-sm text-muted-foreground">
-              {quotaInfo?.tier === "free" && "Free Tier (3 Podcasts insgesamt)"}
-              {quotaInfo?.tier === "starter" && "Starter (15 Podcasts pro Monat)"}
-              {quotaInfo?.tier === "professional" && "Professional (60 Podcasts pro Monat)"}
-              {quotaInfo?.tier === "business" && "Business (150 Podcasts pro Monat)"}
-              {!quotaInfo?.tier && "Free Tier (3 Podcasts insgesamt)"}
+              {quotaInfo?.tier === "free" && "Free Tier (100 Minuten pro Monat)"}
+              {quotaInfo?.tier === "starter" && "Starter (240 Minuten pro Monat)"}
+              {quotaInfo?.tier === "professional" && "Professional (600 Minuten pro Monat)"}
+              {quotaInfo?.tier === "business" && "Business (2000 Minuten pro Monat)"}
+              {!quotaInfo?.tier && "Free Tier (100 Minuten pro Monat)"}
             </p>
           </div>
-          {quotaInfo && (
-            <div>
-              <label className="text-sm font-medium">Quota-Nutzung</label>
-              <p className="text-sm text-muted-foreground">
-                {quotaInfo.used} / {quotaInfo.total} Podcasts verwendet
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
 
