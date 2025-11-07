@@ -70,7 +70,7 @@ export function SeoBenefitsSection() {
         {/* Stats or Additional Info */}
         <div className="mt-16 bg-gradient-to-r from-blue-600 to-violet-600 rounded-2xl p-8 md:p-12 text-white text-center">
           <h3 className="text-3xl md:text-4xl font-bold mb-4">
-            70% aller Podcast-Hörer
+            Die meisten Podcast-Hörer
           </h3>
           <p className="text-xl md:text-2xl opacity-90 max-w-2xl mx-auto">
             suchen zuerst auf Google nach Podcasts zu ihren Interessen.

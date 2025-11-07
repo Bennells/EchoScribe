@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { Timestamp } from "firebase-admin/firestore";
+import { LAUNCH_SPECIAL_MODE } from "@/lib/constants/pricing";
 
 const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
   apiVersion: "2023-10-16",
@@ -33,6 +34,14 @@ function getTierQuota(tier: string): number {
 }
 
 export async function POST(request: NextRequest) {
+  // Launch Special: Payment flows disabled
+  if (LAUNCH_SPECIAL_MODE) {
+    return NextResponse.json(
+      { error: "Plan-Änderungen sind während der Launch Special Phase nicht verfügbar." },
+      { status: 503 }
+    );
+  }
+
   try {
     // Get the Firebase token from cookies
     const token = request.cookies.get("firebase-token")?.value;

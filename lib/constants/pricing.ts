@@ -1,7 +1,10 @@
 import type { UserTier } from "@/types/user";
 
+// Launch Special Mode: Only free tier available with 200 minutes
+export const LAUNCH_SPECIAL_MODE = true;
+
 export const TIER_LIMITS: Record<UserTier, number> = {
-  free: 100, // 100 minutes per month
+  free: LAUNCH_SPECIAL_MODE ? 200 : 100, // Launch Special: 200 minutes, normally 100 minutes per month
   starter: 240, // 240 minutes per month
   professional: 600, // 600 minutes per month
   business: 2000, // 2000 minutes per month

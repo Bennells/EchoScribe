@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Lock, X, Mic, Sparkles, FileText, Share2, BookOpen, Tag } from "lucide-react";
+import { LAUNCH_SPECIAL_MODE } from "@/lib/constants/pricing";
 
 export function HeroSection() {
   return (
@@ -31,19 +32,28 @@ export function HeroSection() {
               Erreichen Sie mehr Hörer auf allen Kanälen.
             </p>
 
+            {LAUNCH_SPECIAL_MODE && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-full text-sm font-semibold shadow-lg">
+                <Sparkles className="h-4 w-4" />
+                Launch Special: 200 Minuten kostenlos!
+              </div>
+            )}
+
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center pt-4">
               <Link href="/register">
                 <Button size="lg" className="text-base px-8 py-6 group">
-                  Kostenlos starten
+                  {LAUNCH_SPECIAL_MODE ? "Jetzt 200 Minuten gratis sichern" : "Kostenlos starten"}
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Link href="/pricing">
-                <Button size="lg" variant="outline" className="text-base px-8 py-6">
-                  Preise ansehen
-                </Button>
-              </Link>
+              {!LAUNCH_SPECIAL_MODE && (
+                <Link href="/pricing">
+                  <Button size="lg" variant="outline" className="text-base px-8 py-6">
+                    Preise ansehen
+                  </Button>
+                </Link>
+              )}
             </div>
 
             {/* Trust Badges */}

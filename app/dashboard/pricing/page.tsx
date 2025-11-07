@@ -8,6 +8,8 @@ import { useAuth } from "@/lib/firebase/auth-context";
 import { useState, useEffect, useRef } from "react";
 import { getQuotaInfo } from "@/lib/firebase/quota";
 import toast from "react-hot-toast";
+import { Sparkles } from "lucide-react";
+import { LAUNCH_SPECIAL_MODE } from "@/lib/constants/pricing";
 
 export default function DashboardPricingPage() {
   const { user } = useAuth();
@@ -157,6 +159,19 @@ export default function DashboardPricingPage() {
           Wählen Sie den Plan, der am besten zu Ihren Bedürfnissen passt
         </p>
       </div>
+
+      {/* Launch Special Banner */}
+      {LAUNCH_SPECIAL_MODE && (
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
+          <Sparkles className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-blue-900">
+            <p className="font-semibold mb-1">Launch Special Phase</p>
+            <p>
+              Aktuell ist nur der kostenlose Plan mit 200 Minuten verfügbar. Weitere Preisstufen (Starter, Professional, Business) folgen in Kürze.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Current Plan Info */}
       {quotaInfo && (

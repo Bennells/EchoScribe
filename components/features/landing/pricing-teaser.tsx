@@ -9,9 +9,11 @@ const pricingTiers = [
     price: "€0",
     description: "100 Minuten pro Monat",
     features: [
-      "100 Minuten Audio pro Monat",
-      "Alle SEO-Features",
-      "Social Media Content",
+      "100 Minuten pro Monat",
+      "Social Media Posts",
+      "Show Notes",
+      "SEO-Paket",
+      "Massen-Upload",
     ],
   },
   {
@@ -20,12 +22,12 @@ const pricingTiers = [
     period: "/Monat",
     description: "240 Minuten pro Monat",
     features: [
-      "240 Minuten Audio pro Monat",
-      "Alle SEO-Features",
-      "Social Media Content",
-      "Podcast Show Notes",
+      "240 Minuten pro Monat",
+      "Social Media Posts",
+      "Show Notes",
+      "SEO-Paket",
+      "Massen-Upload",
     ],
-    popular: true,
   },
   {
     name: "Professional",
@@ -33,10 +35,25 @@ const pricingTiers = [
     period: "/Monat",
     description: "600 Minuten pro Monat",
     features: [
-      "600 Minuten Audio pro Monat",
-      "Alle SEO-Features",
-      "Social Media Content",
-      "Podcast Show Notes",
+      "600 Minuten pro Monat",
+      "Social Media Posts",
+      "Show Notes",
+      "SEO-Paket",
+      "Massen-Upload",
+    ],
+    popular: true,
+  },
+  {
+    name: "Business",
+    price: "€149",
+    period: "/Monat",
+    description: "2000 Minuten pro Monat",
+    features: [
+      "2000 Minuten pro Monat",
+      "Social Media Posts",
+      "Show Notes",
+      "SEO-Paket",
+      "Massen-Upload",
     ],
   },
 ];
@@ -59,18 +76,18 @@ export function PricingTeaser() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12 px-4">
           {pricingTiers.map((tier, index) => (
             <Card
               key={index}
-              className={`relative ${
+              className={`relative transition-all duration-300 hover:shadow-2xl ${
                 tier.popular
-                  ? "border-primary shadow-xl scale-105 md:scale-110"
-                  : ""
+                  ? "border-primary shadow-xl ring-2 ring-primary/20"
+                  : "hover:border-primary/50"
               }`}
             >
               {tier.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
                   <span className="bg-gradient-to-r from-blue-600 to-violet-600 text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg">
                     Beliebteste Wahl
                   </span>
@@ -79,23 +96,23 @@ export function PricingTeaser() {
 
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl mb-2">{tier.name}</CardTitle>
-                <CardDescription className="mb-4">
+                <CardDescription className="mb-6 min-h-[3rem] flex items-center justify-center">
                   {tier.description}
                 </CardDescription>
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-5xl font-bold">{tier.price}</span>
                   {tier.period && (
-                    <span className="text-muted-foreground">{tier.period}</span>
+                    <span className="text-muted-foreground ml-1">{tier.period}</span>
                   )}
                 </div>
               </CardHeader>
 
-              <CardContent>
-                <ul className="space-y-3 mb-6">
+              <CardContent className="pt-0">
+                <ul className="space-y-3.5">
                   {tier.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-start gap-2">
+                    <li key={featureIndex} className="flex items-start gap-3">
                       <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-sm">{feature}</span>
+                      <span className="text-sm leading-relaxed">{feature}</span>
                     </li>
                   ))}
                 </ul>

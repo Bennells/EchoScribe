@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { LAUNCH_SPECIAL_MODE } from "@/lib/constants/pricing";
 
 const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
   apiVersion: "2023-10-16",
@@ -10,6 +11,12 @@ const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim(), {
 const webhookSecret = (process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 
 export async function POST(request: NextRequest) {
+  // Launch Special: No payment webhooks should be processed
+  if (LAUNCH_SPECIAL_MODE) {
+    console.log("Webhook received during Launch Special mode - ignoring");
+    return NextResponse.json({ received: true, ignored: true });
+  }
+
   try {
     const body = await request.text();
     const signature = request.headers.get("stripe-signature");

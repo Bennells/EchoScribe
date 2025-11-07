@@ -139,7 +139,7 @@ export default function PricingPage() {
       {/* Footer */}
       <footer className="border-t py-6 px-8 mt-16">
         <div className="container mx-auto flex flex-col gap-4 md:flex-row md:justify-between md:items-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} EchoScribe. Alle Rechte vorbehalten.</p>
+          <p>Copyright &copy; {new Date().getFullYear()} Bennells</p>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-primary transition-colors">
               Datenschutz

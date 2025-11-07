@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CookieBanner } from "@/components/features/cookie-banner";
 import {
   Navigation,
@@ -10,87 +9,49 @@ import {
   FaqSection,
   FinalCta,
 } from "@/components/features/landing";
+import { LAUNCH_SPECIAL_MODE } from "@/lib/constants/pricing";
+import { Sparkles } from "lucide-react";
 
 export default function Home() {
   return (
     <>
-      <div className="flex min-h-screen flex-col">
-        {/* Sticky Navigation */}
-        <Navigation />
+      {/* Sticky Navigation */}
+      <Navigation />
 
-        {/* Main Content */}
-        <main className="flex-1">
-          {/* Hero Section */}
-          <HeroSection />
-
-          {/* How It Works Section */}
-          <HowItWorks />
-
-          {/* Features Grid Section */}
-          <FeaturesGrid />
-
-          {/* Pricing Teaser Section */}
-          <PricingTeaser />
-
-          {/* SEO Benefits Section */}
-          <SeoBenefitsSection />
-
-          {/* FAQ Section */}
-          <FaqSection />
-
-          {/* Final CTA Section */}
-          <FinalCta />
-        </main>
-
-        {/* Footer */}
-        <footer className="border-t py-8 px-4 bg-muted/30">
-          <div className="container mx-auto max-w-7xl">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-              {/* Logo & Copyright */}
-              <div className="flex flex-col items-center md:items-start gap-3">
-                <Link
-                  href="/"
-                  className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent"
-                >
-                  EchoScribe
-                </Link>
-                <p className="text-sm text-muted-foreground">
-                  &copy; {new Date().getFullYear()} EchoScribe. Alle Rechte
-                  vorbehalten.
-                </p>
-              </div>
-
-              {/* Links */}
-              <div className="flex flex-wrap justify-center gap-6 text-sm">
-                <Link
-                  href="/privacy"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Datenschutz
-                </Link>
-                <Link
-                  href="/terms"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
-                  AGB
-                </Link>
-                <Link
-                  href="/imprint"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Impressum
-                </Link>
-                <a
-                  href="mailto:support@echoscribe.com"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Kontakt
-                </a>
-              </div>
-            </div>
+      {/* Launch Special Banner */}
+      {LAUNCH_SPECIAL_MODE && (
+        <div className="bg-gradient-to-r from-blue-600 to-violet-600 text-white py-3 px-4 text-center">
+          <div className="container mx-auto flex items-center justify-center gap-2 text-sm md:text-base font-semibold">
+            <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
+            <span>Launch Special: Jetzt kostenlos mit 200 Minuten starten!</span>
+            <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
           </div>
-        </footer>
-      </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <main>
+        {/* Hero Section */}
+        <HeroSection />
+
+        {/* How It Works Section */}
+        <HowItWorks />
+
+        {/* Features Grid Section */}
+        <FeaturesGrid />
+
+        {/* Pricing Teaser Section */}
+        <PricingTeaser />
+
+        {/* SEO Benefits Section */}
+        <SeoBenefitsSection />
+
+        {/* FAQ Section */}
+        <FaqSection />
+
+        {/* Final CTA Section */}
+        <FinalCta />
+      </main>
 
       {/* Cookie Banner */}
       <CookieBanner />

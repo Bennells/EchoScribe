@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { getQuotaInfo } from "@/lib/firebase/quota";
 import { getActiveSubscription } from "@/lib/firebase/subscription";
 import toast from "react-hot-toast";
-import { Database, AlertCircle, CreditCard } from "lucide-react";
+import { Database, AlertCircle, CreditCard, Sparkles } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/features/delete-account-dialog";
 import { CancelSubscriptionDialog } from "@/components/features/subscription/cancel-subscription-dialog";
 import { ReactivateSubscriptionDialog } from "@/components/features/subscription/reactivate-subscription-dialog";
@@ -15,6 +15,7 @@ import { ChangeEmailDialog } from "@/components/features/settings/change-email-d
 import { EmailVerificationBanner } from "@/components/features/settings/email-verification-banner";
 import { useRouter } from "next/navigation";
 import type { Subscription } from "@/types/subscription";
+import { LAUNCH_SPECIAL_MODE, TIER_LIMITS } from "@/lib/constants/pricing";
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
@@ -264,12 +265,18 @@ export default function SettingsPage() {
           <div>
             <label className="text-sm font-medium">Konto-Typ</label>
             <p className="text-sm text-muted-foreground">
-              {quotaInfo?.tier === "free" && "Free Tier (100 Minuten pro Monat)"}
+              {quotaInfo?.tier === "free" && `Free Tier (${TIER_LIMITS.free} Minuten pro Monat)`}
               {quotaInfo?.tier === "starter" && "Starter (240 Minuten pro Monat)"}
               {quotaInfo?.tier === "professional" && "Professional (600 Minuten pro Monat)"}
               {quotaInfo?.tier === "business" && "Business (2000 Minuten pro Monat)"}
-              {!quotaInfo?.tier && "Free Tier (100 Minuten pro Monat)"}
+              {!quotaInfo?.tier && `Free Tier (${TIER_LIMITS.free} Minuten pro Monat)`}
             </p>
+            {LAUNCH_SPECIAL_MODE && (quotaInfo?.tier === "free" || !quotaInfo?.tier) && (
+              <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-xs font-semibold rounded-full">
+                <Sparkles className="h-3 w-3" />
+                Launch Special: 200 Minuten gratis!
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -295,35 +302,36 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Abo-Verwaltung</CardTitle>
-          <CardDescription>
-            {quotaInfo?.tier && quotaInfo.tier !== "free"
-              ? "Verwalten Sie Ihr aktives Abonnement"
-              : "Wählen Sie einen Plan und starten Sie mit mehr Podcast-Analysen"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {!quotaInfo?.tier || quotaInfo.tier === "free" ? (
-            <>
-              <div className="mb-4 space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Wählen Sie aus unseren verschiedenen Plänen:
-                </p>
-                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                  <li>Starter: 15 Podcasts pro Monat (€9,99)</li>
-                  <li>Professional: 60 Podcasts pro Monat (€24,99)</li>
-                  <li>Business: 150 Podcasts pro Monat (€49,99)</li>
-                </ul>
-              </div>
-              <Button asChild>
-                <a href="/dashboard/pricing">
-                  Pläne ansehen & upgraden
-                </a>
-              </Button>
-            </>
-          ) : (
+      {!LAUNCH_SPECIAL_MODE && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Abo-Verwaltung</CardTitle>
+            <CardDescription>
+              {quotaInfo?.tier && quotaInfo.tier !== "free"
+                ? "Verwalten Sie Ihr aktives Abonnement"
+                : "Wählen Sie einen Plan und starten Sie mit mehr Podcast-Analysen"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!quotaInfo?.tier || quotaInfo.tier === "free" ? (
+              <>
+                <div className="mb-4 space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Wählen Sie aus unseren verschiedenen Plänen:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                    <li>Starter: 15 Podcasts pro Monat (€9,99)</li>
+                    <li>Professional: 60 Podcasts pro Monat (€24,99)</li>
+                    <li>Business: 150 Podcasts pro Monat (€49,99)</li>
+                  </ul>
+                </div>
+                <Button asChild>
+                  <a href="/dashboard/pricing">
+                    Pläne ansehen & upgraden
+                  </a>
+                </Button>
+              </>
+            ) : (
             <>
               {subscription?.cancelAtPeriodEnd && subscription.currentPeriodEnd ? (
                 <div className="mb-4 p-4 bg-muted/50 border-l-4 border-l-primary rounded-md">
@@ -406,11 +414,12 @@ export default function SettingsPage() {
               </div>
             </>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Zahlungsmethode & Rechnungen - nur für bezahlte Abonnements */}
-      {quotaInfo?.tier && quotaInfo.tier !== "free" && (
+      {!LAUNCH_SPECIAL_MODE && quotaInfo?.tier && quotaInfo.tier !== "free" && (
         <Card>
           <CardHeader>
             <CardTitle>Zahlungsdetails & Rechnungen</CardTitle>
