@@ -121,26 +121,8 @@ export async function processPodcast(podcastId: string, storagePath: string) {
     });
     logger.info(`[processPodcast] ✅ Podcast status updated to 'completed'`);
 
-    // Increment user quota by podcast duration in minutes
-    logger.info(`[processPodcast] Step 7: Incrementing user quota by ${podcastData.duration || 0} minutes`);
-    try {
-      const minutesToIncrement = podcastData.duration || 0;
-
-      if (minutesToIncrement > 0) {
-        // Update quota - increment by minutes used
-        const updateData: any = {
-          "quota.used": FieldValue.increment(minutesToIncrement),
-        };
-
-        await db.collection("users").doc(podcastData.userId).update(updateData);
-        logger.info(`[processPodcast] ✅ Incremented quota by ${minutesToIncrement} minutes for user ${podcastData.userId}`);
-      } else {
-        logger.warn(`[processPodcast] ⚠️ Podcast has no duration, skipping quota increment`);
-      }
-    } catch (quotaError: any) {
-      logger.error(`[processPodcast] ⚠️ Failed to increment quota:`, quotaError);
-      // Don't fail the whole process if quota update fails
-    }
+    // Note: Quota was already reserved in onPodcastUploaded.ts when the upload completed
+    // No additional quota increment needed here to avoid double-counting
 
     logger.info("=".repeat(80));
     logger.info(`[processPodcast] ✅ COMPLETED - Podcast ${podcastId} processing finished successfully`);

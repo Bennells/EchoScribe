@@ -129,7 +129,7 @@ export default function PodcastsPage() {
     if (uploading) return;
 
     try {
-      // Double-check quota including pending uploads (minute-based)
+      // Refresh quota from server before upload to get latest state
       const currentQuotaInfo = await getQuotaInfo(user.uid);
       const pendingMinutes = podcasts
         .filter(p => p.status === "uploaded" || p.status === "queued" || p.status === "processing")
@@ -140,8 +140,13 @@ export default function PodcastsPage() {
       const totalRequired = currentQuotaInfo.used + pendingMinutes + totalRequiredMinutes;
 
       if (totalRequired > currentQuotaInfo.total) {
-        const available = currentQuotaInfo.total - currentQuotaInfo.used - pendingMinutes;
-        toast.error(`Nicht genügend Minuten. Benötigt: ${totalRequiredMinutes} Min., Verfügbar: ${available} Min.`);
+        const available = Math.max(0, currentQuotaInfo.total - currentQuotaInfo.used - pendingMinutes);
+        toast.error(
+          `Nicht genügend Minuten verfügbar!\n` +
+          `Benötigt: ${totalRequiredMinutes.toFixed(1)} Min.\n` +
+          `Verfügbar: ${available.toFixed(1)} Min.`,
+          { duration: 6000 }
+        );
         return;
       }
 
@@ -326,17 +331,40 @@ export default function PodcastsPage() {
             </div>
           )}
 
-          {selectedFiles.length > 0 && !uploading && !loadingDurations && (
-            <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">
-                {selectedFiles.length} Datei{selectedFiles.length !== 1 ? 'en' : ''} ausgewählt
-                ({selectedFiles.reduce((sum, f) => sum + f.duration, 0).toFixed(1)} Min.)
+          {selectedFiles.length > 0 && !uploading && !loadingDurations && (() => {
+            // Calculate if user has enough quota for selected files
+            const totalRequiredMinutes = selectedFiles.reduce((sum, f) => sum + f.duration, 0);
+            const pendingMinutes = podcasts
+              .filter(p => p.status === "uploaded" || p.status === "queued" || p.status === "processing")
+              .reduce((sum, p) => sum + (p.duration || 0), 0);
+
+            const available = quotaInfo ? Math.max(0, quotaInfo.total - quotaInfo.used - pendingMinutes) : 0;
+            const hasEnoughQuota = quotaInfo && (quotaInfo.used + pendingMinutes + totalRequiredMinutes) <= quotaInfo.total;
+
+            return (
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">
+                  {selectedFiles.length} Datei{selectedFiles.length !== 1 ? 'en' : ''} ausgewählt
+                  ({totalRequiredMinutes.toFixed(1)} Min.)
+                </div>
+                {!hasEnoughQuota && (
+                  <Alert variant="destructive" className="py-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      Nicht genügend Minuten! Benötigt: {totalRequiredMinutes.toFixed(1)} Min., Verfügbar: {available.toFixed(1)} Min.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <Button
+                  onClick={handleUpload}
+                  className="w-full"
+                  disabled={!hasEnoughQuota}
+                >
+                  {selectedFiles.length === 1 ? 'Jetzt hochladen' : `${selectedFiles.length} Dateien hochladen`}
+                </Button>
               </div>
-              <Button onClick={handleUpload} className="w-full">
-                {selectedFiles.length === 1 ? 'Jetzt hochladen' : `${selectedFiles.length} Dateien hochladen`}
-              </Button>
-            </div>
-          )}
+            );
+          })()}
 
           {uploading && (
             <div className="space-y-2">

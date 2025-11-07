@@ -266,6 +266,69 @@ export const onPodcastUploaded = onObjectFinalized(
           return; // Exit - no processing for quota exceeded uploads
         }
 
+        // ============================================
+        // Post-transaction verification (catch race conditions)
+        // ============================================
+        logger.info(`[onPodcastUploaded] Performing post-transaction quota verification...`);
+        const userRef = db.collection("users").doc(userId);
+        const postTxUserDoc = await userRef.get();
+        const postTxUserData = postTxUserDoc.data();
+
+        if (postTxUserData) {
+          const finalUsed = postTxUserData.quota?.used || 0;
+          const monthlyLimit = postTxUserData.quota?.monthly || 0;
+
+          // If quota now exceeded (race condition), rollback this upload
+          if (finalUsed > monthlyLimit) {
+            logger.warn(`[onPodcastUploaded] ⚠️ POST-TRANSACTION QUOTA EXCEEDED DETECTED!`, {
+              userId,
+              fileName,
+              finalUsed,
+              monthlyLimit,
+              excess: finalUsed - monthlyLimit,
+            });
+
+            // Rollback: Delete file, refund quota, mark as quota_exceeded
+            try {
+              await file.delete();
+              logger.info(`[onPodcastUploaded] ✅ Deleted file due to post-transaction quota exceeded`);
+            } catch (deleteError: any) {
+              logger.error(`[onPodcastUploaded] ⚠️ Failed to delete file:`, deleteError);
+            }
+
+            // Refund quota
+            await userRef.update({
+              "quota.used": FieldValue.increment(-serverDuration),
+            });
+            logger.info(`[onPodcastUploaded] ✅ Refunded ${serverDuration} minutes`);
+
+            // Update podcast status
+            await podcastRef.update({
+              status: "quota_exceeded",
+              errorMessage: `Quota überschritten durch gleichzeitige Uploads: ${finalUsed}/${monthlyLimit} Min.`,
+              errorAt: FieldValue.serverTimestamp(),
+            });
+            logger.info(`[onPodcastUploaded] ✅ Updated podcast to quota_exceeded status`);
+
+            // Report to Sentry
+            captureException(new Error("Race condition: Quota exceeded after transaction"), {
+              functionName: "onPodcastUploaded",
+              extra: {
+                userId,
+                fileName,
+                finalUsed,
+                monthlyLimit,
+                excess: finalUsed - monthlyLimit,
+              },
+            });
+
+            logger.info("=".repeat(80));
+            return; // Exit - don't process this upload
+          }
+
+          logger.info(`[onPodcastUploaded] ✅ Post-transaction verification passed: ${finalUsed}/${monthlyLimit} Min.`);
+        }
+
         // Enqueue processing task (handles long-running Gemini API call)
         logger.info(`[onPodcastUploaded] Enqueueing processing task for: ${podcastId}`);
 

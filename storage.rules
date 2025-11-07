@@ -3,20 +3,32 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     // Helper function to check if user is within quota
-    function isWithinQuota(userId) {
+    // Includes safety buffer: estimated file duration must fit within remaining quota
+    function isWithinQuota(userId, fileSize) {
       let userDoc = firestore.get(/databases/(default)/documents/users/$(userId));
-      return userDoc.data.quota.used < userDoc.data.quota.monthly;
+      let currentUsed = userDoc.data.quota.used;
+      let monthlyLimit = userDoc.data.quota.monthly;
+
+      // Estimate minutes from file size (conservative: ~1 MB per minute for typical audio)
+      // Add 20% safety buffer to prevent race conditions with simultaneous uploads
+      let estimatedMinutes = int((fileSize / (1024 * 1024)) * 1.2);
+
+      // Ensure at least 1 minute is reserved
+      let minutesToReserve = estimatedMinutes < 1 ? 1 : estimatedMinutes;
+
+      // Check if estimated usage would exceed quota
+      return (currentUsed + minutesToReserve) <= monthlyLimit;
     }
 
     // Podcasts storage
     match /podcasts/{userId}/{filename} {
-      // Max 500 MB, only audio files, within quota
+      // Max 500 MB, only audio files, within quota (with safety buffer)
       allow read, delete: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null
                     && request.auth.uid == userId
                     && request.resource.size < 500 * 1024 * 1024
                     && request.resource.contentType.matches('audio/.*')
-                    && isWithinQuota(userId);
+                    && isWithinQuota(userId, request.resource.size);
     }
   }
 }
