@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/firebase/auth-context";
 import { Toaster } from "react-hot-toast";
 import { Footer } from "@/components/footer";
+import { EnvironmentBanner } from "@/components/environment-banner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,12 +18,20 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const isTestEnvironment = process.env.NEXT_PUBLIC_ENVIRONMENT === 'test';
+
   return (
     <html lang="de">
       <body className={inter.className}>
+        <EnvironmentBanner />
         <AuthProvider>
           <div className="flex min-h-screen flex-col">
-            <div className="flex-1">{children}</div>
+            <div
+              className="flex-1"
+              style={{ paddingTop: isTestEnvironment ? '2.5rem' : '0' }}
+            >
+              {children}
+            </div>
             <Footer />
           </div>
           <Toaster position="top-right" />

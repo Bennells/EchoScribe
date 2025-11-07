@@ -111,3 +111,25 @@ env:
     secret: GEMINI_API_KEY
     availability:
       - RUNTIME
+
+  # ==========================================
+  # Test Environment Configuration
+  # ==========================================
+  # Environment identifier (test/production)
+  - variable: NEXT_PUBLIC_ENVIRONMENT
+    value: "test"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Email whitelist protection (TEST environment only)
+  - variable: WHITELIST_ENABLED
+    value: "true"
+    availability:
+      - RUNTIME
+
+  # Comma-separated list of whitelisted email addresses
+  - variable: WHITELISTED_EMAILS
+    value: "dellsworth@bennells.com,grusel21@gmail.com"
+    availability:
+      - RUNTIME
