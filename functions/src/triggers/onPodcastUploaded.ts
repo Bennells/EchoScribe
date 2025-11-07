@@ -3,7 +3,6 @@ import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import { parseBuffer } from "music-metadata";
-import { captureException } from "../lib/sentry";
 import { enqueuePodcastProcessing } from "../lib/taskQueue";
 import { config } from "../config/environment";
 
@@ -112,18 +111,15 @@ export const onPodcastUploaded = onObjectFinalized(
               percentDiff: percentDiff.toFixed(2) + "%",
             });
 
-            // Report to Sentry for monitoring
+            // Log error for monitoring if discrepancy is large
             if (percentDiff > 15) {
-              captureException(new Error("Large audio duration mismatch"), {
-                functionName: "onPodcastUploaded",
-                extra: {
-                  userId,
-                  fileName,
-                  clientDuration,
-                  serverDuration: serverDurationMinutes,
-                  percentDiff,
-                  filePath,
-                },
+              logger.error("Large audio duration mismatch", {
+                userId,
+                fileName,
+                clientDuration,
+                serverDuration: serverDurationMinutes,
+                percentDiff,
+                filePath,
               });
             }
           }
@@ -206,17 +202,14 @@ export const onPodcastUploaded = onObjectFinalized(
 
             transaction.set(podcastRef, quotaExceededData);
 
-            // Report to Sentry for monitoring
-            captureException(new Error("Quota exceeded during upload"), {
-              functionName: "onPodcastUploaded",
-              extra: {
-                userId,
-                fileName,
-                currentUsed,
-                monthlyLimit,
-                required: serverDuration,
-                available: monthlyLimit - currentUsed,
-              },
+            // Log quota exceeded for monitoring
+            logger.error("Quota exceeded during upload", {
+              userId,
+              fileName,
+              currentUsed,
+              monthlyLimit,
+              required: serverDuration,
+              available: monthlyLimit - currentUsed,
             });
 
             logger.info(`[onPodcastUploaded] ✅ Created quota_exceeded document: ${podcastId}`);
@@ -310,16 +303,13 @@ export const onPodcastUploaded = onObjectFinalized(
             });
             logger.info(`[onPodcastUploaded] ✅ Updated podcast to quota_exceeded status`);
 
-            // Report to Sentry
-            captureException(new Error("Race condition: Quota exceeded after transaction"), {
-              functionName: "onPodcastUploaded",
-              extra: {
-                userId,
-                fileName,
-                finalUsed,
-                monthlyLimit,
-                excess: finalUsed - monthlyLimit,
-              },
+            // Log race condition for monitoring
+            logger.error("Race condition: Quota exceeded after transaction", {
+              userId,
+              fileName,
+              finalUsed,
+              monthlyLimit,
+              excess: finalUsed - monthlyLimit,
             });
 
             logger.info("=".repeat(80));
@@ -371,16 +361,6 @@ export const onPodcastUploaded = onObjectFinalized(
         contentType,
       });
       logger.error("=".repeat(80));
-
-      // Report to Sentry
-      captureException(error, {
-        functionName: "onPodcastUploaded",
-        extra: {
-          filePath,
-          fileSize,
-          contentType,
-        },
-      });
     }
   }
 );

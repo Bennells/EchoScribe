@@ -13,21 +13,19 @@ export function FinalCta() {
           {/* Content */}
           <div className="relative z-10 text-center space-y-8">
             <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-              Bereit, Ihre Podcasts in
-              <br />
-              hochwertige Artikel zu verwandeln?
+              Bereit für mehr Reichweite?
             </h2>
 
             <p className="text-xl text-blue-50 max-w-2xl mx-auto leading-relaxed">
-              Starten Sie noch heute kostenlos und erleben Sie, wie einfach
-              Content-Erstellung sein kann. Keine Kreditkarte erforderlich.
+              Starten Sie noch heute kostenlos. Verwandeln Sie Ihre Podcasts in SEO-optimierte Artikel,
+              Social Media Posts und Show Notes – ohne Kreditkarte.
             </p>
 
             {/* Benefits */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center text-sm text-blue-50">
               <div className="flex items-center gap-2">
                 <Check className="h-5 w-5" />
-                <span>3 kostenlose Podcasts</span>
+                <span>100 Minuten kostenlos</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-5 w-5" />
@@ -51,11 +49,6 @@ export function FinalCta() {
                 </Button>
               </Link>
             </div>
-
-            {/* Subtext */}
-            <p className="text-sm text-blue-100">
-              Bereits über 1000+ Podcasts erfolgreich umgewandelt
-            </p>
           </div>
         </div>
       </div>

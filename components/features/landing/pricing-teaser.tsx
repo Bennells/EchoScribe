@@ -7,46 +7,54 @@ const pricingTiers = [
   {
     name: "Free",
     price: "€0",
-    description: "3 Podcasts insgesamt (Lifetime)",
+    description: "100 Minuten pro Monat",
     features: [
-      "3 Podcast-Analysen (Lifetime)",
+      "100 Minuten Audio pro Monat",
+      "Alle SEO-Features",
+      "Social Media Content",
     ],
   },
   {
     name: "Starter",
-    price: "€9,99",
+    price: "€19",
     period: "/Monat",
-    description: "15 Podcasts pro Monat",
+    description: "240 Minuten pro Monat",
     features: [
-      "15 Podcast-Analysen pro Monat",
-      "Monatliche Quota-Zurücksetzung",
+      "240 Minuten Audio pro Monat",
+      "Alle SEO-Features",
+      "Social Media Content",
+      "Podcast Show Notes",
     ],
     popular: true,
   },
   {
     name: "Professional",
-    price: "€24,99",
+    price: "€49",
     period: "/Monat",
-    description: "60 Podcasts pro Monat",
+    description: "600 Minuten pro Monat",
     features: [
-      "60 Podcast-Analysen pro Monat",
-      "Monatliche Quota-Zurücksetzung",
+      "600 Minuten Audio pro Monat",
+      "Alle SEO-Features",
+      "Social Media Content",
+      "Podcast Show Notes",
     ],
   },
 ];
 
 export function PricingTeaser() {
   return (
-    <section id="pricing" className="py-20 md:py-32 px-4 bg-muted/30 scroll-mt-16">
+    <section id="pricing" className="py-20 md:py-32 px-4 scroll-mt-16">
       <div className="container mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold">
-            Transparente Preise für jede Größe
+            Einfache{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+              Preise
+            </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Wählen Sie den Plan, der zu Ihren Bedürfnissen passt. Keine
-            versteckten Gebühren, jederzeit kündbar.
+            Faire Preise ohne versteckte Kosten. Jederzeit kündbar.
           </p>
         </div>
 

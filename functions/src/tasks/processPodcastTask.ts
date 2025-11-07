@@ -1,7 +1,6 @@
 import { onTaskDispatched } from "firebase-functions/v2/tasks";
 import * as logger from "firebase-functions/logger";
 import { processPodcast } from "../triggers/processPodcast";
-import { captureException } from "../lib/sentry";
 import { geminiApiKeySecret } from "../index";
 import { config } from "../config/environment";
 
@@ -60,18 +59,9 @@ export const processPodcastTask = onTaskDispatched(
         error: error.message,
         stack: error.stack,
         attemptNumber,
-      });
-
-      // Report to Sentry with full context
-      captureException(error, {
-        functionName: "processPodcastTask",
-        podcastId,
-        attemptNumber,
-        extra: {
-          storagePath,
-          maxAttempts: 5,
-          isLastAttempt: attemptNumber >= 5,
-        },
+        storagePath,
+        maxAttempts: 5,
+        isLastAttempt: attemptNumber >= 5,
       });
 
       // Rethrow error to trigger automatic retry

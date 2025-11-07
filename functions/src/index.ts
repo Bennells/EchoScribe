@@ -4,9 +4,6 @@
  * Export all Firebase Functions from their respective modules
  */
 
-// Initialize Sentry for Cloud Functions (only in production)
-import "./lib/sentry";
-
 // Define secrets that functions need access to
 import { defineSecret } from "firebase-functions/params";
 

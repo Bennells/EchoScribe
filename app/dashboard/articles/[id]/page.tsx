@@ -7,14 +7,12 @@ import { getArticle } from "@/lib/firebase/articles";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Copy, Code, Eye, Tag, Calendar, RefreshCw, Share2, FileText } from "lucide-react";
+import { ArrowLeft, Copy, Code, Eye, Tag, Calendar, Share2, FileText } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import type { Article } from "@/types/article";
 import { HTMLCodeBlock } from "@/components/HTMLCodeBlock";
 import { CharacterCounter } from "@/components/ui/character-counter";
-import { regenerateArticleField, type RegenerateField } from "@/app/actions/regenerate";
-import { getAuth } from "firebase/auth";
 
 export default function ArticleDetailPage() {
   const params = useParams();
@@ -22,7 +20,6 @@ export default function ArticleDetailPage() {
   const { user } = useAuth();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
-  const [regenerating, setRegenerating] = useState<RegenerateField | null>(null);
 
   useEffect(() => {
     if (user && params.id) {
@@ -60,51 +57,6 @@ export default function ArticleDetailPage() {
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${type} in Zwischenablage kopiert`);
-  };
-
-  const handleRegenerate = async (field: RegenerateField) => {
-    if (!article || !user || !params.id) return;
-
-    setRegenerating(field);
-    const auth = getAuth();
-    const idToken = await auth.currentUser?.getIdToken();
-
-    if (!idToken) {
-      toast.error("Authentifizierung fehlgeschlagen");
-      setRegenerating(null);
-      return;
-    }
-
-    try {
-      const result = await regenerateArticleField(
-        params.id as string,
-        field,
-        idToken
-      );
-
-      if (result.success) {
-        toast.success(`${field === "title" ? "Titel" : field === "metaDescription" ? "Meta Description" : field === "keywords" ? "Keywords" : "Slug"} neu generiert`);
-
-        // Update local state with new value
-        setArticle((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            [field]: result.data,
-          };
-        });
-
-        // Reload to get fresh data from Firestore
-        await loadArticle();
-      } else {
-        toast.error(result.error || "Fehler beim Neu-Generieren");
-      }
-    } catch (error) {
-      console.error("Error regenerating:", error);
-      toast.error("Fehler beim Neu-Generieren");
-    } finally {
-      setRegenerating(null);
-    }
   };
 
   if (loading) {
@@ -177,21 +129,8 @@ export default function ArticleDetailPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => copyToClipboard(article.title, "Titel")}
-                disabled={regenerating !== null}
               >
                 <Copy className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleRegenerate("title")}
-                disabled={regenerating !== null}
-              >
-                {regenerating === "title" ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
               </Button>
             </div>
           </div>
@@ -207,21 +146,8 @@ export default function ArticleDetailPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => copyToClipboard(article.slug, "Slug")}
-                disabled={regenerating !== null}
               >
                 <Copy className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleRegenerate("slug")}
-                disabled={regenerating !== null}
-              >
-                {regenerating === "slug" ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
               </Button>
             </div>
           </div>
@@ -239,30 +165,15 @@ export default function ArticleDetailPage() {
               <p className="flex-1 p-3 bg-muted rounded text-sm">
                 {article.metaDescription}
               </p>
-              <div className="flex flex-col gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    copyToClipboard(article.metaDescription, "Meta Description")
-                  }
-                  disabled={regenerating !== null}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleRegenerate("metaDescription")}
-                  disabled={regenerating !== null}
-                >
-                  {regenerating === "metaDescription" ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  copyToClipboard(article.metaDescription, "Meta Description")
+                }
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
@@ -282,22 +193,9 @@ export default function ArticleDetailPage() {
                   onClick={() =>
                     copyToClipboard(article.keywords.join(", "), "Keywords")
                   }
-                  disabled={regenerating !== null}
                 >
                   <Copy className="h-4 w-4 mr-1" />
                   Alle kopieren
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleRegenerate("keywords")}
-                  disabled={regenerating !== null}
-                >
-                  {regenerating === "keywords" ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
                 </Button>
               </div>
             </div>

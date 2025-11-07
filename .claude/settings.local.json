@@ -119,7 +119,18 @@
       "Bash(del \"d:\\Projects\\EchoScribe\\functions\\src\\callable\\deleteUserAccount.ts\")",
       "Bash(firebase auth:export:*)",
       "Bash(nul)",
-      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" logging read \"resource.type=cloud_function AND resource.labels.function_name=onPodcastUploaded AND timestamp>=\"\"2025-11-06T18:00:00Z\"\"\" --limit=30 --format=json --project=echoscribe-test)"
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" logging read \"resource.type=cloud_function AND resource.labels.function_name=onPodcastUploaded AND timestamp>=\"\"2025-11-06T18:00:00Z\"\"\" --limit=30 --format=json --project=echoscribe-test)",
+      "Bash(timeout 1 cat:*)",
+      "Bash(printf:*)",
+      "Bash(\"d:\\Projects\\EchoScribe\\components\\features\\landing\\pricing-teaser.tsx\")",
+      "Bash(\"d:\\Projects\\EchoScribe\\components\\features\\landing\\how-it-works.tsx\")",
+      "Bash(\"d:\\Projects\\EchoScribe\\components\\features\\landing\\seo-benefits-section.tsx\")",
+      "Bash(\"d:\\Projects\\EchoScribe\\components\\features\\landing\\final-cta.tsx\")",
+      "Bash(\"d:\\Projects\\EchoScribe\\components\\features\\landing\\index.ts\")",
+      "Bash(\"d:\\Projects\\EchoScribe\\app\\page.tsx\")",
+      "Bash(del \"d:\\Projects\\EchoScribe\\app\\actions\\regenerate.ts\")",
+      "Bash(del \"d:\\Projects\\EchoScribe\\sentry.client.config.ts\" \"d:\\Projects\\EchoScribe\\sentry.server.config.ts\" \"d:\\Projects\\EchoScribe\\sentry.edge.config.ts\" \"d:\\Projects\\EchoScribe\\instrumentation.ts\" \"d:\\Projects\\EchoScribe\\functions\\src\\lib\\sentry.ts\" \"d:\\Projects\\EchoScribe\\functions\\lib\\lib\\sentry.js\")",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []

@@ -5,6 +5,8 @@ import {
   Tag,
   Settings,
   Shield,
+  Share2,
+  BookOpen,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -13,76 +15,87 @@ const features = [
     icon: Search,
     title: "SEO-Optimierung",
     description:
-      "Automatisch generierte Meta-Beschreibungen, Keywords und OpenGraph-Tags für maximale Sichtbarkeit in Suchmaschinen.",
+      "Meta-Tags, Keywords und OpenGraph für Top-Rankings. Lassen Sie sich von mehr Hörern auf Google finden.",
   },
   {
     icon: Mic,
     title: "Automatische Transkription",
     description:
-      "Hochpräzise KI-gestützte Transkription Ihrer Podcast-Episoden mit Unterstützung für mehrere Sprachen.",
+      "KI-gestützte Transkription in höchster Qualität. Mehrsprachig und akkurat für perfekte Texte.",
   },
   {
-    icon: Code,
-    title: "Mehrere Formate",
+    icon: Share2,
+    title: "Social Media Content",
     description:
-      "Exportieren Sie Ihre Artikel in Markdown, HTML oder direkt für Ihr CMS. Volle Flexibilität für Ihren Workflow.",
+      "Fertige Posts für LinkedIn, Twitter, Instagram und Facebook. Maximale Reichweite auf allen Kanälen.",
+  },
+  {
+    icon: BookOpen,
+    title: "Podcast Show Notes",
+    description:
+      "Automatisch generierte Kapitel, Zitate und Ressourcen. Professionelle Show Notes in Sekunden.",
   },
   {
     icon: Tag,
     title: "Keyword-Extraktion",
     description:
-      "Intelligente Identifikation relevanter Keywords und Themen aus Ihrem Podcast-Inhalt für bessere Rankings.",
+      "Intelligente Keyword-Analyse für bessere Rankings. Relevante Themen automatisch identifiziert.",
   },
   {
     icon: Settings,
     title: "Schema.org Markup",
     description:
-      "Rich Snippets und strukturierte Daten für verbesserte Darstellung in Google-Suchergebnissen.",
+      "Rich Snippets für bessere Sichtbarkeit. Strukturierte Daten für Google-Suchergebnisse.",
+  },
+  {
+    icon: Code,
+    title: "Mehrere Formate",
+    description:
+      "Export als Markdown, HTML oder direkt ins CMS. Flexibel für jeden Workflow.",
   },
   {
     icon: Shield,
     title: "DSGVO-konform",
     description:
-      "Vollständig DSGVO-konforme Verarbeitung mit Hosting in der EU. Ihre Daten bleiben sicher und geschützt.",
+      "100% DSGVO-konform mit EU-Hosting. Ihre Daten bleiben sicher und geschützt.",
   },
 ];
 
 export function FeaturesGrid() {
   return (
-    <section id="features" className="py-20 md:py-32 px-4 scroll-mt-16">
+    <section id="features" className="py-20 md:py-32 px-4 scroll-mt-16 bg-muted/30">
       <div className="container mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold">
-            Alles, was Sie für erfolgreiche{" "}
+            Alles für Ihre{" "}
             <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-              Content-Erstellung
-            </span>{" "}
-            brauchen
+              Podcast-Reichweite
+            </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Leistungsstarke Features, die Ihre Podcast-Inhalte in
-            hochwertige Blog-Artikel verwandeln
+            Von der Transkription bis zur Verbreitung – alle Tools für
+            maximale Sichtbarkeit Ihrer Podcasts
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
               <Card
                 key={index}
-                className="group hover:shadow-xl hover:border-primary/50 transition-all duration-300"
+                className="group hover:shadow-xl hover:border-primary/50 transition-all duration-300 hover:-translate-y-1"
               >
                 <CardHeader>
-                  <div className="mb-4 w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600/10 to-violet-600/10 flex items-center justify-center group-hover:from-blue-600/20 group-hover:to-violet-600/20 transition-colors">
-                    <Icon className="h-6 w-6 text-primary" />
+                  <div className="mb-4 w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600/10 to-violet-600/10 flex items-center justify-center group-hover:from-blue-600/20 group-hover:to-violet-600/20 transition-colors">
+                    <Icon className="h-7 w-7 text-primary" />
                   </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {feature.description}
                   </p>
                 </CardContent>

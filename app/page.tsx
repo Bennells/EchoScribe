@@ -6,6 +6,7 @@ import {
   HowItWorks,
   FeaturesGrid,
   PricingTeaser,
+  SeoBenefitsSection,
   FaqSection,
   FinalCta,
 } from "@/components/features/landing";
@@ -30,6 +31,9 @@ export default function Home() {
 
           {/* Pricing Teaser Section */}
           <PricingTeaser />
+
+          {/* SEO Benefits Section */}
+          <SeoBenefitsSection />
 
           {/* FAQ Section */}
           <FaqSection />
