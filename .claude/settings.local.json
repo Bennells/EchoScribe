@@ -134,7 +134,10 @@
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets list --project=echoscribe-test --filter=\"name:FIREBASE\" --format=\"table(name)\")",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets list --project=echoscribe-test --format=\"table(name)\")",
       "Bash(if exist .next rd /s /q .next)",
-      "Bash(cmd //c \"if exist .next rd /s /q .next\")"
+      "Bash(cmd //c \"if exist .next rd /s /q .next\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions list GEMINI_API_KEY --project=echoscribe-test --limit=5)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" functions describe processPodcastTask --region=europe-west1 --project=echoscribe-test --gen2 --format=json)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" functions describe onPodcastUploaded --region=europe-west1 --project=echoscribe-test --gen2 --format=json)"
     ],
     "deny": [],
     "ask": []
