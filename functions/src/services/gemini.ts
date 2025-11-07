@@ -91,6 +91,28 @@ function getApiKey(): string {
 
 let genAI: GoogleGenerativeAI;
 
+export interface SocialMediaContent {
+  linkedin: string;
+  twitter: string[];
+  instagram: string;
+  facebook: string;
+  tiktok: string;
+  newsletter: string;
+}
+
+export interface ShowNotesChapter {
+  timestamp: string;
+  title: string;
+  description: string;
+}
+
+export interface ShowNotes {
+  chapters: ShowNotesChapter[];
+  quotes: string[];
+  resources: string[];
+  guests: string;
+}
+
 export interface BlogArticle {
   title: string;
   slug: string;
@@ -100,6 +122,8 @@ export interface BlogArticle {
   html: string;
   schemaOrg: Record<string, any>;
   openGraph: Record<string, string>;
+  socialMedia?: SocialMediaContent;
+  showNotes?: ShowNotes;
 }
 
 export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogArticle> {
@@ -216,9 +240,24 @@ export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogA
       throw new Error("Missing required fields in Gemini response");
     }
 
+    // Log additional info about new features
+    const hasSocialMedia = !!article.socialMedia;
+    const hasShowNotes = !!article.showNotes;
+
     logger.info("[Gemini] ✅ Successfully parsed article:", {
       title: article.title,
       wordCount: article.markdown.split(/\s+/).length,
+      hasSocialMedia,
+      hasShowNotes,
+      socialMediaPlatforms: hasSocialMedia
+        ? Object.keys(article.socialMedia || {}).length
+        : 0,
+      showNotesChapters: hasShowNotes
+        ? article.showNotes?.chapters.length
+        : 0,
+      showNotesQuotes: hasShowNotes
+        ? article.showNotes?.quotes.length
+        : 0,
     });
     logger.info("=".repeat(80));
 

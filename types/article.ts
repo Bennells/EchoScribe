@@ -1,5 +1,27 @@
 import { Timestamp } from "firebase/firestore";
 
+export interface SocialMediaContent {
+  linkedin: string;
+  twitter: string[];
+  instagram: string;
+  facebook: string;
+  tiktok: string;
+  newsletter: string;
+}
+
+export interface ShowNotesChapter {
+  timestamp: string;
+  title: string;
+  description: string;
+}
+
+export interface ShowNotes {
+  chapters: ShowNotesChapter[];
+  quotes: string[];
+  resources: string[];
+  guests: string;
+}
+
 export interface Article {
   id: string;
   podcastId: string;
@@ -18,6 +40,8 @@ export interface Article {
     "og:url"?: string;
     "og:image"?: string;
   };
+  socialMedia?: SocialMediaContent;
+  showNotes?: ShowNotes;
   createdAt: Timestamp;
   editedAt?: Timestamp;
 }

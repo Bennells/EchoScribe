@@ -82,7 +82,7 @@ export async function processPodcast(podcastId: string, storagePath: string) {
 
     // Save article to Firestore
     logger.info(`[processPodcast] Step 5: Saving article to Firestore`);
-    const articleData = {
+    const articleData: any = {
       podcastId,
       userId: podcastData.userId,
       title: article.title,
@@ -95,6 +95,17 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       openGraphTags: article.openGraph || {},
       createdAt: FieldValue.serverTimestamp(),
     };
+
+    // Add optional new fields if they exist
+    if (article.socialMedia) {
+      articleData.socialMedia = article.socialMedia;
+      logger.info(`[processPodcast] ✅ Social Media content included (${Object.keys(article.socialMedia).length} platforms)`);
+    }
+
+    if (article.showNotes) {
+      articleData.showNotes = article.showNotes;
+      logger.info(`[processPodcast] ✅ Show Notes included (${article.showNotes.chapters.length} chapters, ${article.showNotes.quotes.length} quotes)`);
+    }
 
     logger.info(`[processPodcast] Article data prepared (${JSON.stringify(articleData).length} chars)`);
     const articleRef = await db.collection("articles").add(articleData);
