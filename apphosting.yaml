@@ -130,6 +130,6 @@ env:
 
   # Comma-separated list of whitelisted email addresses
   - variable: WHITELISTED_EMAILS
-    value: "dellsworth@bennells.com,grusel21@gmail.com"
+    value: "dellsworth@bennells.com,grusel21@gmail.com,stevenbellsworth@gmail.com"
     availability:
       - RUNTIME
