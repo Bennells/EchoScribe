@@ -12,7 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import toast from "react-hot-toast";
-import { Trash2, FileAudio, Clock, CheckCircle, AlertCircle, ExternalLink, X, AlertTriangle } from "lucide-react";
+import { Trash2, FileAudio, Clock, CheckCircle, AlertCircle, ExternalLink, X, AlertTriangle, Info, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import type { Podcast } from "@/types/podcast";
 import { doc, onSnapshot } from "firebase/firestore";
@@ -33,6 +33,7 @@ export default function PodcastsPage() {
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [loading, setLoading] = useState(true);
   const [quotaInfo, setQuotaInfo] = useState<any>(null);
+  const [showDurationInfo, setShowDurationInfo] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -48,7 +49,7 @@ export default function PodcastsPage() {
         // Show toast for new quota_exceeded podcasts
         newQuotaExceeded.forEach(podcast => {
           toast.error(
-            `Upload abgelehnt: ${podcast.fileName}\n${podcast.errorMessage || 'Quota überschritten'}`,
+            `Upload abgelehnt: ${podcast.fileName}\n${podcast.errorMessage || 'Kontingent überschritten'}`,
             { duration: 10000 }
           );
         });
@@ -144,13 +145,21 @@ export default function PodcastsPage() {
         toast.error(
           `Nicht genügend Minuten verfügbar!\n` +
           `Benötigt: ${totalRequiredMinutes.toFixed(1)} Min.\n` +
-          `Verfügbar: ${available.toFixed(1)} Min.`,
-          { duration: 6000 }
+          `Verfügbar: ${available.toFixed(1)} Min.\n\n` +
+          `Hinweis: Die finale Kontingent-Prüfung erfolgt nach dem Upload.`,
+          { duration: 8000 }
         );
         return;
       }
 
       setUploading(true);
+
+      // Show initial upload started message
+      toast.success(
+        `Upload gestartet für ${selectedFiles.length} Datei${selectedFiles.length !== 1 ? 'en' : ''}...\n` +
+        `Kontingent wird nach dem Upload geprüft.`,
+        { duration: 4000 }
+      );
 
       let successCount = 0;
       let errorCount = 0;
@@ -185,11 +194,19 @@ export default function PodcastsPage() {
         }
       }
 
-      // Show summary message
+      // Show summary message with quota verification note
       if (errorCount === 0) {
-        toast.success(`${successCount} Podcast${successCount !== 1 ? 's' : ''} erfolgreich hochgeladen! Verarbeitung läuft...`);
+        toast.success(
+          `${successCount} Podcast${successCount !== 1 ? 's' : ''} erfolgreich hochgeladen!\n` +
+          `Verarbeitung läuft... Kontingent wird jetzt geprüft und Datei analysiert.`,
+          { duration: 6000 }
+        );
       } else if (successCount > 0) {
-        toast.success(`${successCount} von ${selectedFiles.length} Podcasts hochgeladen. ${errorCount} fehlgeschlagen.`);
+        toast.success(
+          `${successCount} von ${selectedFiles.length} Podcasts hochgeladen. ${errorCount} fehlgeschlagen.\n` +
+          `Verarbeitung läuft für erfolgreiche Uploads.`,
+          { duration: 6000 }
+        );
       } else {
         toast.error(`Alle ${errorCount} Uploads fehlgeschlagen.`);
       }
@@ -286,7 +303,7 @@ export default function PodcastsPage() {
           </AlertTitle>
           <AlertDescription>
             <p className="mb-2">
-              Ihre Quota hat nicht für alle Dateien gereicht. Die folgenden Uploads wurden abgelehnt:
+              Ihr Kontingent hat nicht für alle Dateien gereicht. Die folgenden Uploads wurden abgelehnt:
             </p>
             <ul className="list-disc list-inside space-y-1">
               {quotaExceededPodcasts.map(p => (
@@ -297,7 +314,7 @@ export default function PodcastsPage() {
               ))}
             </ul>
             <p className="mt-3 text-sm">
-              Diese Dateien wurden nicht gespeichert und zählen nicht zu Ihrer Quota.
+              Diese Dateien wurden nicht gespeichert und zählen nicht zu Ihrem Kontingent.
             </p>
           </AlertDescription>
         </Alert>
@@ -312,6 +329,56 @@ export default function PodcastsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <Alert className="bg-blue-50 border-blue-200">
+            <AlertCircle className="h-4 w-4 text-blue-600" />
+            <AlertTitle className="text-blue-900">Wichtiger Hinweis zur Kontingent-Prüfung</AlertTitle>
+            <AlertDescription className="text-blue-800">
+              Die exakte Länge Ihrer Audio-Datei wird erst <strong>nach dem Upload</strong> vom Server geprüft.
+              Falls die tatsächliche Länge Ihr verfügbares Kontingent überschreitet, wird die Datei automatisch gelöscht
+              und <strong>nicht verarbeitet</strong>. Die angezeigte Dauer vor dem Upload ist nur eine Schätzung.
+            </AlertDescription>
+          </Alert>
+
+          {/* Duration Validation Info Banner */}
+          <Card className="border-blue-200 bg-blue-50/50">
+            <div className="p-4">
+              <button
+                onClick={() => setShowDurationInfo(!showDurationInfo)}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-900">
+                    Wie wird die Dauer berechnet?
+                  </span>
+                </div>
+                {showDurationInfo ? (
+                  <ChevronUp className="h-4 w-4 text-blue-600" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-blue-600" />
+                )}
+              </button>
+
+              {showDurationInfo && (
+                <div className="mt-3 pt-3 border-t border-blue-200 text-sm text-blue-900 space-y-2">
+                  <p>
+                    Die angezeigte Dauer ist eine Schätzung Ihres Browsers.
+                    Nach dem Upload validiert unser Server die tatsächliche Länge für eine faire Abrechnung.
+                  </p>
+                  <p className="text-xs text-blue-700">
+                    <strong>Warum validieren wir die Dauer?</strong>
+                    <br />
+                    • Faire und genaue Kontingent-Verwaltung
+                    <br />
+                    • Schutz vor Manipulation
+                    <br />
+                    • Bei VBR-kodierten Dateien kann es zu kleinen Abweichungen (meist &lt;5%) kommen
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+
           <UploadZone
             onFileSelect={handleFileSelect}
             disabled={uploading || loadingDurations}

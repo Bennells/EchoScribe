@@ -20,10 +20,12 @@ function createFirebaseAdminApp() {
   // Explicitly set project ID to ensure correct Firebase project is used
   // This is especially important when switching between projects
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.GCLOUD_PROJECT;
+  const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
 
   return admin.initializeApp({
     credential: admin.credential.applicationDefault(),
     projectId: projectId,
+    storageBucket: storageBucket,
   });
 }
 

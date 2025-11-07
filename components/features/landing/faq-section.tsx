@@ -16,9 +16,9 @@ const faqs = [
       "Wir unterstützen alle gängigen Audioformate wie MP3, WAV, M4A, FLAC und OGG. Die maximale Dateigröße beträgt 500MB pro Upload.",
   },
   {
-    question: "Was passiert, wenn ich meine monatliche Quota aufbrauche?",
+    question: "Was passiert, wenn ich mein monatliches Kontingent aufbrauche?",
     answer:
-      "Bei bezahlten Plänen wird Ihre Quota jeden Monat automatisch zurückgesetzt. Wenn Sie Ihre Quota vorher aufbrauchen, können Sie entweder auf einen höheren Plan upgraden oder bis zur nächsten Zurücksetzung warten. Ihre bereits erstellten Artikel bleiben verfügbar.",
+      "Bei bezahlten Plänen wird Ihr Kontingent jeden Monat automatisch zurückgesetzt. Wenn Sie Ihr Kontingent vorher aufbrauchen, können Sie entweder auf einen höheren Plan upgraden oder bis zur nächsten Zurücksetzung warten. Ihre bereits erstellten Artikel bleiben verfügbar.",
   },
   {
     question: "Sind meine Daten sicher?",

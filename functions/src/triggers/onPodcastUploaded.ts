@@ -195,7 +195,7 @@ export const onPodcastUploaded = onObjectFinalized(
               contentType: contentType || "audio/mpeg",
               storagePath: filePath, // For reference (file is deleted)
               status: "quota_exceeded",
-              errorMessage: `Quota überschritten: ${newUsed}/${monthlyLimit} Min. Verfügbar waren: ${monthlyLimit - currentUsed} Min.`,
+              errorMessage: `Kontingent überschritten: ${newUsed}/${monthlyLimit} Min. Verfügbar waren: ${monthlyLimit - currentUsed} Min.`,
               uploadedAt: FieldValue.serverTimestamp(),
               errorAt: FieldValue.serverTimestamp(),
             };
@@ -298,7 +298,7 @@ export const onPodcastUploaded = onObjectFinalized(
             // Update podcast status
             await podcastRef.update({
               status: "quota_exceeded",
-              errorMessage: `Quota überschritten durch gleichzeitige Uploads: ${finalUsed}/${monthlyLimit} Min.`,
+              errorMessage: `Kontingent überschritten durch gleichzeitige Uploads: ${finalUsed}/${monthlyLimit} Min.`,
               errorAt: FieldValue.serverTimestamp(),
             });
             logger.info(`[onPodcastUploaded] ✅ Updated podcast to quota_exceeded status`);

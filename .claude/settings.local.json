@@ -130,7 +130,9 @@
       "Bash(\"d:\\Projects\\EchoScribe\\app\\page.tsx\")",
       "Bash(del \"d:\\Projects\\EchoScribe\\app\\actions\\regenerate.ts\")",
       "Bash(del \"d:\\Projects\\EchoScribe\\sentry.client.config.ts\" \"d:\\Projects\\EchoScribe\\sentry.server.config.ts\" \"d:\\Projects\\EchoScribe\\sentry.edge.config.ts\" \"d:\\Projects\\EchoScribe\\instrumentation.ts\" \"d:\\Projects\\EchoScribe\\functions\\src\\lib\\sentry.ts\" \"d:\\Projects\\EchoScribe\\functions\\lib\\lib\\sentry.js\")",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets list --project=echoscribe-test --filter=\"name:FIREBASE\" --format=\"table(name)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets list --project=echoscribe-test --format=\"table(name)\")"
     ],
     "deny": [],
     "ask": []

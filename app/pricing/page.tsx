@@ -88,10 +88,10 @@ export default function PricingPage() {
 
               <div>
                 <h3 className="text-lg font-semibold mb-2">
-                  Was passiert, wenn ich meine monatliche Quota aufbrauche?
+                  Was passiert, wenn ich mein monatliches Kontingent aufbrauche?
                 </h3>
                 <p className="text-muted-foreground">
-                  Sie können erst im nächsten Monat wieder neue Podcasts analysieren oder Sie upgraden auf einen höheren Plan mit mehr Quota.
+                  Sie können erst im nächsten Monat wieder neue Podcasts analysieren oder Sie upgraden auf einen höheren Plan mit mehr Kontingent.
                   Ihre bereits erstellten Artikel bleiben natürlich weiterhin verfügbar.
                 </p>
               </div>

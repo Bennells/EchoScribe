@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Upload, File, X, Info, ChevronDown, ChevronUp } from "lucide-react";
+import { Upload, File, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import toast from "react-hot-toast";
@@ -19,7 +19,6 @@ const ACCEPTED_TYPES = ["audio/mp3", "audio/mpeg", "audio/wav", "audio/m4a", "au
 export function UploadZone({ onFileSelect, disabled, selectedFiles: externalSelectedFiles, onClearFile }: UploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [internalSelectedFiles, setInternalSelectedFiles] = useState<File[]>([]);
-  const [showDurationInfo, setShowDurationInfo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use external selectedFiles if provided (controlled), otherwise use internal state (uncontrolled)
@@ -192,46 +191,6 @@ export function UploadZone({ onFileSelect, disabled, selectedFiles: externalSele
             </p>
           </label>
         )}
-      </Card>
-
-      {/* Duration Validation Info Banner */}
-      <Card className="border-blue-200 bg-blue-50/50">
-        <div className="p-4">
-          <button
-            onClick={() => setShowDurationInfo(!showDurationInfo)}
-            className="flex items-center justify-between w-full text-left"
-          >
-            <div className="flex items-center gap-2">
-              <Info className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">
-                Wie wird die Dauer berechnet?
-              </span>
-            </div>
-            {showDurationInfo ? (
-              <ChevronUp className="h-4 w-4 text-blue-600" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-blue-600" />
-            )}
-          </button>
-
-          {showDurationInfo && (
-            <div className="mt-3 pt-3 border-t border-blue-200 text-sm text-blue-900 space-y-2">
-              <p>
-                Die angezeigte Dauer ist eine Schätzung Ihres Browsers.
-                Nach dem Upload validiert unser Server die tatsächliche Länge für eine faire Abrechnung.
-              </p>
-              <p className="text-xs text-blue-700">
-                <strong>Warum validieren wir die Dauer?</strong>
-                <br />
-                • Faire und genaue Quota-Verwaltung
-                <br />
-                • Schutz vor Manipulation
-                <br />
-                • Bei VBR-kodierten Dateien kann es zu kleinen Abweichungen (meist &lt;5%) kommen
-              </p>
-            </div>
-          )}
-        </div>
       </Card>
     </div>
   );

@@ -2,33 +2,22 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Helper function to check if user is within quota
-    // Includes safety buffer: estimated file duration must fit within remaining quota
-    function isWithinQuota(userId, fileSize) {
-      let userDoc = firestore.get(/databases/(default)/documents/users/$(userId));
-      let currentUsed = userDoc.data.quota.used;
-      let monthlyLimit = userDoc.data.quota.monthly;
-
-      // Estimate minutes from file size (conservative: ~1 MB per minute for typical audio)
-      // Add 20% safety buffer to prevent race conditions with simultaneous uploads
-      let estimatedMinutes = int((fileSize / (1024 * 1024)) * 1.2);
-
-      // Ensure at least 1 minute is reserved
-      let minutesToReserve = estimatedMinutes < 1 ? 1 : estimatedMinutes;
-
-      // Check if estimated usage would exceed quota
-      return (currentUsed + minutesToReserve) <= monthlyLimit;
-    }
-
     // Podcasts storage
+    // Note: Quota is enforced by Cloud Function after upload completes
+    // This allows uploads to succeed, then function verifies quota and deletes file if exceeded
     match /podcasts/{userId}/{filename} {
-      // Max 500 MB, only audio files, within quota (with safety buffer)
+      // Allow authenticated users to read/delete their own files
       allow read, delete: if request.auth != null && request.auth.uid == userId;
+
+      // Allow upload if:
+      // - User is authenticated and matches userId
+      // - File size is under 500 MB
+      // - File is audio content type
+      // Quota enforcement happens post-upload via onPodcastUploaded Cloud Function
       allow create: if request.auth != null
                     && request.auth.uid == userId
                     && request.resource.size < 500 * 1024 * 1024
-                    && request.resource.contentType.matches('audio/.*')
-                    && isWithinQuota(userId, request.resource.size);
+                    && request.resource.contentType.matches('audio/.*');
     }
   }
 }
