@@ -5,6 +5,14 @@ Analysiere den Podcast und erstelle einen hochwertigen Blog-Artikel MIT Social M
 
 **WICHTIG: Antworte ausschließlich mit gültigem JSON - keine Markdown-Formatierung, keine Codeblöcke!**
 
+**JSON-REGELN (KRITISCH):**
+- Verwende IMMER doppelte Anführungszeichen für Strings
+- Escape alle Anführungszeichen innerhalb von Texten mit Backslash
+- Emojis sind erlaubt und müssen NICHT escaped werden
+- Newlines in Strings müssen escaped werden
+- KEINE Markdown Code Blocks um das JSON herum
+- Sonderzeichen wie ä, ö, ü, ß sind erlaubt (UTF-8)
+
 AUSGABE-FORMAT (Reines JSON):
 {
   "title": "SEO-optimierter Titel (max. 60 Zeichen)",

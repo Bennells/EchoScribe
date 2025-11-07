@@ -126,6 +126,143 @@ export interface BlogArticle {
   showNotes?: ShowNotes;
 }
 
+/**
+ * Parse JSON from Gemini response with multiple fallback strategies
+ * @param text Raw response text from Gemini
+ * @returns Parsed BlogArticle object
+ */
+function parseArticleJson(text: string): BlogArticle {
+  let cleanText = text.trim();
+
+  // Strategy 1: Remove Markdown code blocks
+  cleanText = cleanText.replace(/^```(?:json)?\s*/i, ""); // Remove opening ```json or ```
+  cleanText = cleanText.replace(/```\s*$/,  ""); // Remove closing ```
+  cleanText = cleanText.trim();
+
+  // Strategy 2: Extract JSON object (handles nested braces)
+  const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error("No JSON object found in response");
+  }
+
+  let jsonString = jsonMatch[0];
+
+  // Try multiple parsing strategies
+  const strategies = [
+    // Strategy 1: Parse as-is
+    () => JSON.parse(jsonString),
+
+    // Strategy 2: Fix invalid escape sequences
+    () => {
+      logger.warn("[JSON Parser] Strategy 2: Fixing escape sequences...");
+      let fixed = jsonString.replace(/\\([^"\\\/bfnrtu])/g, "$1");
+      return JSON.parse(fixed);
+    },
+
+    // Strategy 3: Aggressive quote escaping
+    () => {
+      logger.warn("[JSON Parser] Strategy 3: Aggressive quote fixing...");
+      // Replace unescaped quotes in string values (but not property keys)
+      let fixed = jsonString;
+      // This regex finds quotes that are likely unescaped in values
+      // It's not perfect but catches most cases
+      fixed = fixed.replace(/([^\\])"([^",:}\]]*)"([^",:}\]]+)"/g, '$1\\"$2\\"$3"');
+      return JSON.parse(fixed);
+    },
+
+    // Strategy 4: Relaxed JSON5-style parsing with manual reconstruction
+    () => {
+      logger.warn("[JSON Parser] Strategy 4: Manual field extraction...");
+      const article: any = {};
+
+      // Extract required string fields
+      const extractField = (fieldName: string): string | null => {
+        const regex = new RegExp(`"${fieldName}"\\s*:\\s*"([^"]*(?:\\\\.[^"]*)*)"`, "s");
+        const match = jsonString.match(regex);
+        return match ? match[1].replace(/\\"/g, '"').replace(/\\n/g, "\n") : null;
+      };
+
+      // Extract array fields
+      const extractArray = (fieldName: string): any[] | null => {
+        const regex = new RegExp(`"${fieldName}"\\s*:\\s*\\[([^\\]]+)\\]`, "s");
+        const match = jsonString.match(regex);
+        if (!match) return null;
+
+        try {
+          return JSON.parse(`[${match[1]}]`);
+        } catch {
+          // Fallback: split by comma and clean
+          return match[1].split(",").map(s => s.trim().replace(/^"|"$/g, ""));
+        }
+      };
+
+      // Extract object fields
+      const extractObject = (fieldName: string): any | null => {
+        const regex = new RegExp(`"${fieldName}"\\s*:\\s*(\\{[^}]+\\})`, "s");
+        const match = jsonString.match(regex);
+        if (!match) return null;
+
+        try {
+          return JSON.parse(match[1]);
+        } catch {
+          return {};
+        }
+      };
+
+      // Required fields
+      article.title = extractField("title") || "";
+      article.slug = extractField("slug") || "";
+      article.metaDescription = extractField("metaDescription") || "";
+      article.keywords = extractArray("keywords") || [];
+      article.markdown = extractField("markdown") || "";
+      article.html = extractField("html") || "";
+      article.schemaOrg = extractObject("schemaOrg") || {};
+      article.openGraph = extractObject("openGraph") || {};
+
+      // Optional fields
+      const socialMediaMatch = jsonString.match(/"socialMedia"\s*:\s*(\{[\s\S]*?\})\s*,?\s*"showNotes"/);
+      if (socialMediaMatch) {
+        try {
+          article.socialMedia = JSON.parse(socialMediaMatch[1]);
+        } catch {
+          logger.warn("[JSON Parser] Could not parse socialMedia, skipping...");
+        }
+      }
+
+      const showNotesMatch = jsonString.match(/"showNotes"\s*:\s*(\{[\s\S]*?\})\s*\}/);
+      if (showNotesMatch) {
+        try {
+          article.showNotes = JSON.parse(showNotesMatch[1]);
+        } catch {
+          logger.warn("[JSON Parser] Could not parse showNotes, skipping...");
+        }
+      }
+
+      return article as BlogArticle;
+    }
+  ];
+
+  // Try each strategy in order
+  let lastError: any;
+  for (let i = 0; i < strategies.length; i++) {
+    try {
+      const result = strategies[i]();
+      if (i > 0) {
+        logger.info(`[JSON Parser] ✅ Successfully parsed with strategy ${i + 1}`);
+      }
+      return result;
+    } catch (error: any) {
+      lastError = error;
+      if (i < strategies.length - 1) {
+        logger.warn(`[JSON Parser] Strategy ${i + 1} failed: ${error.message}`);
+      }
+    }
+  }
+
+  // All strategies failed
+  throw new Error(`All parsing strategies failed. Last error: ${lastError.message}`);
+}
+
 export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogArticle> {
   try {
     logger.info("=".repeat(80));
@@ -199,35 +336,10 @@ export async function processAudioWithGemini(audioBuffer: Buffer): Promise<BlogA
       responseLengthKB: (text.length / 1024).toFixed(2),
     });
 
-    // Parse JSON response
+    // Parse JSON response with multiple strategies
     let article: BlogArticle;
     try {
-      // Step 1: Remove Markdown code blocks (```json ... ```)
-      let cleanText = text.trim();
-      cleanText = cleanText.replace(/^```json\s*/i, ""); // Remove opening ```json
-      cleanText = cleanText.replace(/```\s*$/, ""); // Remove closing ```
-      cleanText = cleanText.trim();
-
-      // Step 2: Extract JSON object
-      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error("No JSON found in response");
-      }
-
-      let jsonString = jsonMatch[0];
-
-      // Step 3: Try to parse JSON with multiple strategies
-      try {
-        article = JSON.parse(jsonString);
-      } catch (firstError) {
-        // Strategy 2: Try to fix common escape issues
-        logger.warn("First parse attempt failed, trying to sanitize JSON...");
-
-        // Remove any invalid escape sequences before special chars
-        jsonString = jsonString.replace(/\\([^"\\\/bfnrtu])/g, "$1");
-
-        article = JSON.parse(jsonString);
-      }
+      article = parseArticleJson(text);
     } catch (parseError: any) {
       logger.error("Failed to parse Gemini response as JSON:", parseError);
       logger.error("Response text (first 1000 chars):", text.substring(0, 1000));
