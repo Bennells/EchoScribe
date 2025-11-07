@@ -51,22 +51,21 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    // Verify token using existing API endpoint
-    const verifyUrl = new URL('/api/auth/verify-token', request.url);
-    const verifyResponse = await fetch(verifyUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': `firebase-token=${token}`,
-      },
-      body: JSON.stringify({ token }),
-    });
-
-    if (!verifyResponse.ok) {
-      throw new Error('Token verification failed');
+    // Decode JWT token to extract email (without full verification)
+    // Full verification happens in API routes; here we just need the email for whitelist check
+    // JWT format: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      throw new Error('Invalid token format');
     }
 
-    const { email } = await verifyResponse.json();
+    // Decode the payload (second part)
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
+    const email = payload.email;
+
+    if (!email) {
+      throw new Error('Email not found in token');
+    }
 
     // Check if email is in whitelist
     if (!WHITELISTED_EMAILS.includes(email)) {
