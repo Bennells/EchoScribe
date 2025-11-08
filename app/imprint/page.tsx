@@ -1,5 +1,13 @@
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
+import { createMetadata } from "@/lib/metadata";
+
+export const metadata = createMetadata({
+  title: "Impressum - EchoScribe",
+  description: "Impressum und Kontaktinformationen für EchoScribe.",
+  path: "/imprint",
+  noIndex: true,
+});
 
 export default function ImprintPage() {
   return (

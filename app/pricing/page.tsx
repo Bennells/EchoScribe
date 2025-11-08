@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { PricingCards } from "@/components/features/pricing/pricing-cards";
+import { createMetadata } from "@/lib/metadata";
 
-export const metadata = {
-  title: "Preise - EchoScribe",
-  description: "Wählen Sie den perfekten Plan für Ihre Podcast-zu-Artikel-Konvertierung",
-};
+export const metadata = createMetadata({
+  title: "Preise - EchoScribe | Transparente Pricing-Pläne",
+  description: "Wählen Sie den perfekten Plan für Ihre Podcast-zu-Artikel-Konvertierung. Ab 0€ starten. Keine versteckten Gebühren, jederzeit kündbar. 14-Tage-Geld-zurück-Garantie.",
+  path: "/pricing",
+});
 
 export default function PricingPage() {
   return (

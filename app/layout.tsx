@@ -5,13 +5,15 @@ import { AuthProvider } from "@/lib/firebase/auth-context";
 import { Toaster } from "react-hot-toast";
 import { Footer } from "@/components/footer";
 import { EnvironmentBanner } from "@/components/environment-banner";
+import { createMetadata } from "@/lib/metadata";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createMetadata({
   title: "EchoScribe - Podcast zu Blog-Artikel",
   description: "Wandeln Sie Podcasts automatisch in SEO-optimierte Blog-Artikel um",
-};
+  path: "/",
+});
 
 export default function RootLayout({
   children,

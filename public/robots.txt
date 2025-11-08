@@ -1,0 +1,22 @@
+# Robots.txt for EchoScribe
+# Allow crawling of public pages, block private areas
+
+User-agent: *
+
+# Allow public pages
+Allow: /
+Allow: /pricing
+Allow: /privacy
+Allow: /terms
+Allow: /imprint
+
+# Disallow private/auth areas
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /not-authorized
+
+# Sitemap location
+Sitemap: https://echoscribe.de/sitemap.xml

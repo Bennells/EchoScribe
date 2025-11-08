@@ -177,7 +177,8 @@
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets add-iam-policy-binding STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY --member=\"serviceAccount:firebase-app-hosting-compute@echoscribe-prod.iam.gserviceaccount.com\" --role=\"roles/secretmanager.secretAccessor\" --project=echoscribe-prod)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets add-iam-policy-binding STRIPE_PRICE_ID_BUSINESS_MONTHLY --member=\"serviceAccount:firebase-app-hosting-compute@echoscribe-prod.iam.gserviceaccount.com\" --role=\"roles/secretmanager.secretAccessor\" --project=echoscribe-prod)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets list --project=echoscribe-prod --format=\"table(name)\")",
-      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects get-iam-policy echoscribe-prod --flatten=\"bindings[].members\" --filter=\"bindings.members:firebase-app-hosting-compute@echoscribe-prod.iam.gserviceaccount.com AND bindings.role:roles/secretmanager.secretAccessor\" --format=\"table(bindings.role)\")"
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects get-iam-policy echoscribe-prod --flatten=\"bindings[].members\" --filter=\"bindings.members:firebase-app-hosting-compute@echoscribe-prod.iam.gserviceaccount.com AND bindings.role:roles/secretmanager.secretAccessor\" --format=\"table(bindings.role)\")",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

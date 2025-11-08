@@ -11,10 +11,30 @@ import {
 } from "@/components/features/landing";
 import { LAUNCH_SPECIAL_MODE } from "@/lib/constants/pricing";
 import { Sparkles } from "lucide-react";
+import { createMetadata } from "@/lib/metadata";
+import {
+  OrganizationSchema,
+  WebSiteSchema,
+  FAQPageSchema,
+  SoftwareApplicationSchema,
+} from "@/components/seo/structured-data";
+import { Metadata } from "next";
+
+export const metadata: Metadata = createMetadata({
+  title: "EchoScribe - Podcast zu Blog-Artikel | Automatische SEO-Optimierung",
+  description: "Wandeln Sie Podcasts automatisch in SEO-optimierte Blog-Artikel um. Mit Meta-Tags, Keywords, Schema.org und Social Media Posts. DSGVO-konform. Jetzt 200 Minuten gratis testen!",
+  path: "/",
+});
 
 export default function Home() {
   return (
     <>
+      {/* Structured Data for SEO */}
+      <OrganizationSchema />
+      <WebSiteSchema />
+      <FAQPageSchema />
+      <SoftwareApplicationSchema />
+
       {/* Sticky Navigation */}
       <Navigation />
 

@@ -1,4 +1,12 @@
 import Link from "next/link";
+import { createMetadata } from "@/lib/metadata";
+
+export const metadata = createMetadata({
+  title: "Datenschutzerklärung - EchoScribe",
+  description: "Datenschutzerklärung für EchoScribe. DSGVO-konforme Verarbeitung Ihrer Podcast-Daten auf deutschen Servern.",
+  path: "/privacy",
+  noIndex: true,
+});
 
 export default function PrivacyPage() {
   return (

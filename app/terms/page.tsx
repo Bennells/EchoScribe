@@ -1,5 +1,13 @@
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
+import { createMetadata } from "@/lib/metadata";
+
+export const metadata = createMetadata({
+  title: "AGB - EchoScribe",
+  description: "Allgemeine Geschäftsbedingungen für die Nutzung von EchoScribe.",
+  path: "/terms",
+  noIndex: true,
+});
 
 export default function TermsPage() {
   return (
