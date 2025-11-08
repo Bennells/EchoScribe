@@ -63,7 +63,7 @@ env:
   # Stripe Configuration
   # ==========================================
   - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    value: pk_test_51SJzrMGiTikY0UunW1S5hZcTMLPvXFFOaCY8wWfEuLOEJZTDQviGtWQt0FWz1GrNjqSoDjA6HmolPpCImWBKfc4V00yBVNO6HB
+    value: "pk_test_51SJzrMGiTikY0UunW1S5hZcTMLPvXFFOaCY8wWfEuLOEJZTDQviGtWQt0FWz1GrNjqSoDjA6HmolPpCImWBKfc4V00yBVNO6HB"
     availability:
       - BUILD
       - RUNTIME
