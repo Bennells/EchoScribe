@@ -113,23 +113,24 @@ env:
       - RUNTIME
 
   # ==========================================
-  # Test Environment Configuration
+  # Production Environment Configuration
   # ==========================================
   # Environment identifier (test/production)
   - variable: NEXT_PUBLIC_ENVIRONMENT
-    value: "test"
+    value: "production"
     availability:
       - BUILD
       - RUNTIME
 
   # Email whitelist protection (TEST environment only)
+  # DISABLED for production - whitelist is only for TEST environment
   - variable: WHITELIST_ENABLED
-    value: "true"
+    value: "false"
     availability:
       - RUNTIME
 
-  # Comma-separated list of whitelisted email addresses
+  # Comma-separated list of whitelisted email addresses (unused in production)
   - variable: WHITELISTED_EMAILS
-    value: "dellsworth@bennells.com,grusel21@gmail.com,stevenbellsworth@gmail.com"
+    value: ""
     availability:
       - RUNTIME
