@@ -131,6 +131,6 @@ env:
 
   # Comma-separated list of whitelisted email addresses (unused in production)
   - variable: WHITELISTED_EMAILS
-    value: ""
+    value: "none"
     availability:
       - RUNTIME
