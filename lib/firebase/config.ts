@@ -2,7 +2,6 @@ import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
-import { getFunctions, Functions } from "firebase/functions";
 
 // Firebase configuration using NEXT_PUBLIC_* environment variables
 // These are replaced at build time by Next.js with literal values
@@ -21,7 +20,6 @@ let app: FirebaseApp | undefined;
 let authInstance: Auth | undefined;
 let dbInstance: Firestore | undefined;
 let storageInstance: FirebaseStorage | undefined;
-let functionsInstance: Functions | undefined;
 
 // Only initialize Firebase in the browser
 if (typeof window !== "undefined") {
@@ -29,13 +27,9 @@ if (typeof window !== "undefined") {
   authInstance = getAuth(app);
   dbInstance = getFirestore(app);
   storageInstance = getStorage(app);
-
-  // Initialize Functions with europe-west1 region (where our functions are deployed)
-  functionsInstance = getFunctions(app, "europe-west1");
 }
 
 // Export instances - these will be undefined during SSR/SSG
 export const auth = authInstance!;
 export const db = dbInstance!;
 export const storage = storageInstance!;
-export const functions = functionsInstance!;

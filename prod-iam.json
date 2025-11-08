@@ -1,0 +1,125 @@
+{
+  "bindings": [
+    {
+      "members": [
+        "serviceAccount:service-673230184143@gcp-sa-artifactregistry.iam.gserviceaccount.com"
+      ],
+      "role": "roles/artifactregistry.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:673230184143@cloudbuild.gserviceaccount.com"
+      ],
+      "role": "roles/cloudbuild.builds.builder"
+    },
+    {
+      "members": [
+        "serviceAccount:service-673230184143@gcp-sa-cloudbuild.iam.gserviceaccount.com"
+      ],
+      "role": "roles/cloudbuild.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:service-673230184143@containerregistry.iam.gserviceaccount.com"
+      ],
+      "role": "roles/containerregistry.ServiceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:firebase-app-hosting-compute@echoscribe-prod.iam.gserviceaccount.com"
+      ],
+      "role": "roles/developerconnect.readTokenAccessor"
+    },
+    {
+      "members": [
+        "serviceAccount:service-673230184143@gcp-sa-devconnect.iam.gserviceaccount.com"
+      ],
+      "role": "roles/developerconnect.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:service-673230184143@gcp-sa-firebase.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebase.managementServiceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:firebase-adminsdk-fbsvc@echoscribe-prod.iam.gserviceaccount.com",
+        "serviceAccount:firebase-app-hosting-compute@echoscribe-prod.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebase.sdkAdminServiceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:firebase-app-hosting-compute@echoscribe-prod.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebaseapphosting.computeRunner"
+    },
+    {
+      "members": [
+        "serviceAccount:service-673230184143@gcp-sa-firebaseapphosting.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebaseapphosting.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:firebase-adminsdk-fbsvc@echoscribe-prod.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebaseauth.admin"
+    },
+    {
+      "members": [
+        "serviceAccount:service-673230184143@firebase-rules.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebaserules.system"
+    },
+    {
+      "members": [
+        "serviceAccount:service-673230184143@gcp-sa-firebasestorage.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebasestorage.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:service-673230184143@gcp-sa-firestore.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firestore.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:firebase-adminsdk-fbsvc@echoscribe-prod.iam.gserviceaccount.com"
+      ],
+      "role": "roles/iam.serviceAccountTokenCreator"
+    },
+    {
+      "members": [
+        "user:dellsworth@bennells.com"
+      ],
+      "role": "roles/owner"
+    },
+    {
+      "members": [
+        "serviceAccount:service-673230184143@serverless-robot-prod.iam.gserviceaccount.com"
+      ],
+      "role": "roles/run.serviceAgent"
+    },
+    {
+      "condition": {
+        "expression": "request.time < timestamp(\"2025-11-08T08:55:28.206Z\")",
+        "title": "developer-connect-connection-setup"
+      },
+      "members": [
+        "serviceAccount:service-673230184143@gcp-sa-devconnect.iam.gserviceaccount.com"
+      ],
+      "role": "roles/secretmanager.admin"
+    },
+    {
+      "members": [
+        "serviceAccount:firebase-adminsdk-fbsvc@echoscribe-prod.iam.gserviceaccount.com"
+      ],
+      "role": "roles/storage.admin"
+    }
+  ],
+  "etag": "BwZDEK6zO0Y=",
+  "version": 3
+}
