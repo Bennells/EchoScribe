@@ -83,17 +83,33 @@ export function FaqSection() {
           ))}
         </div>
 
-        {/* Additional Help */}
-        <div className="mt-12 text-center">
-          <p className="text-muted-foreground mb-4">
-            Haben Sie weitere Fragen? Wir helfen Ihnen gerne weiter.
-          </p>
-          <a
-            href="mailto:support@echoscribe.com"
-            className="text-primary hover:underline font-medium"
-          >
-            Kontaktieren Sie unseren Support
-          </a>
+        {/* Additional Help & Feedback */}
+        <div className="mt-12 text-center space-y-6">
+          <div>
+            <p className="text-muted-foreground mb-4">
+              Haben Sie weitere Fragen? Wir helfen Ihnen gerne weiter.
+            </p>
+            <a
+              href="mailto:support@echoscribe.com"
+              className="text-primary hover:underline font-medium"
+            >
+              Kontaktieren Sie unseren Support
+            </a>
+          </div>
+
+          <div className="pt-6 border-t max-w-2xl mx-auto">
+            <p className="text-muted-foreground mb-4">
+              Wir freuen uns über Ihr Feedback! Als Podcaster wissen Sie am besten,
+              was Sie brauchen. Teilen Sie uns Ihre Ideen und Wünsche mit –
+              wir sind hier, um Ihnen zu helfen.
+            </p>
+            <a
+              href="mailto:info@echoscribe.de"
+              className="text-primary hover:underline font-medium"
+            >
+              Feedback senden an info@echoscribe.de
+            </a>
+          </div>
         </div>
       </div>
     </section>

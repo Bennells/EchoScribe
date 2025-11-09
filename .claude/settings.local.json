@@ -181,7 +181,14 @@
       "Bash(ls:*)",
       "Bash(cmd //c \"rd /s /q d:\\Projects\\EchoScribe\\app\\not-authorized\")",
       "Bash(del \"d:\\Projects\\EchoScribe\\components\\environment-banner.tsx\")",
-      "Bash(cmd //c \"del d:\\Projects\\EchoScribe\\components\\environment-banner.tsx\")"
+      "Bash(cmd //c \"del d:\\Projects\\EchoScribe\\components\\environment-banner.tsx\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" services enable aiplatform.googleapis.com --project=echoscribe-test)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" services enable aiplatform.googleapis.com --project=echoscribe-prod)",
+      "Bash(git stash:*)",
+      "Bash(git merge:*)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-test --member=\"serviceAccount:firebase-app-hosting-compute@echoscribe-test.iam.gserviceaccount.com\" --role=\"roles/aiplatform.user\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-test --member=\"serviceAccount:firebase-app-hosting-compute@echoscribe-test.iam.gserviceaccount.com\" --role=\"roles/aiplatform.user\" --condition=None)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-prod --member=\"serviceAccount:firebase-app-hosting-compute@echoscribe-prod.iam.gserviceaccount.com\" --role=\"roles/aiplatform.user\" --condition=None)"
     ],
     "deny": [],
     "ask": []
