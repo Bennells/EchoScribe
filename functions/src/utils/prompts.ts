@@ -13,6 +13,44 @@ Analysiere den Podcast und erstelle einen hochwertigen Blog-Artikel MIT Social M
 - KEINE Markdown Code Blocks um das JSON herum
 - Sonderzeichen wie ä, ö, ü, ß sind erlaubt (UTF-8)
 
+⚠️ **KRITISCHE PFLICHTFELDER - NICHT OPTIONAL!** ⚠️
+
+Die folgende Antwort ist NUR gültig, wenn ALLE diese Felder VOLLSTÄNDIG ausgefüllt sind:
+
+✅ **PFLICHTFELDER (müssen IMMER komplett sein):**
+1. title (1-60 Zeichen, nicht leer)
+2. slug (kleinbuchstaben-mit-bindestrichen, nicht leer)
+3. metaDescription (1-160 Zeichen, nicht leer)
+4. keywords (Array mit MINDESTENS 5 Keywords)
+5. markdown (MINDESTENS 800 Wörter vollständiger Artikel)
+6. html (vollständiges HTML des Artikels)
+7. **schemaOrg** (MUSS enthalten: @context, @type, headline, datePublished, author mit name)
+8. **openGraph** (MUSS enthalten: og:title, og:description, og:type)
+9. **socialMedia** (MUSS ALLE 6 Plattformen enthalten):
+   - linkedin (max. 300 Zeichen + 3-5 Hashtags)
+   - twitter (Array mit EXAKT 4 Tweets)
+   - instagram (150 Wörter + 10-15 Hashtags)
+   - facebook (200-300 Wörter + Engagement-Frage)
+   - tiktok (30-Sekunden-Script)
+   - newsletter (3-4 Sätze Teaser)
+10. **showNotes** (MUSS enthalten):
+    - chapters (Array mit MINDESTENS 4 Kapiteln, je mit timestamp, title, description)
+    - quotes (Array mit MINDESTENS 3 Zitaten)
+    - resources (Array, kann leer sein wenn keine erwähnt)
+    - guests (String, kann leer "" sein wenn keine Gäste)
+
+⚠️ **WICHTIG FÜR TOKEN-BUDGET:**
+Nutze ausreichend Tokens für eine vollständige Response! Falls der Podcast sehr lang ist, fokussiere auf Kernaussagen, aber ALLE Strukturfelder (schemaOrg, openGraph, socialMedia, showNotes) MÜSSEN vollständig ausgefüllt sein. Keine verkürzten oder leeren Felder!
+
+❌ **FALSCHE ANTWORTEN (Diese führen zu Fehlern):**
+- Leere Objekte: "schemaOrg": {}
+- Fehlende Plattformen: socialMedia ohne instagram
+- Zu wenig Items: keywords mit nur 3 Einträgen
+- Leere Strings bei Pflichtfeldern: "title": ""
+
+✅ **RICHTIGE ANTWORT:**
+Alle Felder vollständig ausgefüllt mit sinnvollem, hochwertigem Content!
+
 AUSGABE-FORMAT (Reines JSON):
 {
   "title": "SEO-optimierter Titel (max. 60 Zeichen)",
@@ -68,67 +106,84 @@ AUSGABE-FORMAT (Reines JSON):
   }
 }
 
-ANFORDERUNGEN:
+📋 **QUALITÄTS-CHECKLISTE** (Vor dem Absenden prüfen!):
 
-1. **Artikel-Struktur:**
-   - Einleitung: Hook, Problem oder Frage die im Podcast behandelt wird
-   - Hauptteil: 3-5 Abschnitte mit H2/H3 Überschriften
-   - Kernaussagen und wichtigste Erkenntnisse aus dem Podcast
-   - Fazit: Zusammenfassung und Call-to-Action
-   - Mindestens 800 Wörter
+□ **1. ARTIKEL-STRUKTUR (markdown + html):**
+   ✓ Einleitung mit Hook/Problem vorhanden
+   ✓ 3-5 Hauptabschnitte mit H2/H3 Überschriften
+   ✓ Kernaussagen und Erkenntnisse aus Podcast eingearbeitet
+   ✓ Fazit mit Zusammenfassung + Call-to-Action
+   ✓ MINDESTENS 800 Wörter (zähle nach!)
+   ✓ Markdown UND HTML vollständig generiert
 
-2. **SEO-Optimierung:**
-   - Title: Kurz, prägnant, mit Hauptkeyword (max. 60 Zeichen)
-   - Slug: Kleinbuchstaben, bindestriche, keine umlaute (z.B. "podcast-marketing-tipps")
-   - Meta-Description: Verkaufstext mit Call-to-Action (max. 160 Zeichen)
-   - Keywords: 5-8 relevante Keywords/Phrasen
-   - H1 nur einmal verwenden (im Title)
-   - H2/H3 Struktur für Lesbarkeit
+□ **2. SEO-OPTIMIERUNG (title, slug, metaDescription, keywords):**
+   ✓ Title: 1-60 Zeichen, mit Hauptkeyword
+   ✓ Slug: nur kleinbuchstaben-mit-bindestrichen (z.B. "podcast-marketing-tipps")
+   ✓ Meta-Description: 1-160 Zeichen, mit Call-to-Action
+   ✓ Keywords: MINDESTENS 5 relevante Keywords/Phrasen
+   ✓ H1 nur einmal im Artikel
+   ✓ Klare H2/H3 Hierarchie
 
-3. **Stil:**
-   - Professionell aber zugänglich
-   - Aktive Sprache, direkte Ansprache
-   - Kurze Absätze (2-4 Sätze)
-   - Bullet Points für Listen
-   - Konkrete Beispiele aus dem Podcast
+□ **3. SCHEMA.ORG (schemaOrg-Objekt):**
+   ✓ "@context": "https://schema.org" vorhanden
+   ✓ "@type": "BlogPosting" vorhanden
+   ✓ "headline" ausgefüllt (Artikel-Titel)
+   ✓ "datePublished" im Format YYYY-MM-DD
+   ✓ "author" mit "@type": "Person" und "name" ausgefüllt
+   ✓ Optional: description, image, publisher hinzugefügt
 
-4. **Markdown-Format:**
-   - # für H1 (Title)
-   - ## für H2 (Hauptabschnitte)
-   - ### für H3 (Unterabschnitte)
-   - - für Bullet Points
-   - **fett** für Hervorhebungen
-   - Keine HTML-Tags im Markdown!
+□ **4. OPENGRAPH (openGraph-Objekt):**
+   ✓ "og:title" vorhanden (Artikel-Titel)
+   ✓ "og:description" vorhanden (Meta-Description)
+   ✓ "og:type" mit Wert "article"
+   ✓ Optional: "og:url", "og:image" hinzugefügt
 
-5. **HTML-Format:**
-   - Sauberes, semantisches HTML
-   - <article> als Wrapper
-   - <h1>, <h2>, <h3> für Überschriften
-   - <p> für Absätze
-   - <ul>/<li> für Listen
-   - <strong> für Hervorhebungen
-   - Keine Style-Attribute!
+□ **5. SOCIAL MEDIA (socialMedia-Objekt mit ALLEN 6 Plattformen!):**
+   ✓ **linkedin:** 1 Post, max. 300 Zeichen, professionell, 3-5 Hashtags
+   ✓ **twitter:** Array mit EXAKT 4 Tweets, je max. 280 Zeichen, aufbauend
+   ✓ **instagram:** 150 Wörter Caption, emotional, Story-Elemente, 10-15 Hashtags, Emojis
+   ✓ **facebook:** 200-300 Wörter, Storytelling-Stil, Engagement-Frage am Ende
+   ✓ **tiktok:** 30-Sekunden-Script mit Hook (erste 3 Sek), Kernaussage, CTA
+   ✓ **newsletter:** 3-4 Sätze Teaser, Neugier weckend, Leseanreiz
 
-6. **Schema.org:**
-   - BlogPosting Type
-   - Vollständige Metadaten (headline, datePublished, author)
-   - Strukturierte Daten für bessere Google-Anzeige
+□ **6. SHOW NOTES (showNotes-Objekt vollständig!):**
+   ✓ **chapters:** MINDESTENS 4 Kapitel, jeweils mit:
+      - "timestamp" im Format "MM:SS" oder "HH:MM:SS"
+      - "title" (Kapitel-Überschrift)
+      - "description" (Was wird besprochen)
+   ✓ **quotes:** MINDESTENS 3 einprägsame Zitate aus dem Podcast
+   ✓ **resources:** Array mit allen erwähnten Tools/Links/Büchern (kann leer [] sein)
+   ✓ **guests:** String mit Name + Bio des Gastes (kann leer "" sein wenn keine Gäste)
 
-7. **Social Media Content:**
-   - **LinkedIn:** Professionell, Mehrwert-fokussiert, max. 300 Zeichen, 3-5 Hashtags
-   - **Twitter Thread:** 4 aufeinander aufbauende Tweets, jeweils max. 280 Zeichen
-   - **Instagram:** Emotional, Story-basiert, 150 Wörter, Emojis verwenden, 10-15 Hashtags
-   - **Facebook:** Storytelling-Stil, 200-300 Wörter, persönlich, Engagement-Frage am Ende
-   - **TikTok/Shorts:** Kurzes Script für 30 Sekunden, Hook + Kernaussage + CTA
-   - **Newsletter:** 3-4 Sätze Teaser, Neugier wecken, zum Weiterlesen animieren
+□ **7. FORMATIERUNG:**
+   ✓ Markdown: # für H1, ## für H2, ### für H3, - für Bullet Points, **fett**
+   ✓ HTML: <article>, <h1>-<h3>, <p>, <ul>/<li>, <strong>, KEINE Style-Attribute
+   ✓ Stil: Professionell, aktive Sprache, direkte Ansprache, kurze Absätze (2-4 Sätze)
+   ✓ Konkrete Beispiele aus dem Podcast eingebaut
 
-8. **Podcast Show Notes:**
-   - **Chapters:** Extrahiere 4-8 Kapitelmarken mit Timestamps (MM:SS Format)
-   - **Quotes:** 3-5 einprägsame, teilbare Zitate aus dem Podcast
-   - **Resources:** Alle erwähnten Tools, Links, Bücher, Personen als Liste
-   - **Guests:** Name und 1-2 Sätze Bio des Gastes (falls im Podcast erwähnt)
+□ **8. JSON-VALIDIERUNG:**
+   ✓ Gültiges JSON (doppelte Anführungszeichen, escapte Quotes)
+   ✓ Keine Markdown Code Blocks (```json) um die Antwort
+   ✓ Alle Strings korrekt escaped (\n für Newlines, \" für Quotes)
+   ✓ Emojis direkt verwendet (nicht escaped)
 
 Erstelle jetzt den vollständigen Content basierend auf dem Podcast-Audio.
+
+⚠️ **FINALE VALIDIERUNG VOR DEM ABSENDEN:**
+
+Gehe die Checkliste durch und stelle sicher:
+✅ Alle 10 Pflichtfelder sind ausgefüllt
+✅ schemaOrg hat @context, @type, headline, datePublished, author.name
+✅ openGraph hat og:title, og:description, og:type
+✅ socialMedia hat ALLE 6 Plattformen (linkedin, twitter, instagram, facebook, tiktok, newsletter)
+✅ showNotes hat min. 4 chapters, min. 3 quotes, resources-Array, guests-String
+✅ keywords hat mindestens 5 Einträge
+✅ markdown hat mindestens 800 Wörter
+✅ Kein Feld ist leer oder ein leeres Objekt {}
+
+Wenn du ALLE diese Punkte mit JA beantworten kannst, antworte NUR mit dem vollständigen JSON-Objekt.
+Wenn NEIN, vervollständige die fehlenden Felder JETZT, bevor du antwortest!
+
 Antworte NUR mit dem JSON-Objekt, ohne zusätzlichen Text oder Formatierung!
 `;
 

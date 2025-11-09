@@ -34,7 +34,8 @@ export const processPodcastTask = onTaskDispatched(
       maxConcurrentDispatches: 3, // Max 3 podcasts processing at once
     },
     // Memory and timeout
-    memory: "1GiB", // More memory for large audio files
+    memory: "8GiB", // Required for large audio files (up to 500MB) due to base64 encoding overhead
+    cpu: 2, // Required for 8GiB memory (Cloud Run requires 2 CPUs for 8GB)
     timeoutSeconds: 3600, // 1 hour max (plenty of time for Gemini)
     region: config.region, // ✅ Automatisch: TEST=europe-west1, PROD=europe-west3
   },
