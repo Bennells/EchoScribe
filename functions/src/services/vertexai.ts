@@ -173,16 +173,60 @@ function parseArticleJson(text: string): BlogArticle {
         }
       };
 
-      // Extract object fields
+      // Extract object fields with proper nested brace handling
       const extractObject = (fieldName: string): any | null => {
-        const regex = new RegExp(`"${fieldName}"\\s*:\\s*(\\{[^}]+\\})`, "s");
-        const match = jsonString.match(regex);
-        if (!match) return null;
+        const startRegex = new RegExp(`"${fieldName}"\\s*:\\s*\\{`, "s");
+        const startMatch = startRegex.exec(jsonString);
+        if (!startMatch) {
+          logger.warn(`[JSON Parser] Field "${fieldName}" not found in JSON string`);
+          return null;
+        }
+
+        logger.info(`[JSON Parser] Extracting object field: ${fieldName}`);
+
+        // Count braces to find the matching closing brace
+        let braceCount = 1;
+        let i = startMatch.index + startMatch[0].length;
+        let endIndex = -1;
+
+        while (i < jsonString.length && braceCount > 0) {
+          const char = jsonString[i];
+          const prevChar = i > 0 ? jsonString[i - 1] : "";
+
+          // Only count braces that aren't escaped
+          if (char === "{" && prevChar !== "\\") {
+            braceCount++;
+          } else if (char === "}" && prevChar !== "\\") {
+            braceCount--;
+            if (braceCount === 0) {
+              endIndex = i;
+              break;
+            }
+          }
+          i++;
+        }
+
+        if (endIndex === -1) {
+          logger.warn(`[JSON Parser] Could not find closing brace for field: ${fieldName} (brace count never reached 0)`);
+          return null;
+        }
+
+        const objectStr = jsonString.substring(
+          startMatch.index + startMatch[0].indexOf("{"),
+          endIndex + 1
+        );
+
+        logger.info(`[JSON Parser] Extracted ${fieldName} object (${objectStr.length} chars, ${endIndex - startMatch.index} from start)`);
 
         try {
-          return JSON.parse(match[1]);
-        } catch {
-          return {};
+          const parsed = JSON.parse(objectStr);
+          logger.info(`[JSON Parser] ✅ Successfully parsed ${fieldName} with ${Object.keys(parsed).length} top-level keys`);
+          return parsed;
+        } catch (e: any) {
+          logger.error(`[JSON Parser] ❌ Failed to parse object field ${fieldName}: ${e.message}`);
+          logger.error(`[JSON Parser] Object string (first 500 chars): ${objectStr.substring(0, 500)}`);
+          logger.error(`[JSON Parser] Object string (last 200 chars): ${objectStr.substring(Math.max(0, objectStr.length - 200))}`);
+          return null;
         }
       };
 
@@ -196,23 +240,19 @@ function parseArticleJson(text: string): BlogArticle {
       article.schemaOrg = extractObject("schemaOrg") || {};
       article.openGraph = extractObject("openGraph") || {};
 
-      // Optional fields
-      const socialMediaMatch = jsonString.match(/"socialMedia"\s*:\s*(\{[\s\S]*?\})\s*,?\s*"showNotes"/);
-      if (socialMediaMatch) {
-        try {
-          article.socialMedia = JSON.parse(socialMediaMatch[1]);
-        } catch {
-          logger.warn("[JSON Parser] Could not parse socialMedia, skipping...");
-        }
+      // Optional complex nested fields
+      const socialMedia = extractObject("socialMedia");
+      if (socialMedia) {
+        article.socialMedia = socialMedia;
+      } else {
+        logger.warn("[JSON Parser] socialMedia field not found or invalid");
       }
 
-      const showNotesMatch = jsonString.match(/"showNotes"\s*:\s*(\{[\s\S]*?\})\s*\}/);
-      if (showNotesMatch) {
-        try {
-          article.showNotes = JSON.parse(showNotesMatch[1]);
-        } catch {
-          logger.warn("[JSON Parser] Could not parse showNotes, skipping...");
-        }
+      const showNotes = extractObject("showNotes");
+      if (showNotes) {
+        article.showNotes = showNotes;
+      } else {
+        logger.warn("[JSON Parser] showNotes field not found or invalid");
       }
 
       return article as BlogArticle;
@@ -330,6 +370,13 @@ export async function processAudioWithVertexAI(
 
     logger.info(`[Vertex AI] ✅ API call completed | Duration: ${(duration / 1000).toFixed(1)}s | Tokens: ${totalTokens.toLocaleString()} | Cost: $${estimatedCost.toFixed(4)}`);
 
+    // Log full response for debugging (only if needed)
+    if (text.length < 50000) {
+      logger.info(`[Vertex AI] Full raw response (${text.length} chars):`, text);
+    } else {
+      logger.info(`[Vertex AI] Raw response too large (${text.length} chars), logging excerpts only`);
+    }
+
     // Parse JSON response (same logic as Google AI Studio)
     let article: BlogArticle;
     try {
@@ -344,9 +391,80 @@ export async function processAudioWithVertexAI(
       throw new Error(`Invalid JSON response from Vertex AI: ${parseError.message}`);
     }
 
-    // Validate required fields
-    if (!article.title || !article.markdown || !article.html) {
-      throw new Error("Missing required fields in Vertex AI response");
+    // Comprehensive validation of critical fields
+    const validationErrors: string[] = [];
+
+    // Basic required fields
+    if (!article.title || article.title.trim().length === 0) {
+      validationErrors.push("title is missing or empty");
+    }
+    if (!article.markdown || article.markdown.length < 100) {
+      validationErrors.push("markdown is missing or too short (< 100 chars)");
+    }
+    if (!article.html || article.html.length < 100) {
+      validationErrors.push("html is missing or too short (< 100 chars)");
+    }
+
+    // Social media validation - all 6 platforms should be present
+    if (!article.socialMedia) {
+      validationErrors.push("socialMedia is completely missing");
+    } else {
+      const requiredPlatforms: (keyof typeof article.socialMedia)[] = ["linkedin", "twitter", "instagram", "facebook", "tiktok", "newsletter"];
+      const missingPlatforms = requiredPlatforms.filter(platform => !article.socialMedia![platform]);
+      if (missingPlatforms.length > 0) {
+        validationErrors.push(`socialMedia is incomplete - missing platforms: ${missingPlatforms.join(", ")}`);
+      }
+
+      // Validate each platform has content
+      for (const platform of requiredPlatforms) {
+        const content = article.socialMedia![platform];
+        if (content && typeof content === "object") {
+          const contentStr = JSON.stringify(content);
+          if (contentStr.length < 20) {
+            validationErrors.push(`socialMedia.${platform} has suspiciously little content`);
+          }
+        }
+      }
+    }
+
+    // Schema.org validation
+    if (!article.schemaOrg) {
+      validationErrors.push("schemaOrg is completely missing");
+    } else {
+      if (!article.schemaOrg["@context"] || !article.schemaOrg["@type"]) {
+        validationErrors.push("schemaOrg is missing required @context or @type");
+      }
+      if (!article.schemaOrg.author) {
+        validationErrors.push("schemaOrg is missing required author field");
+      }
+    }
+
+    // OpenGraph validation
+    if (!article.openGraph) {
+      validationErrors.push("openGraph is completely missing");
+    } else {
+      const requiredOgFields = ["og:title", "og:description", "og:type"];
+      const missingOgFields = requiredOgFields.filter(field => !article.openGraph![field]);
+      if (missingOgFields.length > 0) {
+        validationErrors.push(`openGraph is incomplete - missing fields: ${missingOgFields.join(", ")}`);
+      }
+    }
+
+    // If there are validation errors, throw detailed error
+    if (validationErrors.length > 0) {
+      logger.error("[Vertex AI] ❌ Article validation failed:");
+      validationErrors.forEach(error => logger.error(`  - ${error}`));
+      logger.error("[Vertex AI] Parsed article structure:", {
+        hasSocialMedia: !!article.socialMedia,
+        socialMediaPlatforms: article.socialMedia ? Object.keys(article.socialMedia) : [],
+        hasSchemaOrg: !!article.schemaOrg,
+        schemaOrgKeys: article.schemaOrg ? Object.keys(article.schemaOrg) : [],
+        hasOpenGraph: !!article.openGraph,
+        openGraphKeys: article.openGraph ? Object.keys(article.openGraph) : [],
+        htmlLength: article.html?.length || 0,
+        markdownLength: article.markdown?.length || 0,
+      });
+      throw new Error(`Article validation failed: ${validationErrors.join("; ")}`);
     }
 
     // Log parsing result
