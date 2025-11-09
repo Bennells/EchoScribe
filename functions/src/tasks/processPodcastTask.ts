@@ -1,7 +1,6 @@
 import { onTaskDispatched } from "firebase-functions/v2/tasks";
 import * as logger from "firebase-functions/logger";
 import { processPodcast } from "../triggers/processPodcast";
-import { geminiApiKeySecret } from "../index";
 import { config } from "../config/environment";
 
 /**
@@ -20,8 +19,7 @@ import { config } from "../config/environment";
  */
 export const processPodcastTask = onTaskDispatched(
   {
-    // Secrets this function needs access to
-    secrets: [geminiApiKeySecret],
+    // No secrets needed - uses Application Default Credentials (ADC) via WIF
     // Retry configuration
     retryConfig: {
       maxAttempts: 5, // Try up to 5 times
@@ -29,14 +27,14 @@ export const processPodcastTask = onTaskDispatched(
       maxBackoffSeconds: 3600, // Wait at most 1 hour
       maxDoublings: 3, // Exponential backoff: 1min, 2min, 4min, then cap at 1hr
     },
-    // Rate limits to avoid overwhelming Gemini API
+    // Rate limits to avoid overwhelming Vertex AI API
     rateLimits: {
       maxConcurrentDispatches: 3, // Max 3 podcasts processing at once
     },
-    // Memory and timeout
-    memory: "8GiB", // Required for large audio files (up to 500MB) due to base64 encoding overhead
-    cpu: 2, // Required for 8GiB memory (Cloud Run requires 2 CPUs for 8GB)
-    timeoutSeconds: 3600, // 1 hour max (plenty of time for Gemini)
+    // Memory and timeout (reduced from 8GiB - no base64 encoding needed!)
+    memory: "4GiB", // Reduced from 8GiB - using Cloud Storage URIs instead of base64
+    cpu: 2, // Required for 4GiB memory
+    timeoutSeconds: 3600, // 1 hour max (plenty of time for Vertex AI)
     region: config.region, // ✅ Automatisch: TEST=europe-west1, PROD=europe-west3
   },
   async (request) => {

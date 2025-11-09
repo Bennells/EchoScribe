@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
-import { processAudioWithGemini } from "../services/gemini";
+import { processAudioWithVertexAI } from "../services/vertexai";
 import { generateSlug } from "../utils/prompts";
 
 // Initialize Firebase Admin (only once)
@@ -49,8 +49,8 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       duration: podcastData.duration,
     });
 
-    // Download audio file from Storage
-    logger.info(`[processPodcast] Step 3: Downloading audio file from Storage`);
+    // Verify audio file exists in Storage
+    logger.info(`[processPodcast] Step 3: Verifying audio file in Storage`);
     logger.info(`[processPodcast] Storage bucket: ${bucket.name}`);
     logger.info(`[processPodcast] File path: ${storagePath}`);
 
@@ -61,15 +61,22 @@ export async function processPodcast(podcastId: string, storagePath: string) {
     if (!exists) {
       throw new Error(`File does not exist in storage: ${storagePath}`);
     }
-    logger.info(`[processPodcast] ✅ File exists in storage`);
 
-    const [audioBuffer] = await file.download();
-    logger.info(`[processPodcast] ✅ Downloaded ${audioBuffer.length} bytes (${(audioBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
+    // Get file metadata for MIME type
+    const [metadata] = await file.getMetadata();
+    const mimeType = metadata.contentType || podcastData.contentType || "audio/mpeg";
 
-    // Process with Gemini
-    logger.info(`[processPodcast] Step 4: Sending to Gemini for processing...`);
-    logger.info(`[processPodcast] Audio buffer size: ${audioBuffer.length} bytes`);
-    const article = await processAudioWithGemini(audioBuffer);
+    logger.info(`[processPodcast] ✅ File verified in storage`, {
+      storagePath,
+      mimeType,
+      size: metadata.size,
+      sizeMB: (parseInt(metadata.size || "0") / 1024 / 1024).toFixed(2),
+    });
+
+    // Process with Vertex AI (using Cloud Storage URI - no download needed!)
+    logger.info(`[processPodcast] Step 4: Sending to Vertex AI for processing...`);
+    logger.info(`[processPodcast] Using Cloud Storage URI (no download required)`);
+    const article = await processAudioWithVertexAI(storagePath, mimeType);
     logger.info(`[processPodcast] ✅ Article generated successfully`);
     logger.info(`[processPodcast] Article title: ${article.title}`);
 

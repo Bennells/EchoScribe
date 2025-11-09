@@ -2,14 +2,10 @@
  * EchoScribe Cloud Functions
  *
  * Export all Firebase Functions from their respective modules
+ *
+ * Note: Vertex AI authentication uses Workload Identity Federation (WIF)
+ * via Application Default Credentials (ADC). No API keys needed!
  */
-
-// Define secrets that functions need access to
-import { defineSecret } from "firebase-functions/params";
-
-// Gemini API Key - stored in Google Secret Manager
-// This is just a reference, not the actual value
-export const geminiApiKeySecret = defineSecret("GEMINI_API_KEY");
 
 // Storage Triggers
 export { onPodcastUploaded } from "./triggers/onPodcastUploaded";
