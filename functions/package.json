@@ -12,7 +12,6 @@
   "main": "lib/index.js",
   "dependencies": {
     "@google-cloud/vertexai": "^1.10.0",
-    "@google/generative-ai": "^0.7.1",
     "firebase-admin": "^12.1.0",
     "firebase-functions": "^5.0.1",
     "music-metadata": "^11.9.0",

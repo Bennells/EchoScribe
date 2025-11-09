@@ -105,14 +105,6 @@ env:
       - RUNTIME
 
   # ==========================================
-  # Gemini API Configuration
-  # ==========================================
-  - variable: GEMINI_API_KEY
-    secret: GEMINI_API_KEY
-    availability:
-      - RUNTIME
-
-  # ==========================================
   # Environment Configuration
   # ==========================================
   # Environment identifier (test/production)

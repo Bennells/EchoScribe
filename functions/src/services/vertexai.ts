@@ -3,7 +3,7 @@ import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 import { BLOG_GENERATION_PROMPT } from "../utils/prompts";
 import { config } from "../config/environment";
-import type { BlogArticle } from "./gemini";
+import type { BlogArticle } from "../types/podcast";
 
 /**
  * Retry a function with exponential backoff on rate limit errors
@@ -87,18 +87,38 @@ let vertexAI: VertexAI;
 function parseArticleJson(text: string): BlogArticle {
   let cleanText = text.trim();
 
-  // Strategy 1: Remove Markdown code blocks
-  cleanText = cleanText.replace(/^```(?:json)?\s*/i, ""); // Remove opening ```json or ```
-  cleanText = cleanText.replace(/```\s*$/,  ""); // Remove closing ```
+  // Log raw response for debugging
+  logger.info(`[JSON Parser] Raw response length: ${text.length} chars`);
+  logger.info(`[JSON Parser] First 200 chars: ${text.substring(0, 200)}`);
+  logger.info(`[JSON Parser] Last 200 chars: ${text.substring(Math.max(0, text.length - 200))}`);
+
+  // Strategy 1: Remove Markdown code blocks (more robust)
+  // Remove code fences with any amount of whitespace/newlines before/after
+  cleanText = cleanText.replace(/^[\s\n\r]*```(?:json)?[\s\n\r]*/i, ""); // Remove opening ```json or ```
+  cleanText = cleanText.replace(/[\s\n\r]*```[\s\n\r]*$/,  ""); // Remove closing ```
   cleanText = cleanText.trim();
+
+  // Also handle code fences that might not be at the very start/end
+  // This catches cases like "Here's the JSON:\n```json\n{...}\n```"
+  const fenceMatch = cleanText.match(/```(?:json)?[\s\n\r]*(\{[\s\S]*\})[\s\n\r]*```/i);
+  if (fenceMatch) {
+    cleanText = fenceMatch[1].trim();
+    logger.info("[JSON Parser] Extracted JSON from embedded code fence");
+  }
+
+  logger.info(`[JSON Parser] After markdown removal, length: ${cleanText.length} chars`);
+  logger.info(`[JSON Parser] Cleaned text starts with: ${cleanText.substring(0, 100)}`);
 
   // Strategy 2: Extract JSON object (handles nested braces)
   const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
+    logger.error(`[JSON Parser] No JSON object found after cleaning`);
+    logger.error(`[JSON Parser] Cleaned text: ${cleanText.substring(0, 500)}`);
     throw new Error("No JSON object found in response");
   }
 
   let jsonString = jsonMatch[0];
+  logger.info(`[JSON Parser] Extracted JSON string length: ${jsonString.length} chars`);
 
   // Try multiple parsing strategies
   const strategies = [
@@ -200,9 +220,7 @@ function parseArticleJson(text: string): BlogArticle {
   for (let i = 0; i < strategies.length; i++) {
     try {
       const result = strategies[i]();
-      if (i > 0) {
-        logger.info(`[JSON Parser] ✅ Successfully parsed with strategy ${i + 1}`);
-      }
+      logger.info(`[JSON Parser] ✅ Successfully parsed with strategy ${i + 1}`);
       return result;
     } catch (error: any) {
       lastError = error;

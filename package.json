@@ -13,12 +13,9 @@
     "deploy:functions:test": "firebase use test && firebase deploy --only functions",
     "deploy:functions:prod": "firebase use prod && firebase deploy --only functions",
     "deploy:test": "firebase use test && firebase deploy",
-    "deploy:prod": "firebase use prod && firebase deploy",
-    "secrets:set:test": "firebase use test && firebase functions:secrets:set GEMINI_API_KEY",
-    "secrets:set:prod": "firebase use prod && firebase functions:secrets:set GEMINI_API_KEY"
+    "deploy:prod": "firebase use prod && firebase deploy"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.7.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",

@@ -188,7 +188,13 @@
       "Bash(git merge:*)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-test --member=\"serviceAccount:firebase-app-hosting-compute@echoscribe-test.iam.gserviceaccount.com\" --role=\"roles/aiplatform.user\")",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-test --member=\"serviceAccount:firebase-app-hosting-compute@echoscribe-test.iam.gserviceaccount.com\" --role=\"roles/aiplatform.user\" --condition=None)",
-      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-prod --member=\"serviceAccount:firebase-app-hosting-compute@echoscribe-prod.iam.gserviceaccount.com\" --role=\"roles/aiplatform.user\" --condition=None)"
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-prod --member=\"serviceAccount:firebase-app-hosting-compute@echoscribe-prod.iam.gserviceaccount.com\" --role=\"roles/aiplatform.user\" --condition=None)",
+      "Bash(git show:*)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-test --member=\"serviceAccount:436441931185-compute@developer.gserviceaccount.com\" --role=\"roles/aiplatform.user\" --condition=None)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects get-iam-policy echoscribe-test --flatten=\"bindings[].members\" --filter=\"bindings.members:436441931185-compute@developer.gserviceaccount.com AND bindings.role:roles/aiplatform.user\" --format=\"table(bindings.role)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-prod --member=\"serviceAccount:673230184143-compute@developer.gserviceaccount.com\" --role=\"roles/aiplatform.user\" --condition=None)",
+      "Bash(del \"d:\\Projects\\EchoScribe\\functions\\src\\services\\gemini.ts\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services describe processpodcasttask --region=europe-west1 --project=echoscribe-test --format=\"get(spec.template.spec.containers[0].env)\")"
     ],
     "deny": [],
     "ask": []
