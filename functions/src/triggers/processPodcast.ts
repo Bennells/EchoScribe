@@ -14,23 +14,22 @@ const bucket = admin.storage().bucket();
 
 export async function processPodcast(podcastId: string, storagePath: string) {
   logger.info("=".repeat(80));
-  logger.info(`[processPodcast] START - Processing podcast ${podcastId}`);
-  logger.info(`[processPodcast] Storage path: ${storagePath}`);
+  logger.info(`[processPodcast] START - Processing podcast ${podcastId} | Storage: ${storagePath}`);
   logger.info("=".repeat(80));
 
   let podcastData: any = null; // Make available in catch block for quota refund
 
   try {
     // Update status to processing
-    logger.info(`[processPodcast] Step 1: Updating podcast ${podcastId} status to processing`);
+    logger.info(`[processPodcast] Step 1: Updating status to processing`);
     await db.collection("podcasts").doc(podcastId).update({
       status: "processing",
       processingStartedAt: FieldValue.serverTimestamp(),
     });
-    logger.info(`[processPodcast] ✅ Status updated to 'processing'`);
+    logger.info(`[processPodcast] ✅ Status updated`);
 
     // Get podcast data
-    logger.info(`[processPodcast] Step 2: Fetching podcast document from Firestore`);
+    logger.info(`[processPodcast] Step 2: Fetching podcast document`);
     const podcastDoc = await db.collection("podcasts").doc(podcastId).get();
     if (!podcastDoc.exists) {
       throw new Error("Podcast document not found");
@@ -41,18 +40,10 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       throw new Error("Podcast data is empty");
     }
 
-    logger.info(`[processPodcast] ✅ Podcast data retrieved:`, {
-      userId: podcastData.userId,
-      fileName: podcastData.fileName,
-      fileSize: podcastData.fileSize,
-      contentType: podcastData.contentType,
-      duration: podcastData.duration,
-    });
+    logger.info(`[processPodcast] ✅ Podcast data retrieved | User: ${podcastData.userId} | Duration: ${podcastData.duration}min`);
 
     // Verify audio file exists in Storage
-    logger.info(`[processPodcast] Step 3: Verifying audio file in Storage`);
-    logger.info(`[processPodcast] Storage bucket: ${bucket.name}`);
-    logger.info(`[processPodcast] File path: ${storagePath}`);
+    logger.info(`[processPodcast] Step 3: Verifying audio file in storage`);
 
     const file = bucket.file(storagePath);
 
@@ -65,30 +56,23 @@ export async function processPodcast(podcastId: string, storagePath: string) {
     // Get file metadata for MIME type
     const [metadata] = await file.getMetadata();
     const mimeType = metadata.contentType || podcastData.contentType || "audio/mpeg";
+    const sizeMB = (parseInt(String(metadata.size || 0)) / 1024 / 1024).toFixed(2);
 
-    logger.info(`[processPodcast] ✅ File verified in storage`, {
-      storagePath,
-      mimeType,
-      size: metadata.size,
-      sizeMB: (parseInt(String(metadata.size || 0)) / 1024 / 1024).toFixed(2),
-    });
+    logger.info(`[processPodcast] ✅ File verified | Size: ${sizeMB}MB | Type: ${mimeType}`);
 
     // Process with Vertex AI (using Cloud Storage URI - no download needed!)
-    logger.info(`[processPodcast] Step 4: Sending to Vertex AI for processing...`);
-    logger.info(`[processPodcast] Using Cloud Storage URI (no download required)`);
+    logger.info(`[processPodcast] Step 4: Processing with Vertex AI (Cloud Storage URI)`);
     const article = await processAudioWithVertexAI(storagePath, mimeType);
-    logger.info(`[processPodcast] ✅ Article generated successfully`);
-    logger.info(`[processPodcast] Article title: ${article.title}`);
+    logger.info(`[processPodcast] ✅ Article generated | Title: ${article.title}`);
 
     // Ensure slug is generated
     if (!article.slug) {
-      logger.info(`[processPodcast] Generating slug from title: ${article.title}`);
       article.slug = generateSlug(article.title);
+      logger.info(`[processPodcast] Generated slug: ${article.slug}`);
     }
-    logger.info(`[processPodcast] Article slug: ${article.slug}`);
 
     // Save article to Firestore
-    logger.info(`[processPodcast] Step 5: Saving article to Firestore`);
+    logger.info(`[processPodcast] Step 5: Saving results to Firestore`);
     const articleData: any = {
       podcastId,
       userId: podcastData.userId,
@@ -106,18 +90,15 @@ export async function processPodcast(podcastId: string, storagePath: string) {
     // Add optional new fields if they exist
     if (article.socialMedia) {
       articleData.socialMedia = article.socialMedia;
-      logger.info(`[processPodcast] ✅ Social Media content included (${Object.keys(article.socialMedia).length} platforms)`);
     }
 
     if (article.showNotes) {
       articleData.showNotes = article.showNotes;
-      logger.info(`[processPodcast] ✅ Show Notes included (${article.showNotes.chapters.length} chapters, ${article.showNotes.quotes.length} quotes)`);
     }
 
-    logger.info(`[processPodcast] Article data prepared (${JSON.stringify(articleData).length} chars)`);
     const articleRef = await db.collection("articles").add(articleData);
 
-    logger.info(`[processPodcast] ✅ Article created: ${articleRef.id}`);
+    logger.info(`[processPodcast] ✅ Results saved | Article ID: ${articleRef.id}`);
 
     // Update podcast status to completed
     logger.info(`[processPodcast] Step 6: Updating podcast status to completed`);
@@ -126,13 +107,13 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       articleId: articleRef.id,
       processingCompletedAt: FieldValue.serverTimestamp(),
     });
-    logger.info(`[processPodcast] ✅ Podcast status updated to 'completed'`);
+    logger.info(`[processPodcast] ✅ Status updated to completed`);
 
     // Note: Quota was already reserved in onPodcastUploaded.ts when the upload completed
     // No additional quota increment needed here to avoid double-counting
 
     logger.info("=".repeat(80));
-    logger.info(`[processPodcast] ✅ COMPLETED - Podcast ${podcastId} processing finished successfully`);
+    logger.info(`[processPodcast] ✅ COMPLETED - Processing finished successfully`);
     logger.info("=".repeat(80));
   } catch (error: any) {
     logger.error("=".repeat(80));

@@ -92,28 +92,32 @@ function parseArticleJson(text: string): BlogArticle {
   logger.info(`[JSON Parser] First 200 chars: ${text.substring(0, 200)}`);
   logger.info(`[JSON Parser] Last 200 chars: ${text.substring(Math.max(0, text.length - 200))}`);
 
-  // Strategy 1: Remove Markdown code blocks (more robust)
-  // Remove code fences with any amount of whitespace/newlines before/after
-  cleanText = cleanText.replace(/^[\s\n\r]*```(?:json)?[\s\n\r]*/i, ""); // Remove opening ```json or ```
-  cleanText = cleanText.replace(/[\s\n\r]*```[\s\n\r]*$/,  ""); // Remove closing ```
-  cleanText = cleanText.trim();
-
-  // Also handle code fences that might not be at the very start/end
-  // This catches cases like "Here's the JSON:\n```json\n{...}\n```"
-  const fenceMatch = cleanText.match(/```(?:json)?[\s\n\r]*(\{[\s\S]*\})[\s\n\r]*```/i);
+  // Strategy 1: Try to extract JSON from code fences FIRST (before any modifications)
+  // This catches cases like "```json\n{...}\n```" or "Here's the JSON:\n```json\n{...}\n```"
+  const fenceMatch = cleanText.match(/```(?:json)?[\s\n\r]*(\{[\s\S]*?\})[\s\n\r]*```/i);
   if (fenceMatch) {
     cleanText = fenceMatch[1].trim();
-    logger.info("[JSON Parser] Extracted JSON from embedded code fence");
+    logger.info("[JSON Parser] Extracted JSON from code fence (strategy 1)");
+  } else {
+    // Strategy 2: Remove Markdown code fences manually
+    // Remove opening fence: ```json or ``` with any whitespace before/after
+    cleanText = cleanText.replace(/^[\s\n\r]*```(?:json)?[\s\n\r]*/i, "");
+    // Remove closing fence: ``` with any whitespace before/after
+    cleanText = cleanText.replace(/[\s\n\r]*```[\s\n\r]*$/g, "");
+    cleanText = cleanText.trim();
+    logger.info("[JSON Parser] Removed markdown fences manually (strategy 2)");
   }
 
   logger.info(`[JSON Parser] After markdown removal, length: ${cleanText.length} chars`);
   logger.info(`[JSON Parser] Cleaned text starts with: ${cleanText.substring(0, 100)}`);
+  logger.info(`[JSON Parser] Cleaned text ends with: ${cleanText.substring(Math.max(0, cleanText.length - 100))}`);
 
-  // Strategy 2: Extract JSON object (handles nested braces)
+  // Strategy 3: Extract JSON object (handles nested braces)
   const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     logger.error(`[JSON Parser] No JSON object found after cleaning`);
-    logger.error(`[JSON Parser] Cleaned text: ${cleanText.substring(0, 500)}`);
+    logger.error(`[JSON Parser] Cleaned text (first 500): ${cleanText.substring(0, 500)}`);
+    logger.error(`[JSON Parser] Cleaned text (last 500): ${cleanText.substring(Math.max(0, cleanText.length - 500))}`);
     throw new Error("No JSON object found in response");
   }
 
@@ -249,12 +253,9 @@ export async function processAudioWithVertexAI(
   mimeType: string = "audio/mpeg"
 ): Promise<BlogArticle> {
   try {
-    logger.info("=".repeat(80));
-    logger.info("[Vertex AI] Starting audio processing with Vertex AI");
-
-    // Initialize Vertex AI client if not already done
+    // Initialize Vertex AI client if not already done (only logs on first init)
     if (!vertexAI) {
-      logger.info("[Vertex AI] Initializing Vertex AI client...");
+      logger.info("[Vertex AI] Initializing client...");
       try {
         const projectId = config.projectId;
         const location = config.region; // europe-west1 or europe-west3
@@ -265,17 +266,12 @@ export async function processAudioWithVertexAI(
         });
 
         const regionInfo = config.region === "europe-west3"
-          ? "🇩🇪 Germany (Frankfurt)"
-          : "🇪🇺 EU (Belgium)";
+          ? "Germany (Frankfurt)"
+          : "EU (Belgium)";
 
-        logger.info("[Vertex AI] ✅ Vertex AI client initialized successfully", {
-          project: projectId,
-          location: location,
-          dataResidency: regionInfo,
-          endpoint: `https://${location}-aiplatform.googleapis.com`,
-        });
+        logger.info(`[Vertex AI] ✅ Client initialized | Region: ${regionInfo} | Endpoint: ${location}-aiplatform.googleapis.com`);
       } catch (error: any) {
-        logger.error("[Vertex AI] ❌ Failed to initialize Vertex AI client:", {
+        logger.error("[Vertex AI] ❌ Failed to initialize client:", {
           error: error.message,
           stack: error.stack,
         });
@@ -292,14 +288,7 @@ export async function processAudioWithVertexAI(
     const bucketName = admin.storage().bucket().name;
     const gsUri = `gs://${bucketName}/${storagePath}`;
 
-    logger.info("[Vertex AI] Sending audio to Vertex AI API...", {
-      storagePath,
-      gsUri,
-      mimeType,
-      model: "gemini-2.5-flash",
-      region: config.region,
-      bucketName,
-    });
+    logger.info(`[Vertex AI] Sending audio to API | Model: gemini-2.5-flash | Type: ${mimeType}`);
 
     // Prepare request with Cloud Storage URI
     const filePart = {
@@ -339,20 +328,7 @@ export async function processAudioWithVertexAI(
         ? (promptTokens / 1_000_000) * 1.0 + (responseTokens / 1_000_000) * 2.5
         : 0;
 
-    logger.info("[Vertex AI] ✅ API call completed", {
-      durationMs: duration,
-      durationSeconds: (duration / 1000).toFixed(2),
-      promptTokens,
-      responseTokens,
-      totalTokens,
-      estimatedCostUSD: `$${estimatedCost.toFixed(4)}`,
-      region: config.region,
-    });
-
-    logger.info("[Vertex AI] ✅ Received response from Vertex AI", {
-      responseLength: text.length,
-      responseLengthKB: (text.length / 1024).toFixed(2),
-    });
+    logger.info(`[Vertex AI] ✅ API call completed | Duration: ${(duration / 1000).toFixed(1)}s | Tokens: ${totalTokens.toLocaleString()} | Cost: $${estimatedCost.toFixed(4)}`);
 
     // Parse JSON response (same logic as Google AI Studio)
     let article: BlogArticle;
@@ -373,22 +349,9 @@ export async function processAudioWithVertexAI(
       throw new Error("Missing required fields in Vertex AI response");
     }
 
-    // Log additional info
-    const hasSocialMedia = !!article.socialMedia;
-    const hasShowNotes = !!article.showNotes;
-
-    logger.info("[Vertex AI] ✅ Successfully parsed article:", {
-      title: article.title,
-      wordCount: article.markdown.split(/\s+/).length,
-      hasSocialMedia,
-      hasShowNotes,
-      socialMediaPlatforms: hasSocialMedia
-        ? Object.keys(article.socialMedia || {}).length
-        : 0,
-      showNotesChapters: hasShowNotes ? article.showNotes?.chapters.length : 0,
-      showNotesQuotes: hasShowNotes ? article.showNotes?.quotes.length : 0,
-    });
-    logger.info("=".repeat(80));
+    // Log parsing result
+    const wordCount = article.markdown.split(/\s+/).length;
+    logger.info(`[Vertex AI] ✅ Article parsed | Words: ${wordCount.toLocaleString()}`);
 
     return article;
   } catch (error: any) {
