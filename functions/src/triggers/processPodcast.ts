@@ -70,7 +70,7 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       storagePath,
       mimeType,
       size: metadata.size,
-      sizeMB: (parseInt(metadata.size || "0") / 1024 / 1024).toFixed(2),
+      sizeMB: (parseInt(String(metadata.size || 0)) / 1024 / 1024).toFixed(2),
     });
 
     // Process with Vertex AI (using Cloud Storage URI - no download needed!)

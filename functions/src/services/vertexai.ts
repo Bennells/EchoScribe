@@ -285,9 +285,9 @@ export async function processAudioWithVertexAI(
 
     // Prepare request with Cloud Storage URI
     const filePart = {
-      file_data: {
-        file_uri: gsUri,
-        mime_type: mimeType,
+      fileData: {
+        fileUri: gsUri,
+        mimeType: mimeType,
       },
     };
 
@@ -307,7 +307,7 @@ export async function processAudioWithVertexAI(
     const duration = Date.now() - startTime;
 
     const response = result.response;
-    const text = response.text();
+    const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     // Extract token usage information
     const usageMetadata = (response as any).usageMetadata;

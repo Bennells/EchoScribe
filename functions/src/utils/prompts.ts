@@ -163,8 +163,8 @@ AUSGABE-FORMAT (Reines JSON):
 
 □ **8. JSON-VALIDIERUNG:**
    ✓ Gültiges JSON (doppelte Anführungszeichen, escapte Quotes)
-   ✓ Keine Markdown Code Blocks (```json) um die Antwort
-   ✓ Alle Strings korrekt escaped (\n für Newlines, \" für Quotes)
+   ✓ Keine Markdown Code Blocks (\`\`\`json) um die Antwort
+   ✓ Alle Strings korrekt escaped (\\n für Newlines, \\" für Quotes)
    ✓ Emojis direkt verwendet (nicht escaped)
 
 Erstelle jetzt den vollständigen Content basierend auf dem Podcast-Audio.
