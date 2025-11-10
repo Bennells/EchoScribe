@@ -243,14 +243,35 @@ export async function processAudioWithVertexAI(
     const response = result.response;
     const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    // Check if response was truncated
+    // === DIAGNOSTIC LOGGING: Response Analysis ===
+    logger.info(`[Vertex AI] 🔍 Response Diagnostics:`);
+    logger.info(`  - Raw response length: ${text.length} chars`);
+    logger.info(`  - Response starts with: "${text.slice(0, 100).replace(/\n/g, '\\n')}"`);
+    logger.info(`  - Response ends with: "${text.slice(-100).replace(/\n/g, '\\n')}"`);
+
     const finishReason = response.candidates?.[0]?.finishReason;
+    logger.info(`  - finishReason: ${finishReason || 'UNSET/UNDEFINED'}`);
+    logger.info(`  - Candidates count: ${response.candidates?.length || 0}`);
+
+    // Check JSON completeness
+    const trimmedText = text.trim();
+    const hasClosingBrace = trimmedText.endsWith('}');
+    const hasOpeningBrace = trimmedText.startsWith('{');
+    logger.info(`  - JSON completeness: starts with '{': ${hasOpeningBrace}, ends with '}': ${hasClosingBrace}`);
+
+    if (!hasClosingBrace) {
+      logger.error(`[Vertex AI] ⚠️ INCOMPLETE RESPONSE! Last 5 characters: "${text.slice(-5)}"`);
+      logger.error(`[Vertex AI] Response appears to be truncated mid-JSON`);
+    }
+
+    // Check if response was truncated
     if (finishReason === "MAX_TOKENS" || finishReason === "SAFETY") {
       logger.warn(`[Vertex AI] ⚠️ Response truncated! Finish reason: ${finishReason}`);
       if (finishReason === "MAX_TOKENS") {
         logger.warn("[Vertex AI] Response hit token limit - increase maxOutputTokens if needed");
       }
     }
+    // === END DIAGNOSTIC LOGGING ===
 
     // Extract token usage information
     const usageMetadata = (response as any).usageMetadata;
