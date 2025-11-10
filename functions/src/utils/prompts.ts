@@ -10,7 +10,7 @@ Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte 
 
 **Artikel (markdown + html):**
 - Minimum 800 Wörter
-- SEO-optimiert: Title (max. 60 Zeichen), metaDescription (max. 160 Zeichen), slug, mindestens 5 Keywords
+- SEO-optimiert: Title (max. 60 Zeichen), metaDescription (GENAU 100-160 Zeichen - zähle die Zeichen!), slug, mindestens 5 Keywords
 - Struktur: Einleitung mit Hook, 3-5 Hauptabschnitte (H2/H3), Fazit mit Call-to-Action
 - Stil: Professionell, aktive Sprache, direkte Ansprache, kurze Absätze (2-4 Sätze)
 - Markdown: # für H1, ## für H2, ### für H3, - für Bullet Points, **fett**
@@ -36,13 +36,13 @@ Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte 
 - chapters: Mindestens 4 Kapitel mit timestamp (MM:SS oder HH:MM:SS), title, description
 - quotes: Mindestens 3 einprägsame Zitate aus dem Podcast
 - resources: Array mit erwähnten Tools/Links (kann leer [] sein)
-- guests: Name + Bio des Gastes (kann leer "" sein)
+- guests: MUSS IMMER vorhanden sein! Name + Bio des Gastes (leerer String "" wenn keine Gäste)
 
 **BEISPIEL-STRUKTUR:**
 {
   "title": "SEO-optimierter Titel",
   "slug": "seo-slug",
-  "metaDescription": "Beschreibung (max. 160 Zeichen)",
+  "metaDescription": "Beschreibung zwischen 100 und 160 Zeichen. Diese muss informativ sein und Neugier wecken für den Artikel.",
   "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
   "markdown": "# Titel\\n\\n## Einleitung\\n\\n...",
   "html": "<article><h1>Titel</h1><p>...</p></article>",

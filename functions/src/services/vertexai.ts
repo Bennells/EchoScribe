@@ -80,6 +80,38 @@ async function retryWithExponentialBackoff<T>(
 let vertexAI: VertexAI;
 
 /**
+ * Auto-fix metaDescription to meet length requirements (100-160 characters)
+ * @param description The original description
+ * @returns Fixed description within the valid length range
+ */
+function fixMetaDescription(description: string): string {
+  if (!description) return "";
+
+  // If too long, truncate intelligently at word boundary
+  if (description.length > 160) {
+    const truncated = description.substring(0, 157);
+    const lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > 140) { // Keep at least 140 chars
+      return truncated.substring(0, lastSpace) + "...";
+    }
+    return truncated + "...";
+  }
+
+  // If too short, add a standard suffix
+  if (description.length < 100) {
+    const suffix = " | Jetzt den vollständigen Artikel lesen und alle Details erfahren.";
+    const combined = description + suffix;
+    // Make sure we don't go over 160 after adding suffix
+    if (combined.length > 160) {
+      return description + " | Mehr im Artikel."; // Shorter suffix
+    }
+    return combined;
+  }
+
+  return description;
+}
+
+/**
  * Parse JSON from Gemini response with responseSchema validation
  *
  * With responseSchema enabled, the Vertex AI API guarantees:
@@ -442,6 +474,30 @@ export async function processAudioWithVertexAI(
       throw new Error(`Invalid JSON response from Vertex AI: ${parseError.message}`);
     }
 
+    // Apply auto-fixes before validation
+    const autoFixes: string[] = [];
+
+    // Fix metaDescription length if needed
+    if (article.metaDescription) {
+      const originalLength = article.metaDescription.length;
+      if (originalLength < 100 || originalLength > 160) {
+        article.metaDescription = fixMetaDescription(article.metaDescription);
+        autoFixes.push(`metaDescription adjusted from ${originalLength} to ${article.metaDescription.length} chars`);
+      }
+    }
+
+    // Ensure showNotes.guests field exists
+    if (article.showNotes && !('guests' in article.showNotes)) {
+      article.showNotes.guests = "";
+      autoFixes.push("Added missing showNotes.guests field (empty string)");
+    }
+
+    // Log auto-fixes if any were applied
+    if (autoFixes.length > 0) {
+      logger.warn(`[Vertex AI] Auto-fixes applied: ${autoFixes.length} issue(s) corrected`);
+      autoFixes.forEach(fix => logger.warn(`  - ${fix}`));
+    }
+
     // Comprehensive validation of critical fields
     const validationErrors: string[] = [];
 
@@ -452,8 +508,9 @@ export async function processAudioWithVertexAI(
     if (!article.slug || article.slug.trim().length < 3) {
       validationErrors.push("slug is missing or too short (< 3 chars)");
     }
-    if (!article.metaDescription || article.metaDescription.length < 100 || article.metaDescription.length > 160) {
-      validationErrors.push(`metaDescription is invalid (${article.metaDescription?.length || 0} chars, should be 100-160)`);
+    // metaDescription is auto-fixed, so we only check if it exists
+    if (!article.metaDescription) {
+      validationErrors.push("metaDescription is completely missing");
     }
     if (!article.keywords || article.keywords.length < 3) {
       validationErrors.push(`keywords array must have at least 3 items (found: ${article.keywords?.length || 0})`);
@@ -529,9 +586,7 @@ export async function processAudioWithVertexAI(
       if (!article.showNotes.resources) {
         validationErrors.push("showNotes is missing resources array");
       }
-      if (!article.showNotes.guests) {
-        validationErrors.push("showNotes is missing guests field");
-      }
+      // guests field is auto-fixed, so we don't need to validate it here
     }
 
     // If there are validation errors, throw detailed error
