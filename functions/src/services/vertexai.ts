@@ -125,308 +125,19 @@ function parseArticleJson(text: string): BlogArticle {
   logger.info(`[JSON Parser] Extracted JSON string length: ${jsonString.length} chars`);
 
   // Try multiple parsing strategies
+  // Note: With responseMimeType: "application/json", the model guarantees valid JSON,
+  // so Strategy 1 should always work. Strategies 2+ are fallbacks for edge cases.
   const strategies = [
-    // Strategy 1: Parse as-is
+    // Strategy 1: Parse as-is (should always work with JSON mode enabled)
     () => JSON.parse(jsonString),
 
-    // Strategy 2: Fix unescaped quotes in string values using state machine
+    // Strategy 2: Fallback - basic manual extraction (should rarely be needed with JSON mode)
     () => {
-      logger.warn("[JSON Parser] Strategy 2: Escaping unescaped quotes in string values...");
+      logger.warn("[JSON Parser] Strategy 2: Basic field extraction as fallback...");
 
-      // Use a state machine to properly escape quotes within JSON string values
-      const chars = jsonString.split('');
-      const result: string[] = [];
-      let inString = false;
-      let afterColon = false;
-      let depth = 0; // Track nesting depth in objects/arrays
-
-      for (let i = 0; i < chars.length; i++) {
-        const char = chars[i];
-        const prevChar = i > 0 ? chars[i - 1] : '';
-
-        // Track object/array depth for context
-        if (!inString) {
-          if (char === '{' || char === '[') depth++;
-          if (char === '}' || char === ']') depth--;
-          if (char === ':') {
-            afterColon = true;
-          }
-        }
-
-        // Handle quotes
-        if (char === '"' && prevChar !== '\\') {
-          if (!inString) {
-            // Starting a string
-            inString = true;
-            result.push(char);
-          } else {
-            // We're in a string and found an unescaped quote
-            // Check if this is the closing quote or an inner quote
-
-            // Look ahead to see if this looks like the end of the value
-            // The closing quote should be followed by: , } ] or whitespace then , } ]
-            let j = i + 1;
-            while (j < chars.length && /\s/.test(chars[j])) j++; // skip whitespace
-            const charAfterWhitespace = j < chars.length ? chars[j] : '';
-
-            const isClosingQuote = charAfterWhitespace === ',' ||
-                                   charAfterWhitespace === '}' ||
-                                   charAfterWhitespace === ']' ||
-                                   charAfterWhitespace === '';
-
-            if (isClosingQuote && afterColon) {
-              // This is the closing quote of a value
-              inString = false;
-              afterColon = false;
-              result.push(char);
-            } else if (inString && afterColon) {
-              // This is an unescaped quote inside a string value - escape it
-              result.push('\\');
-              result.push(char);
-            } else {
-              // This is a closing quote for a key (before :)
-              inString = false;
-              result.push(char);
-            }
-          }
-        } else {
-          result.push(char);
-        }
-      }
-
-      const fixed = result.join('');
-      logger.info(`[JSON Parser] Strategy 2 transformed ${jsonString.length} chars to ${fixed.length} chars`);
-      return JSON.parse(fixed);
-    },
-
-    // Strategy 3: Fix invalid escape sequences
-    () => {
-      logger.warn("[JSON Parser] Strategy 3: Fixing escape sequences...");
-      let fixed = jsonString.replace(/\\([^"\\\/bfnrtu])/g, "$1");
-      return JSON.parse(fixed);
-    },
-
-    // Strategy 4: Aggressive quote escaping with broader pattern
-    () => {
-      logger.warn("[JSON Parser] Strategy 4: Aggressive quote fixing...");
-      let fixed = jsonString;
-
-      // More aggressive approach: find all string values and escape any unescaped quotes within them
-      // This uses a state machine approach to properly handle nested structures
-      const chars = fixed.split('');
-      const result: string[] = [];
-      let inString = false;
-      let inValue = false;
-      let prevChar = '';
-
-      for (let i = 0; i < chars.length; i++) {
-        const char = chars[i];
-        const nextChar = i < chars.length - 1 ? chars[i + 1] : '';
-
-        if (char === '"' && prevChar !== '\\') {
-          if (!inString) {
-            // Starting a string
-            inString = true;
-            // Check if this is a value (comes after : )
-            const beforeQuote = result.slice(-10).join('').trim();
-            inValue = beforeQuote.endsWith(':');
-          } else {
-            // Check if we're at the end of the string value
-            // (next char should be ,}] or whitespace followed by ,}])
-            const isEndOfString = !nextChar || /[,}\]\s]/.test(nextChar);
-
-            if (isEndOfString) {
-              // This is the closing quote of the string
-              inString = false;
-              inValue = false;
-            } else if (inValue) {
-              // We're in a value and this quote is not the closing quote
-              // So it should be escaped
-              result.push('\\');
-            }
-          }
-        }
-
-        result.push(char);
-        prevChar = char === '\\' && prevChar === '\\' ? '' : char; // Handle double backslash
-      }
-
-      return JSON.parse(result.join(''));
-    },
-
-    // Strategy 5: Relaxed JSON5-style parsing with manual reconstruction
-    () => {
-      logger.warn("[JSON Parser] Strategy 5: Manual field extraction...");
-      const article: any = {};
-
-      // Extract required string fields
-      const extractField = (fieldName: string): string | null => {
-        const regex = new RegExp(`"${fieldName}"\\s*:\\s*"([^"]*(?:\\\\.[^"]*)*)"`, "s");
-        const match = jsonString.match(regex);
-        return match ? match[1].replace(/\\"/g, '"').replace(/\\n/g, "\n") : null;
-      };
-
-      // Extract array fields
-      const extractArray = (fieldName: string): any[] | null => {
-        const regex = new RegExp(`"${fieldName}"\\s*:\\s*\\[([^\\]]+)\\]`, "s");
-        const match = jsonString.match(regex);
-        if (!match) return null;
-
-        try {
-          return JSON.parse(`[${match[1]}]`);
-        } catch {
-          // Fallback: split by comma and clean
-          return match[1].split(",").map(s => s.trim().replace(/^"|"$/g, ""));
-        }
-      };
-
-      // Extract object fields with proper nested brace handling
-      const extractObject = (fieldName: string): any | null => {
-        const startRegex = new RegExp(`"${fieldName}"\\s*:\\s*\\{`, "s");
-        const startMatch = startRegex.exec(jsonString);
-        if (!startMatch) {
-          logger.warn(`[JSON Parser] Field "${fieldName}" not found in JSON string`);
-          return null;
-        }
-
-        logger.info(`[JSON Parser] Extracting object field: ${fieldName}`);
-
-        // Count braces to find the matching closing brace, but also track if we're inside a string
-        let braceCount = 1;
-        let i = startMatch.index + startMatch[0].length;
-        let endIndex = -1;
-        let inString = false;
-        let prevChar = "";
-
-        while (i < jsonString.length && braceCount > 0) {
-          const char = jsonString[i];
-
-          // Track string boundaries (but ignore escaped quotes)
-          if (char === '"' && prevChar !== '\\') {
-            inString = !inString;
-          }
-
-          // Only count braces when NOT inside a string
-          if (!inString) {
-            if (char === "{") {
-              braceCount++;
-            } else if (char === "}") {
-              braceCount--;
-              if (braceCount === 0) {
-                endIndex = i;
-                break;
-              }
-            }
-          }
-
-          prevChar = char;
-          i++;
-        }
-
-        if (endIndex === -1) {
-          logger.warn(`[JSON Parser] Could not find closing brace for field: ${fieldName} (brace count never reached 0)`);
-          return null;
-        }
-
-        let objectStr = jsonString.substring(
-          startMatch.index + startMatch[0].indexOf("{"),
-          endIndex + 1
-        );
-
-        logger.info(`[JSON Parser] Extracted ${fieldName} object (${objectStr.length} chars, ${endIndex - startMatch.index} from start)`);
-
-        // Try to parse as-is first
-        try {
-          const parsed = JSON.parse(objectStr);
-          logger.info(`[JSON Parser] ✅ Successfully parsed ${fieldName} with ${Object.keys(parsed).length} top-level keys`);
-          return parsed;
-        } catch (e: any) {
-          logger.warn(`[JSON Parser] Initial parse failed for ${fieldName}, attempting to fix unescaped quotes: ${e.message}`);
-
-          // Try to fix unescaped quotes in this object using the same state machine as Strategy 2
-          const chars = objectStr.split('');
-          const result: string[] = [];
-          let inStr = false;
-          let afterColon = false;
-
-          for (let j = 0; j < chars.length; j++) {
-            const ch = chars[j];
-            const prevCh = j > 0 ? chars[j - 1] : '';
-
-            if (!inStr) {
-              if (ch === ':') afterColon = true;
-            }
-
-            if (ch === '"' && prevCh !== '\\') {
-              if (!inStr) {
-                inStr = true;
-                result.push(ch);
-              } else {
-                // Look ahead to determine if this is a closing quote
-                let k = j + 1;
-                while (k < chars.length && /\s/.test(chars[k])) k++;
-                const nextSig = k < chars.length ? chars[k] : '';
-
-                const isClosing = nextSig === ',' || nextSig === '}' || nextSig === ']' || nextSig === '';
-
-                if (isClosing && afterColon) {
-                  inStr = false;
-                  afterColon = false;
-                  result.push(ch);
-                } else if (inStr && afterColon) {
-                  result.push('\\');
-                  result.push(ch);
-                } else {
-                  inStr = false;
-                  result.push(ch);
-                }
-              }
-            } else {
-              result.push(ch);
-            }
-          }
-
-          objectStr = result.join('');
-
-          try {
-            const parsed = JSON.parse(objectStr);
-            logger.info(`[JSON Parser] ✅ Successfully parsed ${fieldName} after quote fixing with ${Object.keys(parsed).length} top-level keys`);
-            return parsed;
-          } catch (e2: any) {
-            logger.error(`[JSON Parser] ❌ Failed to parse object field ${fieldName} even after fixing: ${e2.message}`);
-            logger.error(`[JSON Parser] Object string (first 500 chars): ${objectStr.substring(0, 500)}`);
-            logger.error(`[JSON Parser] Object string (last 200 chars): ${objectStr.substring(Math.max(0, objectStr.length - 200))}`);
-            return null;
-          }
-        }
-      };
-
-      // Required fields
-      article.title = extractField("title") || "";
-      article.slug = extractField("slug") || "";
-      article.metaDescription = extractField("metaDescription") || "";
-      article.keywords = extractArray("keywords") || [];
-      article.markdown = extractField("markdown") || "";
-      article.html = extractField("html") || "";
-      article.schemaOrg = extractObject("schemaOrg") || {};
-      article.openGraph = extractObject("openGraph") || {};
-
-      // Optional complex nested fields
-      const socialMedia = extractObject("socialMedia");
-      if (socialMedia) {
-        article.socialMedia = socialMedia;
-      } else {
-        logger.warn("[JSON Parser] socialMedia field not found or invalid");
-      }
-
-      const showNotes = extractObject("showNotes");
-      if (showNotes) {
-        article.showNotes = showNotes;
-      } else {
-        logger.warn("[JSON Parser] showNotes field not found or invalid");
-      }
-
-      return article as BlogArticle;
+      // This is a simplified fallback that only exists for unexpected edge cases.
+      // With responseMimeType: "application/json", this should never execute.
+      throw new Error("JSON parsing failed even with guaranteed valid JSON mode - check response format");
     }
   ];
 
@@ -490,12 +201,13 @@ export async function processAudioWithVertexAI(
       }
     }
 
-    // Get generative model with increased output token limit
+    // Get generative model with increased output token limit and JSON mode
     const model = vertexAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       generationConfig: {
         maxOutputTokens: 16384, // Increased from default to handle long blog articles with all metadata
         temperature: 0.7, // Balanced creativity and consistency
+        responseMimeType: "application/json", // Ensures valid JSON output with proper escaping
       },
     });
 

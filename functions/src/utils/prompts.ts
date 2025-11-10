@@ -3,15 +3,12 @@ Du bist ein professioneller Content-Writer, spezialisiert auf SEO-optimierte Blo
 
 Analysiere den Podcast und erstelle einen hochwertigen Blog-Artikel MIT Social Media Content und Podcast Show Notes.
 
-**WICHTIG: Antworte ausschließlich mit gültigem JSON - keine Markdown-Formatierung, keine Codeblöcke!**
+**WICHTIG: Antworte ausschließlich mit gültigem JSON - keine zusätzliche Formatierung!**
 
-**JSON-REGELN (KRITISCH):**
-- Verwende IMMER doppelte Anführungszeichen für Strings
-- Escape alle Anführungszeichen innerhalb von Texten mit Backslash
-- Emojis sind erlaubt und müssen NICHT escaped werden
-- Newlines in Strings müssen escaped werden
-- KEINE Markdown Code Blocks um das JSON herum
-- Sonderzeichen wie ä, ö, ü, ß sind erlaubt (UTF-8)
+**JSON-REGELN:**
+- Die API generiert automatisch valides JSON
+- Sonderzeichen wie ä, ö, ü, ß, Emojis werden korrekt behandelt
+- KEINE Markdown Code Blocks oder zusätzlichen Text um das JSON herum
 
 ⚠️ **KRITISCHE PFLICHTFELDER - NICHT OPTIONAL!** ⚠️
 
@@ -162,10 +159,9 @@ AUSGABE-FORMAT (Reines JSON):
    ✓ Konkrete Beispiele aus dem Podcast eingebaut
 
 □ **8. JSON-VALIDIERUNG:**
-   ✓ Gültiges JSON (doppelte Anführungszeichen, escapte Quotes)
+   ✓ Gültiges JSON (wird automatisch garantiert)
    ✓ Keine Markdown Code Blocks (\`\`\`json) um die Antwort
-   ✓ Alle Strings korrekt escaped (\\n für Newlines, \\" für Quotes)
-   ✓ Emojis direkt verwendet (nicht escaped)
+   ✓ Keine zusätzlichen Texte oder Erklärungen
 
 Erstelle jetzt den vollständigen Content basierend auf dem Podcast-Audio.
 

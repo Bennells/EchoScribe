@@ -17,8 +17,6 @@ export async function processPodcast(podcastId: string, storagePath: string) {
   logger.info(`[processPodcast] START - Processing podcast ${podcastId} | Storage: ${storagePath}`);
   logger.info("=".repeat(80));
 
-  let podcastData: any = null; // Make available in catch block for quota refund
-
   try {
     // Update status to processing
     logger.info(`[processPodcast] Step 1: Updating status to processing`);
@@ -35,7 +33,7 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       throw new Error("Podcast document not found");
     }
 
-    podcastData = podcastDoc.data();
+    const podcastData = podcastDoc.data();
     if (!podcastData) {
       throw new Error("Podcast data is empty");
     }
@@ -147,24 +145,9 @@ export async function processPodcast(podcastId: string, storagePath: string) {
       });
     }
 
-    // Refund quota since processing failed
-    if (podcastData && podcastData.userId && podcastData.duration) {
-      try {
-        logger.info(`[processPodcast] Refunding quota for failed processing: ${podcastData.duration} minutes`);
-        await db.collection("users").doc(podcastData.userId).update({
-          "quota.used": FieldValue.increment(-podcastData.duration),
-        });
-        logger.info(`[processPodcast] ✅ Quota refunded: ${podcastData.duration} minutes`);
-      } catch (refundError: any) {
-        logger.error(`[processPodcast] ❌ Failed to refund quota:`, {
-          refundErrorMessage: refundError.message,
-          userId: podcastData.userId,
-          duration: podcastData.duration,
-        });
-      }
-    } else {
-      logger.warn(`[processPodcast] ⚠️ Could not refund quota - missing podcastData, userId or duration`);
-    }
+    // Note: Quota is NOT refunded on processing errors
+    // Users have consumed the quota when uploading the podcast
+    logger.info(`[processPodcast] Quota not refunded - processing failure does not affect quota consumption`);
 
     throw error;
   }
