@@ -1,7 +1,7 @@
 import { VertexAI, SchemaType } from "@google-cloud/vertexai";
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
-import { BLOG_GENERATION_PROMPT, CORE_ARTICLE_PROMPT, METADATA_PROMPT, METADATA_FROM_AUDIO_PROMPT } from "../utils/prompts";
+import { OPTIMIZED_BLOG_GENERATION_PROMPT, CORE_ARTICLE_PROMPT, METADATA_PROMPT, METADATA_FROM_AUDIO_PROMPT } from "../utils/prompts";
 import { config } from "../config/environment";
 import type { BlogArticle, BlogArticleCoreResult, BlogArticleMetadataResult } from "../types/podcast";
 
@@ -350,7 +350,16 @@ export async function processAudioToArticle(
     logger.info(`  - Response.candidates exists: ${!!response?.candidates}`);
     logger.info(`  - Response.candidates length: ${response?.candidates?.length || 0}`);
 
-    const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    // FIX: Concatenate ALL parts from the response (not just parts[0])
+    const parts = response.candidates?.[0]?.content?.parts || [];
+    logger.info(`[Stage 1] 🔍 Response parts: ${parts.length} part(s) received`);
+    if (parts.length > 1) {
+      logger.warn(`[Stage 1] ⚠️ Multi-part response detected! Concatenating ${parts.length} parts...`);
+      parts.forEach((part, index) => {
+        logger.info(`  - Part ${index + 1}: ${(part.text || "").length} chars`);
+      });
+    }
+    const text = parts.map(part => part.text || "").join("");
     const finishReason = response.candidates?.[0]?.finishReason;
 
     // === DIAGNOSTIC LOGGING ===
@@ -665,7 +674,17 @@ export async function processAudioToMetadata(
     const duration = Date.now() - startTime;
 
     const response = result.response;
-    const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    // FIX: Concatenate ALL parts from the response (not just parts[0])
+    const parts = response.candidates?.[0]?.content?.parts || [];
+    logger.info(`[Stage 2] 🔍 Response parts: ${parts.length} part(s) received`);
+    if (parts.length > 1) {
+      logger.warn(`[Stage 2] ⚠️ Multi-part response detected! Concatenating ${parts.length} parts...`);
+      parts.forEach((part, index) => {
+        logger.info(`  - Part ${index + 1}: ${(part.text || "").length} chars`);
+      });
+    }
+    const text = parts.map(part => part.text || "").join("");
     const finishReason = response.candidates?.[0]?.finishReason;
 
     // === DIAGNOSTIC LOGGING ===
@@ -917,7 +936,17 @@ Generiere jetzt basierend auf diesem Artikel die Social Media Inhalte und Show N
     const duration = Date.now() - startTime;
 
     const response = result.response;
-    const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    // FIX: Concatenate ALL parts from the response (not just parts[0])
+    const parts = response.candidates?.[0]?.content?.parts || [];
+    logger.info(`[Stage 2 Legacy] 🔍 Response parts: ${parts.length} part(s) received`);
+    if (parts.length > 1) {
+      logger.warn(`[Stage 2 Legacy] ⚠️ Multi-part response detected! Concatenating ${parts.length} parts...`);
+      parts.forEach((part, index) => {
+        logger.info(`  - Part ${index + 1}: ${(part.text || "").length} chars`);
+      });
+    }
+    const text = parts.map(part => part.text || "").join("");
     const finishReason = response.candidates?.[0]?.finishReason;
 
     // === DIAGNOSTIC LOGGING ===
@@ -1350,7 +1379,7 @@ export async function processAudioWithVertexAI_LEGACY(
     };
 
     const textPart = {
-      text: BLOG_GENERATION_PROMPT,
+      text: OPTIMIZED_BLOG_GENERATION_PROMPT,
     };
 
     const request = {
@@ -1365,7 +1394,17 @@ export async function processAudioWithVertexAI_LEGACY(
     const duration = Date.now() - startTime;
 
     const response = result.response;
-    const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    // FIX: Concatenate ALL parts from the response (not just parts[0])
+    const parts = response.candidates?.[0]?.content?.parts || [];
+    logger.info(`[Legacy] 🔍 Response parts: ${parts.length} part(s) received`);
+    if (parts.length > 1) {
+      logger.warn(`[Legacy] ⚠️ Multi-part response detected! Concatenating ${parts.length} parts...`);
+      parts.forEach((part, index) => {
+        logger.info(`  - Part ${index + 1}: ${(part.text || "").length} chars`);
+      });
+    }
+    const text = parts.map(part => part.text || "").join("");
 
     // === DIAGNOSTIC LOGGING: Response Analysis ===
     logger.info(`[Vertex AI] 🔍 Response Diagnostics:`);
