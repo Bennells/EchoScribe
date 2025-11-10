@@ -38,8 +38,29 @@ export interface BlogArticle {
 }
 
 /**
- * Core article result from first processing stage (audio → article)
- * Contains essential article content and basic SEO metadata
+ * Audio analysis result from Stage 1 (audio → article only)
+ * Contains only the markdown teaser article extracted from audio.
+ * Show notes have been removed to simplify generation and prevent truncation.
+ */
+export interface AudioAnalysisResult {
+  markdown: string;
+}
+
+/**
+ * Metadata result from Stage 2 (article → metadata)
+ * Contains SEO metadata and social media content generated from article text
+ */
+export interface MetadataResult {
+  title: string;
+  metaDescription: string;
+  keywords: string[];
+  schemaOrg: Record<string, any>;
+  openGraph: Record<string, string>;
+  socialMedia: SocialMediaContent;
+}
+
+/**
+ * @deprecated Use AudioAnalysisResult and MetadataResult instead
  */
 export interface BlogArticleCoreResult {
   title: string;
@@ -53,8 +74,7 @@ export interface BlogArticleCoreResult {
 }
 
 /**
- * Metadata result from second processing stage (article → metadata)
- * Contains social media content and show notes generated from article
+ * @deprecated Use AudioAnalysisResult and MetadataResult instead
  */
 export interface BlogArticleMetadataResult {
   socialMedia: SocialMediaContent;

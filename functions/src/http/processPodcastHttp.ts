@@ -2,8 +2,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
-import { processAudioWithVertexAI_LEGACY } from "../services/vertexai";
-import { generateSlug } from "../utils/prompts";
+import { processAudioTwoStage } from "../services/vertexai";
 import { config } from "../config/environment";
 import { safeRefundQuota } from "../utils/quotaHelpers";
 
@@ -144,16 +143,10 @@ export const processPodcastHttp = onRequest(
 
       logger.info(`[HTTP] ✅ File verified | Size: ${sizeMB}MB | Type: ${mimeType}`);
 
-      // Process with Vertex AI (using optimized single-stage approach with Cloud Storage URI)
-      logger.info(`[HTTP] Step 4: Processing with Vertex AI (Optimized Single-Stage)`);
-      const article = await processAudioWithVertexAI_LEGACY(storagePath, mimeType);
+      // Process with Vertex AI (using optimized two-stage approach)
+      logger.info(`[HTTP] Step 4: Processing with Vertex AI (Two-Stage Pipeline)`);
+      const article = await processAudioTwoStage(storagePath, mimeType);
       logger.info(`[HTTP] ✅ Article generated | Title: ${article.title}`);
-
-      // Ensure slug is generated
-      if (!article.slug) {
-        article.slug = generateSlug(article.title);
-        logger.info(`[HTTP] Generated slug: ${article.slug}`);
-      }
 
       // Save article to Firestore
       logger.info(`[HTTP] Step 5: Saving results to Firestore`);

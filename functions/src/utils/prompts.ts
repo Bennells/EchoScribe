@@ -1,432 +1,142 @@
 /**
- * STAGE 1 PROMPT: Audio → Core Article
- * Generates the essential article content without social media or show notes
- * This reduces response size by ~60% to ensure reliable completion
+ * STAGE 1: Audio Analysis - Extract Article Only
+ * Simplified prompt focusing solely on generating a complete SEO teaser article.
+ * No word count limits, no show notes - just a complete, well-structured article.
  */
-export const CORE_ARTICLE_PROMPT = `
+export const AUDIO_ANALYSIS_PROMPT = `
 Du bist ein professioneller Content-Writer, spezialisiert auf SEO-optimierte Blog-Artikel auf Deutsch.
 
-Analysiere den Podcast und erstelle einen hochwertigen Blog-Artikel.
+Analysiere den Podcast und erstelle einen hochwertigen SEO-TEASER-ARTIKEL.
 
 **AUSGABE-FORMAT:**
 Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte Struktur und Escaping von Sonderzeichen).
 
 **INHALTLICHE ANFORDERUNGEN:**
 
-**Artikel (markdown + html) - SEO-OPTIMIERTER TEASER:**
-- WICHTIG: Erstelle einen SEO-optimierten TEASER-Artikel, der neugierig macht, aber NICHT den kompletten Podcast-Inhalt wiedergibt
-- Der Artikel soll die Hauptthemen vorstellen und spannende Aspekte anreißen, aber KEINE vollständigen Lösungen, Diskussionsergebnisse oder detaillierten Antworten preisgeben
-- Ziel: Leser sollen den Podcast hören WOLLEN, um die vollständigen Informationen zu erhalten
+**SEO-OPTIMIERTER TEASER-ARTIKEL:**
 
-**Warum diese Wortanzahl? SEO-Optimierung:**
-Um in Suchmaschinen gut gefunden zu werden, benötigen wir mindestens 600 Wörter. Der Artikel gibt einen Überblick über die Themen – die vollständigen Diskussionen, Lösungen und Details erfährst du im Podcast!
-
-**Wortanzahl-Vorgaben (SEO-optimierte Teaser-Längen):**
-  * Sehr kurze Podcasts (5-15 Min): 600-800 Wörter
-  * Kurze Podcasts (15-30 Min): 700-900 Wörter
-  * Mittlere Podcasts (30-90 Min): 900-1200 Wörter
-  * Lange Podcasts (>90 Min): 1200-1800 Wörter
+**Ziel:** Erstelle einen vollständigen Artikel, der alle Hauptthemen des Podcasts vorstellt und Leser neugierig macht, OHNE den kompletten Inhalt zu verraten.
 
 **Teaser-Strategie - WAS du schreiben sollst:**
-✅ Hauptthemen benennen und kontextualisieren
-✅ Spannende Fakten, Zahlen oder Aspekte erwähnen, die neugierig machen
+✅ Alle Hauptthemen des Podcasts benennen und kontextualisieren
+✅ Spannende Fakten, Zahlen oder Aspekte erwähnen, die Interesse wecken
 ✅ Fragen aufwerfen, die im Podcast beantwortet werden
 ✅ Interessante Perspektiven oder Meinungen andeuten
-✅ Call-to-Actions einbauen: "Mehr dazu im Podcast", "Die vollständige Diskussion gibt's im Audio", "Wie das funktioniert, erfährst du im Podcast"
+✅ Call-to-Actions einbauen wie: "Mehr dazu im Podcast", "Die vollständige Diskussion gibt's im Audio"
 
 **Teaser-Strategie - WAS du NICHT schreiben sollst:**
-❌ Vollständige Lösungen oder Antworten auf gestellte Fragen
-❌ Komplette Diskussionsergebnisse oder Schlussfolgerungen
-❌ Alle Details und Hintergründe zu einem Thema
+❌ Vollständige Lösungen oder detaillierte Antworten preisgeben
+❌ Komplette Diskussionsergebnisse oder Schlussfolgerungen verraten
 ❌ Step-by-Step-Anleitungen oder vollständige Erklärungen
-❌ Den kompletten Inhalt des Podcasts in Textform
+❌ Den kompletten Podcast-Inhalt in Textform wiedergeben
 
-**SEO & Struktur:**
-- SEO-optimiert: Title (max. 60 Zeichen), metaDescription (GENAU 100-160 Zeichen - zähle die Zeichen!), slug, mindestens 5 Keywords
-- Struktur:
-  * Einleitung mit Hook + Übersicht der Themen (150-200 Wörter)
-  * 3-4 Hauptabschnitte (H2/H3): Jedes Thema vorstellen, aber nur anreißen (400-600 Wörter gesamt)
-  * Fazit: Zusammenfassung + starker Call-to-Action zum Podcast hören (100-150 Wörter)
-- Stil: Professionell, aktive Sprache, direkte Ansprache, kurze Absätze (2-4 Sätze), neugierig machend
-- Markdown: # für H1, ## für H2, ### für H3, - für Bullet Points, **fett**
-- HTML: <article>, <h1>-<h3>, <p>, <ul>/<li>, <strong> (keine Style-Attribute)
+**Struktur:**
+- **Einleitung:** Spannender Hook, der Interesse weckt + Übersicht der Hauptthemen
+- **Hauptteil:** 3-4 Abschnitte (H2/H3 Überschriften), jedes Hauptthema vorstellen und anreißen
+- **Fazit:** Zusammenfassung der besprochenen Themen + starker Call-to-Action zum Podcast hören
 
-**Schema.org (schemaOrg):**
-- "@context": "https://schema.org"
-- "@type": "BlogPosting"
-- headline, datePublished (YYYY-MM-DD), author (mit @type: "Person" und name)
+**Stil:**
+- Professionell und verständlich
+- Aktive Sprache, direkte Ansprache des Lesers
+- Kurze, prägnante Absätze (2-4 Sätze)
+- Neugierig machend, aber nicht clickbait-artig
 
-**Open Graph (openGraph):**
-- "og:title", "og:description", "og:type": "article"
+**Markdown-Formatierung:**
+- # für H1 (Hauptüberschrift)
+- ## für H2 (Hauptabschnitte)
+- ### für H3 (Unterabschnitte)
+- **fett** für Betonungen
+- - für Bullet Points (sparsam verwenden)
+
+**WICHTIG:**
+- Schreibe einen VOLLSTÄNDIGEN Artikel mit natürlichem Abschluss
+- Beende JEDEN Artikel mit einem vollständigen Fazit-Abschnitt
+- Schreibe IMMER vollständige Sätze - breche niemals mitten im Satz ab
+- Der Artikel muss SEO-optimiert sein (mindestens 600 Wörter für gutes Ranking)
+- Alle Hauptthemen des Podcasts müssen erwähnt werden
 
 **BEISPIEL-STRUKTUR:**
 {
-  "title": "SEO-optimierter Titel",
-  "slug": "seo-slug",
-  "metaDescription": "Beschreibung zwischen 100 und 160 Zeichen. Diese muss informativ sein und Neugier wecken für den Artikel.",
-  "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
-  "markdown": "# Titel\\n\\n## Einleitung\\n\\n...",
-  "html": "<article><h1>Titel</h1><p>...</p></article>",
-  "schemaOrg": {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    "headline": "...",
-    "datePublished": "2024-10-22",
-    "author": {"@type": "Person", "name": "Podcast-Host"}
-  },
-  "openGraph": {
-    "og:title": "...",
-    "og:description": "...",
-    "og:type": "article"
-  }
+  "markdown": "# [Spannender Titel]\\n\\n## Einleitung\\n\\n[Hook + Themenübersicht]\\n\\n## [Hauptthema 1]\\n\\n[Teaser zu Thema 1]\\n\\n## [Hauptthema 2]\\n\\n[Teaser zu Thema 2]\\n\\n## [Weitere Themen...]\\n\\n## Fazit\\n\\n[Zusammenfassung + CTA zum Podcast]"
 }
-
-**WICHTIG:**
-- Fokussiere dich auf einen hochwertigen TEASER-Artikel, der neugierig macht und zum Podcast-Hören einlädt
-- Der Artikel soll SEO-optimiert sein, aber NICHT den kompletten Podcast ersetzen
-- Verwende mehrfach Call-to-Actions wie "Mehr dazu im Podcast" oder "Die vollständige Antwort gibt's im Audio"
-- Die Social Media Inhalte und Show Notes werden in einem separaten Schritt generiert
 `;
 
 /**
- * STAGE 2 PROMPT: Audio → Metadata
- * Generates social media content and show notes based on the podcast audio
- * This runs in parallel with STAGE 1 for optimal performance
+ * STAGE 2: Metadata Generation - Create SEO and Social Media Content
+ * This prompt generates all metadata based on the article text (no audio needed).
  */
-export const METADATA_FROM_AUDIO_PROMPT = `
-Du bist ein Social Media Expert und Podcast-Producer.
+export const METADATA_GENERATION_PROMPT = `
+Du bist ein SEO-Experte und Social Media Strategist, spezialisiert auf deutsche Content-Optimierung.
 
-Analysiere den Podcast und erstelle Social Media Content und Podcast Show Notes.
+Basierend auf dem folgenden Podcast-Teaser-Artikel, erstelle vollständige SEO-Metadaten und Social Media Content.
 
 **AUSGABE-FORMAT:**
 Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte Struktur).
 
 **INHALTLICHE ANFORDERUNGEN:**
 
-**Social Media (socialMedia) - ALLE 6 Plattformen erforderlich:**
-- linkedin: Max. 300 Zeichen, professionell, 3-5 Hashtags
-- twitter: Array mit EXAKT 4 Tweets (je max. 280 Zeichen): Hook, Kernpunkt, Erkenntnis, Call-to-Action
-- instagram: 150 Wörter Caption, emotional, Story-Element, 10-15 Hashtags, Emojis
-- facebook: 200-300 Wörter, Storytelling-Stil, Engagement-Frage am Ende
-- tiktok: 30-Sekunden-Script (Hook in ersten 3 Sek, Kernaussage, CTA)
-- newsletter: 3-4 Sätze Teaser, neugierig machend
-
-**Show Notes (showNotes):**
-- chapters: Erstelle Kapitel für ALLE wichtigen Themenwechsel und Diskussionspunkte im GESAMTEN Podcast
-  * Nutze semantische Analyse: Neues Kapitel bei Themenwechsel, neuem Gast, neuer Frage, wichtiger Erkenntnis
-  * Verwende ECHTE timestamps aus dem Audio (MM:SS oder HH:MM:SS)
-  * WICHTIG: Decke den KOMPLETTEN Podcast ab, vom Anfang (00:00) bis zum Ende!
-  * Orientierung (nicht strikt):
-    - Kurze Podcasts (<30 Min): ~4-6 Kapitel
-    - Mittlere Podcasts (30-90 Min): ~10-15 Kapitel
-    - Lange Podcasts (>90 Min): 20-30+ Kapitel für vollständige Abdeckung
-  * Jedes Kapitel mit aussagekräftigem title und description
-- quotes: Mindestens 3 einprägsame Zitate WÖRTLICH aus dem Podcast
-- resources: Array mit erwähnten Tools/Links (kann leer [] sein)
-- guests: MUSS IMMER vorhanden sein! Name + Bio des Gastes (leerer String "" wenn keine Gäste)
-
-**BEISPIEL-STRUKTUR:**
-{
-  "socialMedia": {
-    "linkedin": "...",
-    "twitter": ["Tweet 1", "Tweet 2", "Tweet 3", "Tweet 4"],
-    "instagram": "...",
-    "facebook": "...",
-    "tiktok": "...",
-    "newsletter": "..."
-  },
-  "showNotes": {
-    "chapters": [{"timestamp": "00:00", "title": "Intro", "description": "..."}],
-    "quotes": ["Zitat 1", "Zitat 2", "Zitat 3"],
-    "resources": [],
-    "guests": ""
-  }
-}
-
-**WICHTIG:** Alle Felder müssen vollständig ausgefüllt sein. Nutze ECHTE Timestamps aus dem Audio und WÖRTLICHE Zitate für Authentizität.
-`;
-
-/**
- * STAGE 2 PROMPT (LEGACY): Article → Metadata
- * Generates social media content and show notes based on the article text
- * This is a text-to-text transformation, no audio processing required
- * @deprecated Use METADATA_FROM_AUDIO_PROMPT for parallel audio processing (Option D)
- */
-export const METADATA_PROMPT = `
-Du bist ein Social Media Expert und Podcast-Producer.
-
-Basierend auf dem folgenden Artikel, erstelle Social Media Content und Podcast Show Notes.
-
-**AUSGABE-FORMAT:**
-Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte Struktur).
-
-**INHALTLICHE ANFORDERUNGEN:**
-
-**Social Media (socialMedia) - ALLE 6 Plattformen erforderlich:**
-- linkedin: Max. 300 Zeichen, professionell, 3-5 Hashtags
-- twitter: Array mit EXAKT 4 Tweets (je max. 280 Zeichen): Hook, Kernpunkt, Erkenntnis, Call-to-Action
-- instagram: 150 Wörter Caption, emotional, Story-Element, 10-15 Hashtags, Emojis
-- facebook: 200-300 Wörter, Storytelling-Stil, Engagement-Frage am Ende
-- tiktok: 30-Sekunden-Script (Hook in ersten 3 Sek, Kernaussage, CTA)
-- newsletter: 3-4 Sätze Teaser, neugierig machend
-
-**Show Notes (showNotes):**
-- chapters: Mindestens 4 Kapitel mit timestamp (MM:SS oder HH:MM:SS), title, description
-- quotes: Mindestens 3 einprägsame Zitate aus dem Artikel/Podcast
-- resources: Array mit erwähnten Tools/Links (kann leer [] sein)
-- guests: MUSS IMMER vorhanden sein! Name + Bio des Gastes (leerer String "" wenn keine Gäste)
-
-**BEISPIEL-STRUKTUR:**
-{
-  "socialMedia": {
-    "linkedin": "...",
-    "twitter": ["Tweet 1", "Tweet 2", "Tweet 3", "Tweet 4"],
-    "instagram": "...",
-    "facebook": "...",
-    "tiktok": "...",
-    "newsletter": "..."
-  },
-  "showNotes": {
-    "chapters": [{"timestamp": "00:00", "title": "Intro", "description": "..."}],
-    "quotes": ["Zitat 1", "Zitat 2", "Zitat 3"],
-    "resources": [],
-    "guests": ""
-  }
-}
-
-**WICHTIG:** Alle Felder müssen vollständig ausgefüllt sein. Nutze den Artikel-Inhalt als Basis für authentischen Content.
-`;
-
-/**
- * OPTIMIZED SINGLE-STAGE PROMPT: Audio → Complete Article with Metadata
- * Combines the best elements from CORE_ARTICLE_PROMPT (teaser strategy)
- * and METADATA_FROM_AUDIO_PROMPT (real timestamps/quotes from audio)
- *
- * Benefits over two-stage:
- * - 40% cost reduction (one API call instead of two)
- * - Simpler architecture
- * - Multi-part fix eliminates truncation risk
- */
-export const OPTIMIZED_BLOG_GENERATION_PROMPT = `
-Du bist ein professioneller Content-Writer und Social Media Expert, spezialisiert auf SEO-optimierte Blog-Artikel auf Deutsch.
-
-Analysiere den Podcast und erstelle einen hochwertigen Blog-Artikel mit Social Media Content und Podcast Show Notes.
-
-**AUSGABE-FORMAT:**
-Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte Struktur und Escaping von Sonderzeichen).
-
-**INHALTLICHE ANFORDERUNGEN:**
-
-**Artikel (markdown + html) - SEO-OPTIMIERTER TEASER:**
-- WICHTIG: Erstelle einen SEO-optimierten TEASER-Artikel, der neugierig macht, aber NICHT den kompletten Podcast-Inhalt wiedergibt
-- Der Artikel soll die Hauptthemen vorstellen und spannende Aspekte anreißen, aber KEINE vollständigen Lösungen, Diskussionsergebnisse oder detaillierten Antworten preisgeben
-- Ziel: Leser sollen den Podcast hören WOLLEN, um die vollständigen Informationen zu erhalten
-
-**Warum diese Wortanzahl? SEO-Optimierung:**
-Um in Suchmaschinen gut gefunden zu werden, benötigen wir mindestens 600 Wörter. Der Artikel gibt einen Überblick über die Themen – die vollständigen Diskussionen, Lösungen und Details erfährst du im Podcast!
-
-**Wortanzahl-Vorgaben (SEO-optimierte Teaser-Längen):**
-  * Sehr kurze Podcasts (5-15 Min): 600-800 Wörter
-  * Kurze Podcasts (15-30 Min): 700-900 Wörter
-  * Mittlere Podcasts (30-90 Min): 900-1200 Wörter
-  * Lange Podcasts (>90 Min): 1200-1800 Wörter
-
-**Teaser-Strategie - WAS du schreiben sollst:**
-✅ Hauptthemen benennen und kontextualisieren
-✅ Spannende Fakten, Zahlen oder Aspekte erwähnen, die neugierig machen
-✅ Fragen aufwerfen, die im Podcast beantwortet werden
-✅ Interessante Perspektiven oder Meinungen andeuten
-✅ Call-to-Actions einbauen: "Mehr dazu im Podcast", "Die vollständige Diskussion gibt's im Audio", "Wie das funktioniert, erfährst du im Podcast"
-
-**Teaser-Strategie - WAS du NICHT schreiben sollst:**
-❌ Vollständige Lösungen oder Antworten auf gestellte Fragen
-❌ Komplette Diskussionsergebnisse oder Schlussfolgerungen
-❌ Alle Details und Hintergründe zu einem Thema
-❌ Step-by-Step-Anleitungen oder vollständige Erklärungen
-❌ Den kompletten Inhalt des Podcasts in Textform
-
-**SEO & Struktur:**
-- SEO-optimiert: Title (max. 60 Zeichen), metaDescription (GENAU 100-160 Zeichen - zähle die Zeichen!), slug, mindestens 5 Keywords
-- Struktur:
-  * Einleitung mit Hook + Übersicht der Themen (150-200 Wörter)
-  * 3-4 Hauptabschnitte (H2/H3): Jedes Thema vorstellen, aber nur anreißen (400-600 Wörter gesamt)
-  * Fazit: Zusammenfassung + starker Call-to-Action zum Podcast hören (100-150 Wörter)
-- Stil: Professionell, aktive Sprache, direkte Ansprache, kurze Absätze (2-4 Sätze), neugierig machend
-- Markdown: # für H1, ## für H2, ### für H3, - für Bullet Points, **fett**
-- HTML: <article>, <h1>-<h3>, <p>, <ul>/<li>, <strong> (keine Style-Attribute)
+**SEO-Metadaten:**
+- title: SEO-optimierter Titel (max. 60 Zeichen), der neugierig macht und Hauptthema beinhaltet
+- metaDescription: GENAU 100-160 Zeichen - zähle die Zeichen! Beschreibung muss informativ sein und Neugier wecken
+- keywords: Mindestens 5 relevante SEO-Keywords aus dem Artikel
 
 **Schema.org (schemaOrg):**
 - "@context": "https://schema.org"
 - "@type": "BlogPosting"
-- headline, datePublished (YYYY-MM-DD), author (mit @type: "Person" und name)
+- headline: Identisch zum title
+- datePublished: Heutiges Datum im Format YYYY-MM-DD
+- author: Objekt mit "@type": "Person" und "name" (extrahiere Namen aus Artikel oder verwende "Podcast-Host")
+- description: Identisch zur metaDescription
 
 **Open Graph (openGraph):**
-- "og:title", "og:description", "og:type": "article"
+- "og:title": Identisch zum title
+- "og:description": Identisch zur metaDescription
+- "og:type": Immer "article"
 
 **Social Media (socialMedia) - ALLE 6 Plattformen erforderlich:**
-- linkedin: Max. 300 Zeichen, professionell, 3-5 Hashtags
-- twitter: Array mit EXAKT 4 Tweets (je max. 280 Zeichen): Hook, Kernpunkt, Erkenntnis, Call-to-Action
-- instagram: 150 Wörter Caption, emotional, Story-Element, 10-15 Hashtags, Emojis
-- facebook: 200-300 Wörter, Storytelling-Stil, Engagement-Frage am Ende
-- tiktok: 30-Sekunden-Script (Hook in ersten 3 Sek, Kernaussage, CTA)
-- newsletter: 3-4 Sätze Teaser, neugierig machend
-
-**Show Notes (showNotes):**
-- chapters: Erstelle Kapitel für ALLE wichtigen Themenwechsel und Diskussionspunkte im GESAMTEN Podcast
-  * Nutze semantische Analyse: Neues Kapitel bei Themenwechsel, neuem Gast, neuer Frage, wichtiger Erkenntnis
-  * Verwende ECHTE timestamps aus dem Audio (MM:SS oder HH:MM:SS)
-  * WICHTIG: Decke den KOMPLETTEN Podcast ab, vom Anfang (00:00) bis zum Ende!
-  * Orientierung (nicht strikt):
-    - Kurze Podcasts (<30 Min): ~4-6 Kapitel
-    - Mittlere Podcasts (30-90 Min): ~10-15 Kapitel
-    - Lange Podcasts (>90 Min): 20-30+ Kapitel für vollständige Abdeckung
-  * Jedes Kapitel mit aussagekräftigem title und description
-- quotes: Mindestens 3 einprägsame Zitate WÖRTLICH aus dem Podcast
-- resources: Array mit erwähnten Tools/Links (kann leer [] sein)
-- guests: MUSS IMMER vorhanden sein! Name + Bio des Gastes (leerer String "" wenn keine Gäste)
+- linkedin: Max. 300 Zeichen, professionell, 3-5 relevante Hashtags, Business-Fokus
+- twitter: Array mit EXAKT 4 Tweets (je max. 280 Zeichen):
+  * Tweet 1: Hook - Aufmerksamkeit erregen
+  * Tweet 2: Kernpunkt - Hauptaussage des Artikels
+  * Tweet 3: Erkenntnis - Spannender Fakt oder Insight
+  * Tweet 4: Call-to-Action - Zum Podcast hören auffordern
+- instagram: 150 Wörter Caption, emotional, Story-Element, 10-15 relevante Hashtags, Emojis verwenden
+- facebook: 200-300 Wörter, Storytelling-Stil, persönlich, Engagement-Frage am Ende
+- tiktok: 30-Sekunden-Video-Script (Hook in ersten 3 Sekunden, Kernaussage, klarer CTA)
+- newsletter: 3-4 Sätze Teaser für Email-Newsletter, neugierig machend, mit CTA
 
 **BEISPIEL-STRUKTUR:**
 {
-  "title": "SEO-optimierter Titel",
-  "slug": "seo-slug",
-  "metaDescription": "Beschreibung zwischen 100 und 160 Zeichen. Diese muss informativ sein und Neugier wecken für den Artikel.",
+  "title": "SEO-optimierter Titel max 60 Zeichen",
+  "metaDescription": "Beschreibung zwischen 100 und 160 Zeichen. Diese muss informativ sein und Neugier wecken.",
   "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
-  "markdown": "# Titel\\n\\n## Einleitung\\n\\n...",
-  "html": "<article><h1>Titel</h1><p>...</p></article>",
   "schemaOrg": {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    "headline": "...",
-    "datePublished": "2024-10-22",
-    "author": {"@type": "Person", "name": "Podcast-Host"}
+    "headline": "Identisch zum title",
+    "datePublished": "2025-11-10",
+    "author": {"@type": "Person", "name": "Podcast-Host"},
+    "description": "Identisch zur metaDescription"
   },
   "openGraph": {
-    "og:title": "...",
-    "og:description": "...",
+    "og:title": "Identisch zum title",
+    "og:description": "Identisch zur metaDescription",
     "og:type": "article"
   },
   "socialMedia": {
-    "linkedin": "...",
-    "twitter": ["Tweet 1", "Tweet 2", "Tweet 3", "Tweet 4"],
-    "instagram": "...",
-    "facebook": "...",
-    "tiktok": "...",
-    "newsletter": "..."
-  },
-  "showNotes": {
-    "chapters": [{"timestamp": "00:00", "title": "Intro", "description": "..."}],
-    "quotes": ["Zitat 1", "Zitat 2", "Zitat 3"],
-    "resources": [],
-    "guests": ""
+    "linkedin": "Professioneller Post mit #Hashtags",
+    "twitter": ["Hook Tweet", "Kernpunkt Tweet", "Erkenntnis Tweet", "CTA Tweet"],
+    "instagram": "Emotionale Caption mit vielen #Hashtags und 😊 Emojis",
+    "facebook": "Längerer Storytelling-Post mit Engagement-Frage am Ende",
+    "tiktok": "Script: [Hook 0-3s] [Kernaussage 3-25s] [CTA 25-30s]",
+    "newsletter": "Kurzer Teaser für Email mit CTA"
   }
 }
 
 **WICHTIG:**
-- Fokussiere dich auf einen hochwertigen TEASER-Artikel, der neugierig macht und zum Podcast-Hören einlädt
-- Nutze ECHTE Timestamps aus dem Audio und WÖRTLICHE Zitate für Authentizität
-- Alle Felder müssen vollständig ausgefüllt sein
-- Bei langen Podcasts (>90 Min): Artikel bleibt Teaser-Länge (1200-1800 Wörter), aber Show Notes müssen den KOMPLETTEN Podcast abdecken mit 20-30+ Kapiteln
+- Alle Metadaten müssen aus dem gegebenen Artikel ableitbar sein
+- metaDescription MUSS zwischen 100-160 Zeichen sein (strikt!)
+- twitter MUSS ein Array mit EXAKT 4 Tweets sein
+- Alle Social Media Posts müssen vollständig ausgefüllt sein
+- Achte auf platform-spezifische Best Practices
 `;
-
-/**
- * LEGACY PROMPT: Original single-stage prompt (kept for reference)
- * @deprecated Use OPTIMIZED_BLOG_GENERATION_PROMPT instead
- */
-export const BLOG_GENERATION_PROMPT = `
-Du bist ein professioneller Content-Writer, spezialisiert auf SEO-optimierte Blog-Artikel auf Deutsch.
-
-Analysiere den Podcast und erstelle einen hochwertigen Blog-Artikel mit Social Media Content und Podcast Show Notes.
-
-**AUSGABE-FORMAT:**
-Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte Struktur und Escaping von Sonderzeichen).
-
-**INHALTLICHE ANFORDERUNGEN:**
-
-**Artikel (markdown + html):**
-- Minimum 800 Wörter
-- SEO-optimiert: Title (max. 60 Zeichen), metaDescription (GENAU 100-160 Zeichen - zähle die Zeichen!), slug, mindestens 5 Keywords
-- Struktur: Einleitung mit Hook, 3-5 Hauptabschnitte (H2/H3), Fazit mit Call-to-Action
-- Stil: Professionell, aktive Sprache, direkte Ansprache, kurze Absätze (2-4 Sätze)
-- Markdown: # für H1, ## für H2, ### für H3, - für Bullet Points, **fett**
-- HTML: <article>, <h1>-<h3>, <p>, <ul>/<li>, <strong> (keine Style-Attribute)
-
-**Schema.org (schemaOrg):**
-- "@context": "https://schema.org"
-- "@type": "BlogPosting"
-- headline, datePublished (YYYY-MM-DD), author (mit @type: "Person" und name)
-
-**Open Graph (openGraph):**
-- "og:title", "og:description", "og:type": "article"
-
-**Social Media (socialMedia) - ALLE 6 Plattformen erforderlich:**
-- linkedin: Max. 300 Zeichen, professionell, 3-5 Hashtags
-- twitter: Array mit EXAKT 4 Tweets (je max. 280 Zeichen): Hook, Kernpunkt, Erkenntnis, Call-to-Action
-- instagram: 150 Wörter Caption, emotional, Story-Element, 10-15 Hashtags, Emojis
-- facebook: 200-300 Wörter, Storytelling-Stil, Engagement-Frage am Ende
-- tiktok: 30-Sekunden-Script (Hook in ersten 3 Sek, Kernaussage, CTA)
-- newsletter: 3-4 Sätze Teaser, neugierig machend
-
-**Show Notes (showNotes):**
-- chapters: Mindestens 4 Kapitel mit timestamp (MM:SS oder HH:MM:SS), title, description
-- quotes: Mindestens 3 einprägsame Zitate aus dem Podcast
-- resources: Array mit erwähnten Tools/Links (kann leer [] sein)
-- guests: MUSS IMMER vorhanden sein! Name + Bio des Gastes (leerer String "" wenn keine Gäste)
-
-**BEISPIEL-STRUKTUR:**
-{
-  "title": "SEO-optimierter Titel",
-  "slug": "seo-slug",
-  "metaDescription": "Beschreibung zwischen 100 und 160 Zeichen. Diese muss informativ sein und Neugier wecken für den Artikel.",
-  "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
-  "markdown": "# Titel\\n\\n## Einleitung\\n\\n...",
-  "html": "<article><h1>Titel</h1><p>...</p></article>",
-  "schemaOrg": {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    "headline": "...",
-    "datePublished": "2024-10-22",
-    "author": {"@type": "Person", "name": "Podcast-Host"}
-  },
-  "openGraph": {
-    "og:title": "...",
-    "og:description": "...",
-    "og:type": "article"
-  },
-  "socialMedia": {
-    "linkedin": "...",
-    "twitter": ["Tweet 1", "Tweet 2", "Tweet 3", "Tweet 4"],
-    "instagram": "...",
-    "facebook": "...",
-    "tiktok": "...",
-    "newsletter": "..."
-  },
-  "showNotes": {
-    "chapters": [{"timestamp": "00:00", "title": "Intro", "description": "..."}],
-    "quotes": ["Zitat 1", "Zitat 2", "Zitat 3"],
-    "resources": [],
-    "guests": ""
-  }
-}
-
-**WICHTIG:** Alle Felder müssen vollständig ausgefüllt sein. Die Show Notes MÜSSEN immer enthalten sein mit mindestens 4 Chapters, 3 Quotes, Resources-Array und Guests-Feld. Bei langen Podcasts fokussiere auf die wichtigsten Kernaussagen für den Artikel-Text, aber stelle sicher, dass ALLE Metadaten-Felder (socialMedia, showNotes, schemaOrg, openGraph) vollständig ausgefüllt sind.
-
-**KRITISCHE ANFORDERUNG für lange Podcasts (>60 Min):**
-- Bei Platzmangel: Artikel kann kürzer sein (600-1000 Wörter), aber ALLE Metadaten sind PFLICHT
-- showNotes.guests MUSS vorhanden sein (leerer String "" ist erlaubt)
-- showNotes MUSS mindestens 4 chapters und 3 quotes enthalten
-- socialMedia MUSS ALLE 6 Plattformen enthalten
-- Fehlende Felder führen zu Verarbeitungsfehler!
-`;
-
-export function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
-    .replace(/ä/g, "ae")
-    .replace(/ö/g, "oe")
-    .replace(/ü/g, "ue")
-    .replace(/ß/g, "ss")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
