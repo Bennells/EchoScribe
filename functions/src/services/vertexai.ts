@@ -426,9 +426,13 @@ export async function processAudioWithVertexAI(
       }
     }
 
-    // Get generative model
+    // Get generative model with increased output token limit
     const model = vertexAI.getGenerativeModel({
       model: "gemini-2.5-flash",
+      generationConfig: {
+        maxOutputTokens: 16384, // Increased from default to handle long blog articles with all metadata
+        temperature: 0.7, // Balanced creativity and consistency
+      },
     });
 
     // Construct Cloud Storage URI
@@ -462,6 +466,15 @@ export async function processAudioWithVertexAI(
 
     const response = result.response;
     const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    // Check if response was truncated
+    const finishReason = response.candidates?.[0]?.finishReason;
+    if (finishReason === "MAX_TOKENS" || finishReason === "SAFETY") {
+      logger.warn(`[Vertex AI] ⚠️ Response truncated! Finish reason: ${finishReason}`);
+      if (finishReason === "MAX_TOKENS") {
+        logger.warn("[Vertex AI] Response hit token limit - increase maxOutputTokens if needed");
+      }
+    }
 
     // Extract token usage information
     const usageMetadata = (response as any).usageMetadata;
