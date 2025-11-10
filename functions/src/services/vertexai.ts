@@ -488,7 +488,7 @@ export async function processAudioWithVertexAI(
 
     // Ensure showNotes.guests field exists
     if (article.showNotes && !('guests' in article.showNotes)) {
-      article.showNotes.guests = "";
+      (article.showNotes as any).guests = "";
       autoFixes.push("Added missing showNotes.guests field (empty string)");
     }
 

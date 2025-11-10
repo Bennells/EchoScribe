@@ -29,38 +29,21 @@ export const config = {
 
   /**
    * Cloud Functions Konfiguration
-   * URLs und Pfade werden automatisch generiert
+   * URLs werden automatisch generiert
    */
   functions: {
-    processPodcastTask: {
+    processPodcastHttp: {
       /** Function Name */
-      name: "processPodcastTask",
+      name: "processPodcastHttp",
 
       /**
-       * Queue Path für Cloud Tasks
-       * Format: locations/{region}/functions/{functionName}
+       * HTTP Function URI
        *
-       * TEST: locations/europe-west1/functions/processPodcastTask
-       * PROD: locations/europe-west3/functions/processPodcastTask
+       * TEST: https://europe-west1-echoscribe-test.cloudfunctions.net/processPodcastHttp
+       * PROD: https://europe-west3-echoscribe-prod.cloudfunctions.net/processPodcastHttp
        */
-      queuePath: `locations/${REGION}/functions/processPodcastTask`,
-
-      /**
-       * Function URI für Cloud Tasks HTTP Requests
-       *
-       * TEST: https://europe-west1-echoscribe-test.cloudfunctions.net/processPodcastTask
-       * PROD: https://europe-west3-echoscribe-prod.cloudfunctions.net/processPodcastTask
-       */
-      uri: `https://${REGION}-${PROJECT_ID}.cloudfunctions.net/processPodcastTask`,
+      uri: `https://${REGION}-${PROJECT_ID}.cloudfunctions.net/processPodcastHttp`,
     },
-  },
-
-  /**
-   * Cloud Tasks Konfiguration
-   */
-  cloudTasks: {
-    /** Max dispatch deadline: 30 Minuten (API Maximum) */
-    dispatchDeadlineSeconds: 30 * 60,
   },
 
   /**
@@ -103,6 +86,6 @@ export function logEnvironment(): void {
     region: config.region,
     hosting: info.hosting,
     pricingTier: info.pricingTier,
-    functionUri: config.functions.processPodcastTask.uri,
+    httpFunctionUri: config.functions.processPodcastHttp.uri,
   });
 }

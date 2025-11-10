@@ -3,8 +3,9 @@ import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import { parseBuffer } from "music-metadata";
-import { enqueuePodcastProcessing } from "../lib/taskQueue";
+import { GoogleAuth } from "google-auth-library";
 import { config } from "../config/environment";
+import { safeRefundQuota } from "../utils/quotaHelpers";
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
@@ -13,6 +14,9 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 const bucket = admin.storage().bucket();
+
+// Initialize Google Auth for service-to-service authentication
+const auth = new GoogleAuth();
 
 // Listen to ALL Storage events in the default bucket
 // Firebase will automatically use the correct bucket based on the project
@@ -290,10 +294,8 @@ export const onPodcastUploaded = onObjectFinalized(
               logger.error(`[onPodcastUploaded] ⚠️ Failed to delete file:`, deleteError);
             }
 
-            // Refund quota
-            await userRef.update({
-              "quota.used": FieldValue.increment(-serverDuration),
-            });
+            // Refund quota safely (prevents negative quota)
+            await safeRefundQuota(userId, serverDuration, "Post-transaction quota exceeded");
             logger.info(`[onPodcastUploaded] ✅ Refunded ${serverDuration} minutes`);
 
             // Update podcast status
@@ -320,29 +322,49 @@ export const onPodcastUploaded = onObjectFinalized(
           logger.info(`[onPodcastUploaded] ✅ Post-transaction verification passed: ${finalUsed}/${monthlyLimit} Min.`);
         }
 
-        // Enqueue processing task (handles long-running Gemini API call)
-        logger.info(`[onPodcastUploaded] Enqueueing processing task for: ${podcastId}`);
+        // Call HTTP Cloud Function to process the podcast
+        logger.info(`[onPodcastUploaded] Calling HTTP function to process: ${podcastId}`);
 
         try {
-          await enqueuePodcastProcessing(podcastId, filePath);
-          logger.info(`[onPodcastUploaded] ✅ Task enqueued successfully`);
-        } catch (enqueueError: any) {
-          logger.error(`[onPodcastUploaded] ❌ Failed to enqueue task:`, enqueueError);
+          // Get the HTTP function URL from config
+          const httpFunctionUrl = config.functions.processPodcastHttp.uri;
 
-          // Refund quota since processing failed to start
-          logger.info(`[onPodcastUploaded] Refunding quota: ${serverDuration} minutes`);
-          await db.collection("users").doc(userId).update({
-            "quota.used": FieldValue.increment(-serverDuration),
+          logger.info(`[onPodcastUploaded] HTTP Function URL: ${httpFunctionUrl}`);
+
+          // Get authenticated client for service-to-service communication
+          // This automatically generates an ID token with the correct audience
+          const client = await auth.getIdTokenClient(httpFunctionUrl);
+
+          // Make authenticated request to HTTP function
+          const response = await client.request({
+            url: httpFunctionUrl,
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            data: {
+              podcastId,
+              storagePath: filePath,
+              userId,
+            },
           });
 
-          // Update podcast status to error since we couldn't enqueue
+          logger.info(`[onPodcastUploaded] ✅ HTTP function called successfully (status: ${response.status})`)
+        } catch (callError: any) {
+          logger.error(`[onPodcastUploaded] ❌ Failed to call HTTP function:`, callError);
+
+          // Refund quota since processing failed to start (prevents negative quota)
+          logger.info(`[onPodcastUploaded] Refunding quota: ${serverDuration} minutes`);
+          await safeRefundQuota(userId, serverDuration, `HTTP call failed: ${callError.message}`);
+
+          // Update podcast status to error since we couldn't start processing
           await db.collection("podcasts").doc(podcastId).update({
             status: "error",
-            errorMessage: `Failed to enqueue processing task: ${enqueueError.message}`,
+            errorMessage: `Failed to start processing: ${callError.message}`,
             errorAt: FieldValue.serverTimestamp(),
           });
 
-          throw enqueueError;
+          throw callError;
         }
 
         logger.info(`[onPodcastUploaded] ✅ Trigger completed successfully for: ${podcastId}`);
