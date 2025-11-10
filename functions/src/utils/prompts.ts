@@ -55,9 +55,68 @@ Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte 
 `;
 
 /**
- * STAGE 2 PROMPT: Article → Metadata
+ * STAGE 2 PROMPT: Audio → Metadata
+ * Generates social media content and show notes based on the podcast audio
+ * This runs in parallel with STAGE 1 for optimal performance
+ */
+export const METADATA_FROM_AUDIO_PROMPT = `
+Du bist ein Social Media Expert und Podcast-Producer.
+
+Analysiere den Podcast und erstelle Social Media Content und Podcast Show Notes.
+
+**AUSGABE-FORMAT:**
+Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte Struktur).
+
+**INHALTLICHE ANFORDERUNGEN:**
+
+**Social Media (socialMedia) - ALLE 6 Plattformen erforderlich:**
+- linkedin: Max. 300 Zeichen, professionell, 3-5 Hashtags
+- twitter: Array mit EXAKT 4 Tweets (je max. 280 Zeichen): Hook, Kernpunkt, Erkenntnis, Call-to-Action
+- instagram: 150 Wörter Caption, emotional, Story-Element, 10-15 Hashtags, Emojis
+- facebook: 200-300 Wörter, Storytelling-Stil, Engagement-Frage am Ende
+- tiktok: 30-Sekunden-Script (Hook in ersten 3 Sek, Kernaussage, CTA)
+- newsletter: 3-4 Sätze Teaser, neugierig machend
+
+**Show Notes (showNotes):**
+- chapters: Erstelle Kapitel für ALLE wichtigen Themenwechsel und Diskussionspunkte im GESAMTEN Podcast
+  * Nutze semantische Analyse: Neues Kapitel bei Themenwechsel, neuem Gast, neuer Frage, wichtiger Erkenntnis
+  * Verwende ECHTE timestamps aus dem Audio (MM:SS oder HH:MM:SS)
+  * WICHTIG: Decke den KOMPLETTEN Podcast ab, vom Anfang (00:00) bis zum Ende!
+  * Orientierung (nicht strikt):
+    - Kurze Podcasts (<30 Min): ~4-6 Kapitel
+    - Mittlere Podcasts (30-90 Min): ~10-15 Kapitel
+    - Lange Podcasts (>90 Min): 20-30+ Kapitel für vollständige Abdeckung
+  * Jedes Kapitel mit aussagekräftigem title und description
+- quotes: Mindestens 3 einprägsame Zitate WÖRTLICH aus dem Podcast
+- resources: Array mit erwähnten Tools/Links (kann leer [] sein)
+- guests: MUSS IMMER vorhanden sein! Name + Bio des Gastes (leerer String "" wenn keine Gäste)
+
+**BEISPIEL-STRUKTUR:**
+{
+  "socialMedia": {
+    "linkedin": "...",
+    "twitter": ["Tweet 1", "Tweet 2", "Tweet 3", "Tweet 4"],
+    "instagram": "...",
+    "facebook": "...",
+    "tiktok": "...",
+    "newsletter": "..."
+  },
+  "showNotes": {
+    "chapters": [{"timestamp": "00:00", "title": "Intro", "description": "..."}],
+    "quotes": ["Zitat 1", "Zitat 2", "Zitat 3"],
+    "resources": [],
+    "guests": ""
+  }
+}
+
+**WICHTIG:** Alle Felder müssen vollständig ausgefüllt sein. Nutze ECHTE Timestamps aus dem Audio und WÖRTLICHE Zitate für Authentizität.
+`;
+
+/**
+ * STAGE 2 PROMPT (LEGACY): Article → Metadata
  * Generates social media content and show notes based on the article text
  * This is a text-to-text transformation, no audio processing required
+ * @deprecated Use METADATA_FROM_AUDIO_PROMPT for parallel audio processing (Option D)
  */
 export const METADATA_PROMPT = `
 Du bist ein Social Media Expert und Podcast-Producer.
