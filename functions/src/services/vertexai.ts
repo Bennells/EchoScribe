@@ -291,25 +291,35 @@ function parseArticleJson(text: string): BlogArticle {
 
         logger.info(`[JSON Parser] Extracting object field: ${fieldName}`);
 
-        // Count braces to find the matching closing brace
+        // Count braces to find the matching closing brace, but also track if we're inside a string
         let braceCount = 1;
         let i = startMatch.index + startMatch[0].length;
         let endIndex = -1;
+        let inString = false;
+        let prevChar = "";
 
         while (i < jsonString.length && braceCount > 0) {
           const char = jsonString[i];
-          const prevChar = i > 0 ? jsonString[i - 1] : "";
 
-          // Only count braces that aren't escaped
-          if (char === "{" && prevChar !== "\\") {
-            braceCount++;
-          } else if (char === "}" && prevChar !== "\\") {
-            braceCount--;
-            if (braceCount === 0) {
-              endIndex = i;
-              break;
+          // Track string boundaries (but ignore escaped quotes)
+          if (char === '"' && prevChar !== '\\') {
+            inString = !inString;
+          }
+
+          // Only count braces when NOT inside a string
+          if (!inString) {
+            if (char === "{") {
+              braceCount++;
+            } else if (char === "}") {
+              braceCount--;
+              if (braceCount === 0) {
+                endIndex = i;
+                break;
+              }
             }
           }
+
+          prevChar = char;
           i++;
         }
 
@@ -318,22 +328,76 @@ function parseArticleJson(text: string): BlogArticle {
           return null;
         }
 
-        const objectStr = jsonString.substring(
+        let objectStr = jsonString.substring(
           startMatch.index + startMatch[0].indexOf("{"),
           endIndex + 1
         );
 
         logger.info(`[JSON Parser] Extracted ${fieldName} object (${objectStr.length} chars, ${endIndex - startMatch.index} from start)`);
 
+        // Try to parse as-is first
         try {
           const parsed = JSON.parse(objectStr);
           logger.info(`[JSON Parser] ✅ Successfully parsed ${fieldName} with ${Object.keys(parsed).length} top-level keys`);
           return parsed;
         } catch (e: any) {
-          logger.error(`[JSON Parser] ❌ Failed to parse object field ${fieldName}: ${e.message}`);
-          logger.error(`[JSON Parser] Object string (first 500 chars): ${objectStr.substring(0, 500)}`);
-          logger.error(`[JSON Parser] Object string (last 200 chars): ${objectStr.substring(Math.max(0, objectStr.length - 200))}`);
-          return null;
+          logger.warn(`[JSON Parser] Initial parse failed for ${fieldName}, attempting to fix unescaped quotes: ${e.message}`);
+
+          // Try to fix unescaped quotes in this object using the same state machine as Strategy 2
+          const chars = objectStr.split('');
+          const result: string[] = [];
+          let inStr = false;
+          let afterColon = false;
+
+          for (let j = 0; j < chars.length; j++) {
+            const ch = chars[j];
+            const prevCh = j > 0 ? chars[j - 1] : '';
+
+            if (!inStr) {
+              if (ch === ':') afterColon = true;
+            }
+
+            if (ch === '"' && prevCh !== '\\') {
+              if (!inStr) {
+                inStr = true;
+                result.push(ch);
+              } else {
+                // Look ahead to determine if this is a closing quote
+                let k = j + 1;
+                while (k < chars.length && /\s/.test(chars[k])) k++;
+                const nextSig = k < chars.length ? chars[k] : '';
+
+                const isClosing = nextSig === ',' || nextSig === '}' || nextSig === ']' || nextSig === '';
+
+                if (isClosing && afterColon) {
+                  inStr = false;
+                  afterColon = false;
+                  result.push(ch);
+                } else if (inStr && afterColon) {
+                  result.push('\\');
+                  result.push(ch);
+                } else {
+                  inStr = false;
+                  result.push(ch);
+                }
+              }
+            } else {
+              result.push(ch);
+            }
+          }
+
+          objectStr = result.join('');
+
+          try {
+            const parsed = JSON.parse(objectStr);
+            logger.info(`[JSON Parser] ✅ Successfully parsed ${fieldName} after quote fixing with ${Object.keys(parsed).length} top-level keys`);
+            return parsed;
+          } catch (e2: any) {
+            logger.error(`[JSON Parser] ❌ Failed to parse object field ${fieldName} even after fixing: ${e2.message}`);
+            logger.error(`[JSON Parser] Object string (first 500 chars): ${objectStr.substring(0, 500)}`);
+            logger.error(`[JSON Parser] Object string (last 200 chars): ${objectStr.substring(Math.max(0, objectStr.length - 200))}`);
+            return null;
+          }
         }
       };
 
