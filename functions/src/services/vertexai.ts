@@ -129,27 +129,134 @@ function parseArticleJson(text: string): BlogArticle {
     // Strategy 1: Parse as-is
     () => JSON.parse(jsonString),
 
-    // Strategy 2: Fix invalid escape sequences
+    // Strategy 2: Fix unescaped quotes in string values using state machine
     () => {
-      logger.warn("[JSON Parser] Strategy 2: Fixing escape sequences...");
+      logger.warn("[JSON Parser] Strategy 2: Escaping unescaped quotes in string values...");
+
+      // Use a state machine to properly escape quotes within JSON string values
+      const chars = jsonString.split('');
+      const result: string[] = [];
+      let inString = false;
+      let afterColon = false;
+      let depth = 0; // Track nesting depth in objects/arrays
+
+      for (let i = 0; i < chars.length; i++) {
+        const char = chars[i];
+        const prevChar = i > 0 ? chars[i - 1] : '';
+
+        // Track object/array depth for context
+        if (!inString) {
+          if (char === '{' || char === '[') depth++;
+          if (char === '}' || char === ']') depth--;
+          if (char === ':') {
+            afterColon = true;
+          }
+        }
+
+        // Handle quotes
+        if (char === '"' && prevChar !== '\\') {
+          if (!inString) {
+            // Starting a string
+            inString = true;
+            result.push(char);
+          } else {
+            // We're in a string and found an unescaped quote
+            // Check if this is the closing quote or an inner quote
+
+            // Look ahead to see if this looks like the end of the value
+            // The closing quote should be followed by: , } ] or whitespace then , } ]
+            let j = i + 1;
+            while (j < chars.length && /\s/.test(chars[j])) j++; // skip whitespace
+            const charAfterWhitespace = j < chars.length ? chars[j] : '';
+
+            const isClosingQuote = charAfterWhitespace === ',' ||
+                                   charAfterWhitespace === '}' ||
+                                   charAfterWhitespace === ']' ||
+                                   charAfterWhitespace === '';
+
+            if (isClosingQuote && afterColon) {
+              // This is the closing quote of a value
+              inString = false;
+              afterColon = false;
+              result.push(char);
+            } else if (inString && afterColon) {
+              // This is an unescaped quote inside a string value - escape it
+              result.push('\\');
+              result.push(char);
+            } else {
+              // This is a closing quote for a key (before :)
+              inString = false;
+              result.push(char);
+            }
+          }
+        } else {
+          result.push(char);
+        }
+      }
+
+      const fixed = result.join('');
+      logger.info(`[JSON Parser] Strategy 2 transformed ${jsonString.length} chars to ${fixed.length} chars`);
+      return JSON.parse(fixed);
+    },
+
+    // Strategy 3: Fix invalid escape sequences
+    () => {
+      logger.warn("[JSON Parser] Strategy 3: Fixing escape sequences...");
       let fixed = jsonString.replace(/\\([^"\\\/bfnrtu])/g, "$1");
       return JSON.parse(fixed);
     },
 
-    // Strategy 3: Aggressive quote escaping
+    // Strategy 4: Aggressive quote escaping with broader pattern
     () => {
-      logger.warn("[JSON Parser] Strategy 3: Aggressive quote fixing...");
-      // Replace unescaped quotes in string values (but not property keys)
+      logger.warn("[JSON Parser] Strategy 4: Aggressive quote fixing...");
       let fixed = jsonString;
-      // This regex finds quotes that are likely unescaped in values
-      // It's not perfect but catches most cases
-      fixed = fixed.replace(/([^\\])"([^",:}\]]*)"([^",:}\]]+)"/g, '$1\\"$2\\"$3"');
-      return JSON.parse(fixed);
+
+      // More aggressive approach: find all string values and escape any unescaped quotes within them
+      // This uses a state machine approach to properly handle nested structures
+      const chars = fixed.split('');
+      const result: string[] = [];
+      let inString = false;
+      let inValue = false;
+      let prevChar = '';
+
+      for (let i = 0; i < chars.length; i++) {
+        const char = chars[i];
+        const nextChar = i < chars.length - 1 ? chars[i + 1] : '';
+
+        if (char === '"' && prevChar !== '\\') {
+          if (!inString) {
+            // Starting a string
+            inString = true;
+            // Check if this is a value (comes after : )
+            const beforeQuote = result.slice(-10).join('').trim();
+            inValue = beforeQuote.endsWith(':');
+          } else {
+            // Check if we're at the end of the string value
+            // (next char should be ,}] or whitespace followed by ,}])
+            const isEndOfString = !nextChar || /[,}\]\s]/.test(nextChar);
+
+            if (isEndOfString) {
+              // This is the closing quote of the string
+              inString = false;
+              inValue = false;
+            } else if (inValue) {
+              // We're in a value and this quote is not the closing quote
+              // So it should be escaped
+              result.push('\\');
+            }
+          }
+        }
+
+        result.push(char);
+        prevChar = char === '\\' && prevChar === '\\' ? '' : char; // Handle double backslash
+      }
+
+      return JSON.parse(result.join(''));
     },
 
-    // Strategy 4: Relaxed JSON5-style parsing with manual reconstruction
+    // Strategy 5: Relaxed JSON5-style parsing with manual reconstruction
     () => {
-      logger.warn("[JSON Parser] Strategy 4: Manual field extraction...");
+      logger.warn("[JSON Parser] Strategy 5: Manual field extraction...");
       const article: any = {};
 
       // Extract required string fields
