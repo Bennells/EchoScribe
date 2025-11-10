@@ -1,4 +1,4 @@
-import { VertexAI } from "@google-cloud/vertexai";
+import { VertexAI, SchemaType } from "@google-cloud/vertexai";
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 import { BLOG_GENERATION_PROMPT } from "../utils/prompts";
@@ -80,84 +80,53 @@ async function retryWithExponentialBackoff<T>(
 let vertexAI: VertexAI;
 
 /**
- * Parse JSON from Gemini response with multiple fallback strategies
+ * Parse JSON from Gemini response with responseSchema validation
+ *
+ * With responseSchema enabled, the Vertex AI API guarantees:
+ * - Valid JSON structure matching the schema
+ * - Proper escaping of special characters (quotes, umlauts, emojis)
+ * - Type validation at the API level
+ *
+ * This eliminates the need for complex fallback parsing strategies.
+ *
  * @param text Raw response text from Gemini
  * @returns Parsed BlogArticle object
  */
 function parseArticleJson(text: string): BlogArticle {
-  let cleanText = text.trim();
+  const cleanText = text.trim();
 
   // Log raw response for debugging
   logger.info(`[JSON Parser] Raw response length: ${text.length} chars`);
   logger.info(`[JSON Parser] First 200 chars: ${text.substring(0, 200)}`);
   logger.info(`[JSON Parser] Last 200 chars: ${text.substring(Math.max(0, text.length - 200))}`);
 
-  // Strategy 1: Try to extract JSON from code fences FIRST (before any modifications)
-  // This catches cases like "```json\n{...}\n```" or "Here's the JSON:\n```json\n{...}\n```"
-  const fenceMatch = cleanText.match(/```(?:json)?[\s\n\r]*(\{[\s\S]*?\})[\s\n\r]*```/i);
-  if (fenceMatch) {
-    cleanText = fenceMatch[1].trim();
-    logger.info("[JSON Parser] Extracted JSON from code fence (strategy 1)");
-  } else {
-    // Strategy 2: Remove Markdown code fences manually
-    // Remove opening fence: ```json or ``` with any whitespace before/after
-    cleanText = cleanText.replace(/^[\s\n\r]*```(?:json)?[\s\n\r]*/i, "");
-    // Remove closing fence: ``` with any whitespace before/after
-    cleanText = cleanText.replace(/[\s\n\r]*```[\s\n\r]*$/g, "");
-    cleanText = cleanText.trim();
-    logger.info("[JSON Parser] Removed markdown fences manually (strategy 2)");
-  }
+  // With responseSchema, the API returns clean JSON without code fences
+  // Just parse directly - the schema enforces proper structure and escaping
+  try {
+    const article = JSON.parse(cleanText);
+    logger.info("[JSON Parser] ✅ Successfully parsed JSON (responseSchema guarantees valid format)");
+    return article;
+  } catch (error: any) {
+    // If parsing fails, log detailed diagnostics
+    logger.error("[JSON Parser] ❌ Unexpected parsing failure despite responseSchema");
+    logger.error(`[JSON Parser] Parse error: ${error.message}`);
+    logger.error(`[JSON Parser] Error position: ${error.message.match(/position (\d+)/)?.[1] || 'unknown'}`);
 
-  logger.info(`[JSON Parser] After markdown removal, length: ${cleanText.length} chars`);
-  logger.info(`[JSON Parser] Cleaned text starts with: ${cleanText.substring(0, 100)}`);
-  logger.info(`[JSON Parser] Cleaned text ends with: ${cleanText.substring(Math.max(0, cleanText.length - 100))}`);
-
-  // Strategy 3: Extract JSON object (handles nested braces)
-  const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    logger.error(`[JSON Parser] No JSON object found after cleaning`);
-    logger.error(`[JSON Parser] Cleaned text (first 500): ${cleanText.substring(0, 500)}`);
-    logger.error(`[JSON Parser] Cleaned text (last 500): ${cleanText.substring(Math.max(0, cleanText.length - 500))}`);
-    throw new Error("No JSON object found in response");
-  }
-
-  let jsonString = jsonMatch[0];
-  logger.info(`[JSON Parser] Extracted JSON string length: ${jsonString.length} chars`);
-
-  // Try multiple parsing strategies
-  // Note: With responseMimeType: "application/json", the model guarantees valid JSON,
-  // so Strategy 1 should always work. Strategies 2+ are fallbacks for edge cases.
-  const strategies = [
-    // Strategy 1: Parse as-is (should always work with JSON mode enabled)
-    () => JSON.parse(jsonString),
-
-    // Strategy 2: Fallback - basic manual extraction (should rarely be needed with JSON mode)
-    () => {
-      logger.warn("[JSON Parser] Strategy 2: Basic field extraction as fallback...");
-
-      // This is a simplified fallback that only exists for unexpected edge cases.
-      // With responseMimeType: "application/json", this should never execute.
-      throw new Error("JSON parsing failed even with guaranteed valid JSON mode - check response format");
+    // Extract context around error position if available
+    const posMatch = error.message.match(/position (\d+)/);
+    if (posMatch) {
+      const pos = parseInt(posMatch[1]);
+      const start = Math.max(0, pos - 100);
+      const end = Math.min(cleanText.length, pos + 100);
+      logger.error(`[JSON Parser] Context around error (pos ${pos}):`);
+      logger.error(`[JSON Parser] "${cleanText.substring(start, end)}"`);
     }
-  ];
 
-  // Try each strategy in order
-  let lastError: any;
-  for (let i = 0; i < strategies.length; i++) {
-    try {
-      const result = strategies[i]();
-      logger.info(`[JSON Parser] ✅ Successfully parsed with strategy ${i + 1}`);
-      return result;
-    } catch (error: any) {
-      lastError = error;
-      if (i < strategies.length - 1) {
-        logger.warn(`[JSON Parser] Strategy ${i + 1} failed: ${error.message}`);
-      }
-    }
+    logger.error(`[JSON Parser] Full response (first 1000 chars): ${cleanText.substring(0, 1000)}`);
+    logger.error(`[JSON Parser] Full response (last 500 chars): ${cleanText.substring(Math.max(0, cleanText.length - 500))}`);
+
+    throw new Error(`Failed to parse Vertex AI JSON response (schema validation should prevent this): ${error.message}`);
   }
-
-  // All strategies failed
-  throw new Error(`All parsing strategies failed. Last error: ${lastError.message}`);
 }
 
 /**
@@ -201,13 +170,146 @@ export async function processAudioWithVertexAI(
       }
     }
 
-    // Get generative model with increased output token limit and JSON mode
+    // Get generative model with increased output token limit and strict JSON schema
     const model = vertexAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       generationConfig: {
-        maxOutputTokens: 16384, // Increased from default to handle long blog articles with all metadata
-        temperature: 0.7, // Balanced creativity and consistency
-        responseMimeType: "application/json", // Ensures valid JSON output with proper escaping
+        maxOutputTokens: 65536,  // Full capacity - ensures complete responses for 3-4 hour podcasts
+        temperature: 0.4,        // Lower temperature for consistent metadata generation
+        topP: 0.95,             // Constrains output to high-probability tokens for better consistency
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            title: { type: SchemaType.STRING, description: "SEO-optimized article title" },
+            slug: { type: SchemaType.STRING, description: "URL-friendly slug" },
+            metaDescription: { type: SchemaType.STRING, description: "SEO meta description (150-160 chars)" },
+            keywords: {
+              type: SchemaType.ARRAY,
+              items: { type: SchemaType.STRING },
+              description: "Array of SEO keywords"
+            },
+            markdown: { type: SchemaType.STRING, description: "Full article in Markdown format" },
+            html: { type: SchemaType.STRING, description: "Full article in HTML format" },
+            schemaOrg: {
+              type: SchemaType.OBJECT,
+              description: "Schema.org structured data (BlogPosting)",
+              properties: {
+                "@context": {
+                  type: SchemaType.STRING,
+                  description: "Always 'https://schema.org'"
+                },
+                "@type": {
+                  type: SchemaType.STRING,
+                  description: "Always 'BlogPosting'"
+                },
+                headline: {
+                  type: SchemaType.STRING,
+                  description: "Article headline (same as title)"
+                },
+                datePublished: {
+                  type: SchemaType.STRING,
+                  description: "Publication date in ISO 8601 format (YYYY-MM-DD)"
+                },
+                author: {
+                  type: SchemaType.OBJECT,
+                  description: "Author information",
+                  properties: {
+                    "@type": {
+                      type: SchemaType.STRING,
+                      description: "Always 'Person'"
+                    },
+                    name: {
+                      type: SchemaType.STRING,
+                      description: "Author name from podcast"
+                    }
+                  },
+                  required: ["@type", "name"]
+                },
+                description: {
+                  type: SchemaType.STRING,
+                  description: "Article description (same as metaDescription)"
+                },
+                image: {
+                  type: SchemaType.STRING,
+                  description: "Optional image URL"
+                }
+              },
+              required: ["@context", "@type", "headline", "datePublished", "author"]
+            },
+            openGraph: {
+              type: SchemaType.OBJECT,
+              description: "Open Graph metadata for social sharing",
+              properties: {
+                "og:title": {
+                  type: SchemaType.STRING,
+                  description: "Article title for social sharing"
+                },
+                "og:description": {
+                  type: SchemaType.STRING,
+                  description: "Meta description for social sharing"
+                },
+                "og:type": {
+                  type: SchemaType.STRING,
+                  description: "Always 'article'"
+                },
+                "og:url": {
+                  type: SchemaType.STRING,
+                  description: "Optional article URL"
+                },
+                "og:image": {
+                  type: SchemaType.STRING,
+                  description: "Optional image URL for social preview"
+                }
+              },
+              required: ["og:title", "og:description", "og:type"]
+            },
+            socialMedia: {
+              type: SchemaType.OBJECT,
+              properties: {
+                linkedin: { type: SchemaType.STRING, description: "LinkedIn post content" },
+                twitter: {
+                  type: SchemaType.ARRAY,
+                  items: { type: SchemaType.STRING },
+                  description: "Array of Twitter/X thread posts"
+                },
+                instagram: { type: SchemaType.STRING, description: "Instagram caption" },
+                facebook: { type: SchemaType.STRING, description: "Facebook post" },
+                tiktok: { type: SchemaType.STRING, description: "TikTok script/caption" },
+                newsletter: { type: SchemaType.STRING, description: "Newsletter teaser" }
+              },
+              required: ["linkedin", "twitter", "instagram", "facebook", "tiktok", "newsletter"]
+            },
+            showNotes: {
+              type: SchemaType.OBJECT,
+              properties: {
+                chapters: {
+                  type: SchemaType.ARRAY,
+                  items: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      timestamp: { type: SchemaType.STRING },
+                      title: { type: SchemaType.STRING },
+                      description: { type: SchemaType.STRING }
+                    },
+                    required: ["timestamp", "title", "description"]
+                  }
+                },
+                quotes: {
+                  type: SchemaType.ARRAY,
+                  items: { type: SchemaType.STRING }
+                },
+                resources: {
+                  type: SchemaType.ARRAY,
+                  items: { type: SchemaType.STRING }
+                },
+                guests: { type: SchemaType.STRING }
+              },
+              required: ["chapters", "quotes", "resources", "guests"]
+            }
+          },
+          required: ["title", "slug", "metaDescription", "keywords", "markdown", "html", "schemaOrg", "openGraph", "socialMedia", "showNotes"]
+        },
+        responseMimeType: "application/json", // Combined with schema for guaranteed valid JSON with proper escaping
       },
     });
 
@@ -264,12 +366,26 @@ export async function processAudioWithVertexAI(
       logger.error(`[Vertex AI] Response appears to be truncated mid-JSON`);
     }
 
-    // Check if response was truncated
-    if (finishReason === "MAX_TOKENS" || finishReason === "SAFETY") {
-      logger.warn(`[Vertex AI] ⚠️ Response truncated! Finish reason: ${finishReason}`);
-      if (finishReason === "MAX_TOKENS") {
-        logger.warn("[Vertex AI] Response hit token limit - increase maxOutputTokens if needed");
-      }
+    // Check if response was truncated - throw error for MAX_TOKENS
+    if (finishReason === "MAX_TOKENS") {
+      // We need to get responseTokens from usageMetadata first
+      const usageMetadata = (response as any).usageMetadata;
+      const responseTokens = usageMetadata?.candidatesTokenCount || 0;
+      const tokenUsagePercent = responseTokens > 0 ? (responseTokens / 65536 * 100).toFixed(1) : 'N/A';
+
+      logger.error("[Vertex AI] ❌ Response hit token limit and was truncated!");
+      logger.error(`[Vertex AI] Token usage: ${responseTokens.toLocaleString()} / 65,536 (${tokenUsagePercent}%)`);
+      logger.error(`[Vertex AI] This should be extremely rare with temp=0.4 and 65k token limit`);
+
+      throw new Error(
+        `Response truncated due to token limit (maxOutputTokens: 65536, used: ${responseTokens}). ` +
+        `Token usage: ${tokenUsagePercent}%. This is unexpected with full capacity and should only happen with ` +
+        `exceptionally long podcasts (>4 hours) or unusual content. Please report this issue.`
+      );
+    }
+
+    if (finishReason === "SAFETY") {
+      logger.warn(`[Vertex AI] ⚠️ Response blocked by safety filters! Finish reason: ${finishReason}`);
     }
     // === END DIAGNOSTIC LOGGING ===
 
@@ -279,13 +395,31 @@ export async function processAudioWithVertexAI(
     const responseTokens = usageMetadata?.candidatesTokenCount || 0;
     const totalTokens = usageMetadata?.totalTokenCount || 0;
 
+    // Calculate token efficiency metrics
+    const maxOutputTokens = 65536;
+    const outputTokenUsage = responseTokens > 0 ? (responseTokens / maxOutputTokens * 100).toFixed(1) : 'N/A';
+    const tokenEfficiency = responseTokens > 60000 ? '⚠️ High' : responseTokens > 40000 ? '✓ Good' : '✓✓ Excellent';
+
     // Estimate costs (Gemini 2.5 Flash pricing: Audio $1.00/1M, Text $2.50/1M)
     const estimatedCost =
       totalTokens > 0
         ? (promptTokens / 1_000_000) * 1.0 + (responseTokens / 1_000_000) * 2.5
         : 0;
 
-    logger.info(`[Vertex AI] ✅ API call completed | Duration: ${(duration / 1000).toFixed(1)}s | Tokens: ${totalTokens.toLocaleString()} | Cost: $${estimatedCost.toFixed(4)}`);
+    logger.info(`[Vertex AI] ✅ API call completed`);
+    logger.info(`  - Duration: ${(duration / 1000).toFixed(1)}s`);
+    logger.info(`  - Total tokens: ${totalTokens.toLocaleString()}`);
+    logger.info(`  - Output tokens: ${responseTokens.toLocaleString()} / ${maxOutputTokens.toLocaleString()} (${outputTokenUsage}%)`);
+    logger.info(`  - Token efficiency: ${tokenEfficiency}`);
+    logger.info(`  - Estimated cost: $${estimatedCost.toFixed(4)}`);
+    logger.info(`  - Finish reason: ${finishReason}`);
+
+    // Add warning if approaching token limit
+    if (responseTokens > 60000) {
+      logger.warn(`[Token Warning] Approaching output limit (${outputTokenUsage}% used) - consider prompt optimization for future improvements`);
+    } else if (responseTokens > 50000) {
+      logger.info(`[Token Stats] Healthy token usage with plenty of headroom (${outputTokenUsage}% of capacity)`);
+    }
 
     // Log full response for debugging (only if needed)
     if (text.length < 50000) {
@@ -314,6 +448,15 @@ export async function processAudioWithVertexAI(
     // Basic required fields
     if (!article.title || article.title.trim().length === 0) {
       validationErrors.push("title is missing or empty");
+    }
+    if (!article.slug || article.slug.trim().length < 3) {
+      validationErrors.push("slug is missing or too short (< 3 chars)");
+    }
+    if (!article.metaDescription || article.metaDescription.length < 100 || article.metaDescription.length > 160) {
+      validationErrors.push(`metaDescription is invalid (${article.metaDescription?.length || 0} chars, should be 100-160)`);
+    }
+    if (!article.keywords || article.keywords.length < 3) {
+      validationErrors.push(`keywords array must have at least 3 items (found: ${article.keywords?.length || 0})`);
     }
     if (!article.markdown || article.markdown.length < 100) {
       validationErrors.push("markdown is missing or too short (< 100 chars)");
@@ -351,6 +494,12 @@ export async function processAudioWithVertexAI(
       if (!article.schemaOrg["@context"] || !article.schemaOrg["@type"]) {
         validationErrors.push("schemaOrg is missing required @context or @type");
       }
+      if (!article.schemaOrg.headline) {
+        validationErrors.push("schemaOrg.headline is missing");
+      }
+      if (!article.schemaOrg.datePublished || !article.schemaOrg.datePublished.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        validationErrors.push(`schemaOrg.datePublished is invalid (${article.schemaOrg.datePublished || 'missing'}, should be YYYY-MM-DD)`);
+      }
       if (!article.schemaOrg.author) {
         validationErrors.push("schemaOrg is missing required author field");
       }
@@ -364,6 +513,24 @@ export async function processAudioWithVertexAI(
       const missingOgFields = requiredOgFields.filter(field => !article.openGraph![field]);
       if (missingOgFields.length > 0) {
         validationErrors.push(`openGraph is incomplete - missing fields: ${missingOgFields.join(", ")}`);
+      }
+    }
+
+    // Show notes validation
+    if (!article.showNotes) {
+      validationErrors.push("showNotes is completely missing");
+    } else {
+      if (!article.showNotes.chapters || article.showNotes.chapters.length < 4) {
+        validationErrors.push(`showNotes must have at least 4 chapters (found: ${article.showNotes.chapters?.length || 0})`);
+      }
+      if (!article.showNotes.quotes || article.showNotes.quotes.length < 3) {
+        validationErrors.push(`showNotes must have at least 3 quotes (found: ${article.showNotes.quotes?.length || 0})`);
+      }
+      if (!article.showNotes.resources) {
+        validationErrors.push("showNotes is missing resources array");
+      }
+      if (!article.showNotes.guests) {
+        validationErrors.push("showNotes is missing guests field");
       }
     }
 

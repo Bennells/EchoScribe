@@ -195,7 +195,8 @@
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" projects add-iam-policy-binding echoscribe-prod --member=\"serviceAccount:673230184143-compute@developer.gserviceaccount.com\" --role=\"roles/aiplatform.user\" --condition=None)",
       "Bash(del \"d:\\Projects\\EchoScribe\\functions\\src\\services\\gemini.ts\")",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services describe processpodcasttask --region=europe-west1 --project=echoscribe-test --format=\"get(spec.template.spec.containers[0].env)\")",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(git -C d:ProjectsEchoScribe log --oneline --all \"--grep=race\\|NOT_FOUND\\|document\\|status\" '--since=2 weeks ago')"
     ],
     "deny": [],
     "ask": []
