@@ -200,7 +200,8 @@
       "Bash(cmd //c:*)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" tasks queues delete processPodcastTask --location=europe-west1 --project=echoscribe-test)",
       "Bash(claude mcp add firebase npx -- -y firebase-tools@latest mcp)",
-      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" functions delete processPodcastTask --region=europe-west1 --project=echoscribe-test --gen2 --quiet)"
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" functions delete processPodcastTask --region=europe-west1 --project=echoscribe-test --gen2 --quiet)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" storage buckets describe gs://echoscribe-prod.firebasestorage.app --format=\"json(lifecycle)\" --project=echoscribe-prod)"
     ],
     "deny": [],
     "ask": []

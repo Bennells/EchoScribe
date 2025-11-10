@@ -13,11 +13,41 @@ Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte 
 
 **INHALTLICHE ANFORDERUNGEN:**
 
-**Artikel (markdown + html):**
-- Minimum 800 Wörter für kurze Podcasts (<60 Min), 600-1000 Wörter für lange Podcasts (>60 Min)
+**Artikel (markdown + html) - SEO-OPTIMIERTER TEASER:**
+- WICHTIG: Erstelle einen SEO-optimierten TEASER-Artikel, der neugierig macht, aber NICHT den kompletten Podcast-Inhalt wiedergibt
+- Der Artikel soll die Hauptthemen vorstellen und spannende Aspekte anreißen, aber KEINE vollständigen Lösungen, Diskussionsergebnisse oder detaillierten Antworten preisgeben
+- Ziel: Leser sollen den Podcast hören WOLLEN, um die vollständigen Informationen zu erhalten
+
+**Warum diese Wortanzahl? SEO-Optimierung:**
+Um in Suchmaschinen gut gefunden zu werden, benötigen wir mindestens 600 Wörter. Der Artikel gibt einen Überblick über die Themen – die vollständigen Diskussionen, Lösungen und Details erfährst du im Podcast!
+
+**Wortanzahl-Vorgaben (SEO-optimierte Teaser-Längen):**
+  * Sehr kurze Podcasts (5-15 Min): 600-800 Wörter
+  * Kurze Podcasts (15-30 Min): 700-900 Wörter
+  * Mittlere Podcasts (30-90 Min): 900-1200 Wörter
+  * Lange Podcasts (>90 Min): 1200-1800 Wörter
+
+**Teaser-Strategie - WAS du schreiben sollst:**
+✅ Hauptthemen benennen und kontextualisieren
+✅ Spannende Fakten, Zahlen oder Aspekte erwähnen, die neugierig machen
+✅ Fragen aufwerfen, die im Podcast beantwortet werden
+✅ Interessante Perspektiven oder Meinungen andeuten
+✅ Call-to-Actions einbauen: "Mehr dazu im Podcast", "Die vollständige Diskussion gibt's im Audio", "Wie das funktioniert, erfährst du im Podcast"
+
+**Teaser-Strategie - WAS du NICHT schreiben sollst:**
+❌ Vollständige Lösungen oder Antworten auf gestellte Fragen
+❌ Komplette Diskussionsergebnisse oder Schlussfolgerungen
+❌ Alle Details und Hintergründe zu einem Thema
+❌ Step-by-Step-Anleitungen oder vollständige Erklärungen
+❌ Den kompletten Inhalt des Podcasts in Textform
+
+**SEO & Struktur:**
 - SEO-optimiert: Title (max. 60 Zeichen), metaDescription (GENAU 100-160 Zeichen - zähle die Zeichen!), slug, mindestens 5 Keywords
-- Struktur: Einleitung mit Hook, 3-5 Hauptabschnitte (H2/H3), Fazit mit Call-to-Action
-- Stil: Professionell, aktive Sprache, direkte Ansprache, kurze Absätze (2-4 Sätze)
+- Struktur:
+  * Einleitung mit Hook + Übersicht der Themen (150-200 Wörter)
+  * 3-4 Hauptabschnitte (H2/H3): Jedes Thema vorstellen, aber nur anreißen (400-600 Wörter gesamt)
+  * Fazit: Zusammenfassung + starker Call-to-Action zum Podcast hören (100-150 Wörter)
+- Stil: Professionell, aktive Sprache, direkte Ansprache, kurze Absätze (2-4 Sätze), neugierig machend
 - Markdown: # für H1, ## für H2, ### für H3, - für Bullet Points, **fett**
 - HTML: <article>, <h1>-<h3>, <p>, <ul>/<li>, <strong> (keine Style-Attribute)
 
@@ -51,7 +81,11 @@ Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte 
   }
 }
 
-**WICHTIG:** Fokussiere dich auf einen hochwertigen, vollständigen Artikel. Die Social Media Inhalte und Show Notes werden in einem separaten Schritt generiert.
+**WICHTIG:**
+- Fokussiere dich auf einen hochwertigen TEASER-Artikel, der neugierig macht und zum Podcast-Hören einlädt
+- Der Artikel soll SEO-optimiert sein, aber NICHT den kompletten Podcast ersetzen
+- Verwende mehrfach Call-to-Actions wie "Mehr dazu im Podcast" oder "Die vollständige Antwort gibt's im Audio"
+- Die Social Media Inhalte und Show Notes werden in einem separaten Schritt generiert
 `;
 
 /**

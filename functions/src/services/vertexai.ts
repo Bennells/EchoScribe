@@ -189,6 +189,15 @@ export async function processAudioToArticle(
         const projectId = config.projectId;
         const location = config.region;
 
+        logger.info(`[Vertex AI] Config check: projectId=${projectId}, location=${location}`);
+
+        if (!projectId) {
+          throw new Error("Vertex AI initialization failed: projectId is undefined. Check GCLOUD_PROJECT environment variable.");
+        }
+        if (!location) {
+          throw new Error("Vertex AI initialization failed: location/region is undefined. Check FIREBASE_CONFIG environment variable.");
+        }
+
         vertexAI = new VertexAI({
           project: projectId,
           location: location,
@@ -200,10 +209,11 @@ export async function processAudioToArticle(
 
         logger.info(`[Vertex AI] ✅ Client initialized | Region: ${regionInfo} | Endpoint: ${location}-aiplatform.googleapis.com`);
       } catch (error: any) {
-        logger.error("[Vertex AI] ❌ Failed to initialize client:", {
-          error: error.message,
-          stack: error.stack,
-        });
+        logger.error("[Vertex AI] ❌ Failed to initialize client:");
+        logger.error(`  - Error message: ${error?.message || '(no message)'}`);
+        logger.error(`  - Error type: ${error?.constructor?.name || 'Unknown'}`);
+        logger.error(`  - Error code: ${error?.code || '(no code)'}`);
+        logger.error(`  - Stack: ${error?.stack || '(no stack)'}`);
         throw error;
       }
     }
@@ -272,6 +282,30 @@ export async function processAudioToArticle(
     const bucketName = admin.storage().bucket().name;
     const gsUri = `gs://${bucketName}/${storagePath}`;
 
+    // === PRE-FLIGHT VALIDATION ===
+    logger.info("[Stage 1] 🔍 Pre-flight validation:");
+    logger.info(`  - Project ID: ${config.projectId || '(undefined)'}`);
+    logger.info(`  - Region: ${config.region || '(undefined)'}`);
+    logger.info(`  - Bucket name: ${bucketName || '(undefined)'}`);
+    logger.info(`  - Storage path: ${storagePath || '(undefined)'}`);
+    logger.info(`  - GS URI: ${gsUri}`);
+    logger.info(`  - MIME type: ${mimeType}`);
+    logger.info(`  - Vertex AI client: ${vertexAI ? 'initialized' : 'NOT initialized'}`);
+
+    // Validate required parameters
+    if (!bucketName) {
+      throw new Error("Pre-flight check failed: bucketName is undefined");
+    }
+    if (!storagePath) {
+      throw new Error("Pre-flight check failed: storagePath is undefined");
+    }
+    if (!config.projectId) {
+      throw new Error("Pre-flight check failed: config.projectId is undefined");
+    }
+    if (!config.region) {
+      throw new Error("Pre-flight check failed: config.region is undefined");
+    }
+
     logger.info(`[Stage 1] Sending audio to API | Model: gemini-2.5-flash | Type: ${mimeType}`);
 
     // Prepare request
@@ -291,13 +325,31 @@ export async function processAudioToArticle(
     };
 
     // Send request with retry
+    logger.info("[Stage 1] 📡 Calling Vertex AI API...");
     const startTime = Date.now();
-    const result = await retryWithExponentialBackoff(async () => {
-      return await model.generateContent(request);
-    });
+    let result;
+    try {
+      result = await retryWithExponentialBackoff(async () => {
+        return await model.generateContent(request);
+      });
+    } catch (apiError: any) {
+      logger.error("[Stage 1] ❌ API call failed:");
+      logger.error(`  - Error type: ${apiError?.constructor?.name || 'Unknown'}`);
+      logger.error(`  - Error message: ${apiError?.message || '(no message)'}`);
+      logger.error(`  - Error code: ${apiError?.code || '(no code)'}`);
+      logger.error(`  - Error status: ${apiError?.status || apiError?.statusCode || '(no status)'}`);
+      logger.error(`  - Error details: ${JSON.stringify(apiError?.details || apiError?.error || '(no details)')}`);
+      throw apiError;
+    }
     const duration = Date.now() - startTime;
+    logger.info(`[Stage 1] ✅ API call returned (took ${(duration / 1000).toFixed(1)}s)`);
 
     const response = result.response;
+    logger.info(`[Stage 1] 🔍 Response structure check:`);
+    logger.info(`  - Response exists: ${!!response}`);
+    logger.info(`  - Response.candidates exists: ${!!response?.candidates}`);
+    logger.info(`  - Response.candidates length: ${response?.candidates?.length || 0}`);
+
     const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
     const finishReason = response.candidates?.[0]?.finishReason;
 
@@ -432,12 +484,46 @@ export async function processAudioToArticle(
     return article;
   } catch (error: any) {
     logger.error("=".repeat(80));
-    logger.error("[Stage 1] ❌ Error generating core article:", {
-      errorMessage: error.message,
-      errorName: error.name,
-      errorCode: error.code,
+    logger.error("[Stage 1] ❌ Error generating core article");
+
+    // Comprehensive error logging to capture all error properties
+    const errorInfo: any = {
+      // Standard error properties
+      message: error?.message || "(no message)",
+      name: error?.name || "(no name)",
+      code: error?.code || "(no code)",
+
+      // Additional common error properties
+      details: error?.details || undefined,
+      response: error?.response || undefined,
+      status: error?.status || error?.statusCode || undefined,
+
+      // Context
       storagePath,
-    });
+
+      // Fallback: try to get any string representation
+      errorString: error ? (error.toString !== Object.prototype.toString ? error.toString() : undefined) : undefined,
+
+      // Stack trace
+      stack: error?.stack || "(no stack trace)",
+    };
+
+    // Log the structured error info
+    logger.error("[Stage 1] Error details:", errorInfo);
+
+    // Also log the full error object as JSON to catch any custom properties
+    try {
+      const fullErrorJson = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+      logger.error("[Stage 1] Full error object (JSON):", fullErrorJson);
+    } catch (jsonError) {
+      logger.error("[Stage 1] Could not stringify error object");
+    }
+
+    // Log error type/constructor
+    if (error?.constructor) {
+      logger.error("[Stage 1] Error constructor:", error.constructor.name);
+    }
+
     logger.error("=".repeat(80));
     throw error;
   }
@@ -541,7 +627,7 @@ export async function processAudioToMetadata(
     const model = vertexAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       generationConfig: {
-        maxOutputTokens: 8192,  // Smaller limit - metadata is much shorter than articles
+        maxOutputTokens: 65536,  // Maximum capacity - ensures complete metadata for long podcasts with 25-30+ chapters
         temperature: 0.6,       // Slightly higher for more creative social media content
         topP: 0.95,
         responseSchema: metadataSchema,
@@ -797,7 +883,7 @@ export async function processArticleToMetadata_LEGACY(
     const model = vertexAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       generationConfig: {
-        maxOutputTokens: 8192,  // Smaller limit - metadata is much shorter than articles
+        maxOutputTokens: 65536,  // Maximum capacity - ensures complete metadata for long podcasts with 25-30+ chapters
         temperature: 0.6,       // Slightly higher for more creative social media content
         topP: 0.95,
         responseSchema: metadataSchema,
