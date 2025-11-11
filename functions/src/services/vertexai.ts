@@ -113,59 +113,55 @@ function fixMetaDescription(description: string): string {
 }
 
 /**
- * Parse JSON from Gemini response with responseSchema validation
- *
- * With responseSchema enabled, the Vertex AI API guarantees:
- * - Valid JSON structure matching the schema
- * - Proper escaping of special characters (quotes, umlauts, emojis)
- * - Type validation at the API level
- *
- * This eliminates the need for complex fallback parsing strategies.
- *
- * @param text Raw response text from Gemini
- * @returns Parsed BlogArticle object
+ * Validate that a generated article is complete and properly structured
+ * @param markdown The markdown content to validate
+ * @param stage Stage identifier for error messages (e.g., "Stage 1")
+ * @param targetMinWords The minimum word count based on podcast duration
+ * @throws Error if article is incomplete or improperly structured
  */
-function parseArticleJson(text: string): BlogArticle {
-  const cleanText = text.trim();
-
-  // Log raw response for debugging
-  logger.info(`[JSON Parser] Raw response length: ${text.length} chars`);
-  logger.info(`[JSON Parser] First 200 chars: ${text.substring(0, 200)}`);
-  logger.info(`[JSON Parser] Last 200 chars: ${text.substring(Math.max(0, text.length - 200))}`);
-
-  // With responseSchema, the API returns clean JSON without code fences
-  // Just parse directly - the schema enforces proper structure and escaping
-  try {
-    const article = JSON.parse(cleanText);
-    logger.info("[JSON Parser] ✅ Successfully parsed JSON (responseSchema guarantees valid format)");
-    return article;
-  } catch (error: any) {
-    // If parsing fails, log detailed diagnostics
-    logger.error("[JSON Parser] ❌ Unexpected parsing failure despite responseSchema");
-    logger.error(`[JSON Parser] Parse error: ${error.message}`);
-    logger.error(`[JSON Parser] Error position: ${error.message.match(/position (\d+)/)?.[1] || 'unknown'}`);
-
-    // Extract context around error position if available
-    const posMatch = error.message.match(/position (\d+)/);
-    if (posMatch) {
-      const pos = parseInt(posMatch[1]);
-      const start = Math.max(0, pos - 100);
-      const end = Math.min(cleanText.length, pos + 100);
-      logger.error(`[JSON Parser] Context around error (pos ${pos}):`);
-      logger.error(`[JSON Parser] "${cleanText.substring(start, end)}"`);
-    }
-
-    logger.error(`[JSON Parser] Full response (first 1000 chars): ${cleanText.substring(0, 1000)}`);
-    logger.error(`[JSON Parser] Full response (last 500 chars): ${cleanText.substring(Math.max(0, cleanText.length - 500))}`);
-
-    throw new Error(`Failed to parse Vertex AI JSON response (schema validation should prevent this): ${error.message}`);
+function validateArticleCompleteness(markdown: string, stage: string, targetMinWords: number = 500): void {
+  if (!markdown || markdown.trim().length === 0) {
+    throw new Error(`[${stage}] Article is empty`);
   }
+
+  // Word count validation
+  const words = markdown.trim().split(/\s+/).filter(w => w.length > 0);
+  const wordCount = words.length;
+
+  if (wordCount < targetMinWords) {
+    throw new Error(`[${stage}] Article too short: ${wordCount} words (minimum: ${targetMinWords} for SEO quality based on ${Math.floor(targetMinWords / 15)}-${Math.floor(targetMinWords / 10)} minute podcast)`);
+  }
+
+  // Structure validation - must have H1 heading
+  if (!markdown.includes('# ')) {
+    throw new Error(`[${stage}] Missing H1 heading - article structure incomplete`);
+  }
+
+  // Structure validation - must have H2 sections
+  if (!markdown.includes('## ')) {
+    throw new Error(`[${stage}] Missing H2 sections - article structure incomplete`);
+  }
+
+  // Conclusion section check (common German conclusion headers)
+  const hasFazit = /##\s*(Fazit|Zusammenfassung|Schluss|Abschluss)/i.test(markdown);
+  if (!hasFazit) {
+    logger.warn(`[${stage}] ⚠️ No conclusion section found - article may be incomplete`);
+  }
+
+  // Sentence completeness - verify article doesn't end abruptly
+  const lastChar = markdown.trim().slice(-1);
+  if (!['.', '!', '?', ')'].includes(lastChar)) {
+    throw new Error(`[${stage}] Article ends abruptly without proper punctuation (last char: '${lastChar}')`);
+  }
+
+  logger.info(`[${stage}] ✅ Article validation passed: ${wordCount} words, proper structure, complete sentences`);
 }
+
 /**
  * Two-Stage Audio Processing Pipeline
  *
  * Processes podcast audio in two optimized stages to prevent truncation:
- * - Stage 1: Audio Analysis → markdown article + show notes (requires audio access)
+ * - Stage 1: Audio Analysis → markdown article (requires audio access)
  * - Stage 2: Metadata Generation → SEO + social media content (text-only, no audio)
  * - App Generation: html + slug (computed client-side)
  *
@@ -176,11 +172,13 @@ function parseArticleJson(text: string): BlogArticle {
  *
  * @param storagePath - Cloud Storage path (e.g., "podcasts/userId/file.mp3")
  * @param mimeType - MIME type of audio file (default: "audio/mpeg")
+ * @param durationMinutes - Duration of the podcast in minutes
  * @returns Complete BlogArticle with all metadata
  */
 export async function processAudioTwoStage(
   storagePath: string,
-  mimeType: string = "audio/mpeg"
+  mimeType: string = "audio/mpeg",
+  durationMinutes?: number
 ): Promise<BlogArticle> {
   try {
     logger.info("=".repeat(80));
@@ -223,6 +221,27 @@ export async function processAudioTwoStage(
       }
     }
 
+    // Calculate target word count based on duration
+    let targetMinWords = 600;
+    let targetMaxWords = 800;
+
+    if (durationMinutes) {
+      if (durationMinutes > 90) {
+        targetMinWords = 1500;
+        targetMaxWords = 2000;
+      } else if (durationMinutes > 30) {
+        targetMinWords = 1000;
+        targetMaxWords = 1500;
+      } else if (durationMinutes > 15) {
+        targetMinWords = 800;
+        targetMaxWords = 1000;
+      }
+      logger.info(`[Two-Stage Pipeline] Podcast duration: ${durationMinutes} minutes`);
+      logger.info(`[Two-Stage Pipeline] Target word count: ${targetMinWords}-${targetMaxWords} words`);
+    } else {
+      logger.warn("[Two-Stage Pipeline] No duration provided, using default word count targets");
+    }
+
     // Construct Cloud Storage URI
     const bucketName = admin.storage().bucket().name;
     const gsUri = `gs://${bucketName}/${storagePath}`;
@@ -259,6 +278,31 @@ export async function processAudioTwoStage(
       },
     });
 
+    // Build context-aware prompt with duration and word count targets
+    let contextualPrompt = AUDIO_ANALYSIS_PROMPT;
+    if (durationMinutes) {
+      // Add explicit duration and word count requirement at the beginning and end
+      const durationContext = `
+**KRITISCHE ANWEISUNG - PODCAST-KONTEXT:**
+- Dieser Podcast ist ${durationMinutes} Minuten lang
+- Du MUSST ${targetMinWords}-${targetMaxWords} Wörter schreiben
+- NIEMALS weniger als ${targetMinWords} Wörter schreiben
+- Zähle während des Schreibens mit und überprüfe die Wortanzahl
+
+`;
+
+      const enforcementReminder = `
+
+**FINALE ÜBERPRÜFUNG (KRITISCH):**
+1. Dieser Podcast ist ${durationMinutes} Minuten lang
+2. Du MUSST ${targetMinWords}-${targetMaxWords} Wörter geschrieben haben
+3. Wenn du weniger als ${targetMinWords} Wörter hast, füge weitere Details hinzu
+4. Beende NUR wenn du mindestens ${targetMinWords} Wörter erreicht hast
+5. Schreibe einen vollständigen Artikel mit natürlichem Abschluss`;
+
+      contextualPrompt = durationContext + AUDIO_ANALYSIS_PROMPT + enforcementReminder;
+    }
+
     const stage1Request = {
       contents: [{
         role: "user",
@@ -270,7 +314,7 @@ export async function processAudioTwoStage(
             },
           },
           {
-            text: AUDIO_ANALYSIS_PROMPT,
+            text: contextualPrompt,
           },
         ],
       }],
@@ -294,6 +338,27 @@ export async function processAudioTwoStage(
       throw new Error("[Stage 1] No candidates in response");
     }
 
+    // CRITICAL: Check finishReason to detect truncation
+    const stage1FinishReason = stage1Candidates[0]?.finishReason;
+    const stage1UsageMetadata = (stage1Response as any).usageMetadata;
+
+    logger.info(`[Stage 1] finishReason: ${stage1FinishReason}`);
+    if (stage1UsageMetadata) {
+      logger.info(`[Stage 1] Token usage: ${stage1UsageMetadata.candidatesTokenCount || 'unknown'}/${65536}`);
+    }
+
+    if (stage1FinishReason !== "STOP") {
+      const tokenInfo = stage1UsageMetadata?.candidatesTokenCount
+        ? `Tokens used: ${stage1UsageMetadata.candidatesTokenCount}/65536`
+        : "Token count unavailable";
+
+      throw new Error(
+        `[Stage 1] Generation incomplete! finishReason=${stage1FinishReason}. ${tokenInfo}. ` +
+        `This indicates the article was truncated. Possible causes: ` +
+        `MAX_TOKENS (hit limit), SAFETY (content filtered), RECITATION (copyright), OTHER (model error).`
+      );
+    }
+
     // Concatenate all parts to handle multi-part responses
     let stage1Text = "";
     for (const candidate of stage1Candidates) {
@@ -312,10 +377,26 @@ export async function processAudioTwoStage(
 
     logger.info(`[Stage 1] Response length: ${stage1Text.length} characters`);
 
+    // CRITICAL: Validate JSON completeness before parsing
+    const stage1Trimmed = stage1Text.trim();
+    if (!stage1Trimmed.startsWith('{')) {
+      throw new Error(
+        `[Stage 1] Incomplete JSON - doesn't start with '{'. ` +
+        `First char: '${stage1Trimmed[0]}'. Response likely truncated at the beginning.`
+      );
+    }
+    if (!stage1Trimmed.endsWith('}')) {
+      throw new Error(
+        `[Stage 1] Incomplete JSON - doesn't end with '}'. ` +
+        `Last char: '${stage1Trimmed[stage1Trimmed.length - 1]}'. Response likely truncated at the end.`
+      );
+    }
+    logger.info(`[Stage 1] ✅ JSON structure validation passed`);
+
     // Parse Stage 1 JSON
     let audioAnalysis: AudioAnalysisResult;
     try {
-      audioAnalysis = JSON.parse(stage1Text.trim());
+      audioAnalysis = JSON.parse(stage1Trimmed);
       logger.info("[Stage 1] ✅ Successfully parsed audio analysis");
       logger.info(`[Stage 1] Markdown length: ${audioAnalysis.markdown?.length || 0} chars`);
     } catch (error: any) {
@@ -324,6 +405,9 @@ export async function processAudioTwoStage(
       logger.error(`[Stage 1] Last 500 chars: ${stage1Text.substring(Math.max(0, stage1Text.length - 500))}`);
       throw new Error(`Stage 1 JSON parsing failed: ${error.message}`);
     }
+
+    // CRITICAL: Validate article completeness and quality
+    validateArticleCompleteness(audioAnalysis.markdown, "Stage 1", targetMinWords);
 
     // ========================================
     // STAGE 2: Metadata Generation (Article → SEO + Social)
@@ -441,6 +525,27 @@ export async function processAudioTwoStage(
       throw new Error("[Stage 2] No candidates in response");
     }
 
+    // CRITICAL: Check finishReason to detect truncation
+    const stage2FinishReason = stage2Candidates[0]?.finishReason;
+    const stage2UsageMetadata = (stage2Response as any).usageMetadata;
+
+    logger.info(`[Stage 2] finishReason: ${stage2FinishReason}`);
+    if (stage2UsageMetadata) {
+      logger.info(`[Stage 2] Token usage: ${stage2UsageMetadata.candidatesTokenCount || 'unknown'}/${65536}`);
+    }
+
+    if (stage2FinishReason !== "STOP") {
+      const tokenInfo = stage2UsageMetadata?.candidatesTokenCount
+        ? `Tokens used: ${stage2UsageMetadata.candidatesTokenCount}/65536`
+        : "Token count unavailable";
+
+      throw new Error(
+        `[Stage 2] Generation incomplete! finishReason=${stage2FinishReason}. ${tokenInfo}. ` +
+        `This indicates the metadata was truncated. Possible causes: ` +
+        `MAX_TOKENS (hit limit), SAFETY (content filtered), RECITATION (copyright), OTHER (model error).`
+      );
+    }
+
     let stage2Text = "";
     for (const candidate of stage2Candidates) {
       if (candidate.content && candidate.content.parts) {
@@ -458,10 +563,26 @@ export async function processAudioTwoStage(
 
     logger.info(`[Stage 2] Response length: ${stage2Text.length} characters`);
 
+    // CRITICAL: Validate JSON completeness before parsing
+    const stage2Trimmed = stage2Text.trim();
+    if (!stage2Trimmed.startsWith('{')) {
+      throw new Error(
+        `[Stage 2] Incomplete JSON - doesn't start with '{'. ` +
+        `First char: '${stage2Trimmed[0]}'. Response likely truncated at the beginning.`
+      );
+    }
+    if (!stage2Trimmed.endsWith('}')) {
+      throw new Error(
+        `[Stage 2] Incomplete JSON - doesn't end with '}'. ` +
+        `Last char: '${stage2Trimmed[stage2Trimmed.length - 1]}'. Response likely truncated at the end.`
+      );
+    }
+    logger.info(`[Stage 2] ✅ JSON structure validation passed`);
+
     // Parse Stage 2 JSON
     let metadata: MetadataResult;
     try {
-      metadata = JSON.parse(stage2Text.trim());
+      metadata = JSON.parse(stage2Trimmed);
       logger.info("[Stage 2] ✅ Successfully parsed metadata");
       logger.info(`[Stage 2] Title: ${metadata.title}`);
       logger.info(`[Stage 2] Meta description length: ${metadata.metaDescription?.length || 0} chars`);
@@ -473,6 +594,35 @@ export async function processAudioTwoStage(
       logger.error(`[Stage 2] Last 500 chars: ${stage2Text.substring(Math.max(0, stage2Text.length - 500))}`);
       throw new Error(`Stage 2 JSON parsing failed: ${error.message}`);
     }
+
+    // CRITICAL: Validate metadata completeness
+    const missingFields: string[] = [];
+    if (!metadata.title) missingFields.push("title");
+    if (!metadata.metaDescription) missingFields.push("metaDescription");
+    if (!metadata.keywords || metadata.keywords.length === 0) missingFields.push("keywords");
+    if (!metadata.schemaOrg) missingFields.push("schemaOrg");
+    if (!metadata.openGraph) missingFields.push("openGraph");
+    if (!metadata.socialMedia) {
+      missingFields.push("socialMedia");
+    } else {
+      // Check required social media platforms
+      const requiredPlatforms = ["linkedin", "twitter", "instagram", "facebook", "tiktok", "newsletter"];
+      for (const platform of requiredPlatforms) {
+        if (!metadata.socialMedia[platform as keyof typeof metadata.socialMedia]) {
+          missingFields.push(`socialMedia.${platform}`);
+        }
+      }
+      // Validate Twitter has exactly 4 tweets
+      if (metadata.socialMedia.twitter && (!Array.isArray(metadata.socialMedia.twitter) || metadata.socialMedia.twitter.length !== 4)) {
+        logger.warn(`[Stage 2] ⚠️ Twitter should have exactly 4 tweets, got ${metadata.socialMedia.twitter.length}`);
+      }
+    }
+
+    if (missingFields.length > 0) {
+      throw new Error(`[Stage 2] Incomplete metadata - missing fields: ${missingFields.join(", ")}`);
+    }
+
+    logger.info(`[Stage 2] ✅ Metadata validation passed - all required fields present`);
 
     // Auto-fix metaDescription if needed
     const fixedMetaDescription = fixMetaDescription(metadata.metaDescription);

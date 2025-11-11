@@ -32,7 +32,7 @@ Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte 
 
 **Struktur:**
 - **Einleitung:** Spannender Hook, der Interesse weckt + Übersicht der Hauptthemen
-- **Hauptteil:** 3-4 Abschnitte (H2/H3 Überschriften), jedes Hauptthema vorstellen und anreißen
+- **Hauptteil:** Jedes Hauptthema vorstellen und anreißen
 - **Fazit:** Zusammenfassung der besprochenen Themen + starker Call-to-Action zum Podcast hören
 
 **Stil:**
@@ -48,12 +48,21 @@ Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte 
 - **fett** für Betonungen
 - - für Bullet Points (sparsam verwenden)
 
-**WICHTIG:**
+**WORTANZAHL-VORGABEN (kritisch für SEO und Qualität):**
+- Sehr kurze Podcasts (5-15 Min): **600-800 Wörter**
+- Kurze Podcasts (15-30 Min): **800-1000 Wörter**
+- Mittlere Podcasts (30-90 Min): **1000-1500 Wörter**
+- Lange Podcasts (>90 Min): **1500-2000 Wörter**
+
+**WICHTIG - Qualitätssicherung:**
 - Schreibe einen VOLLSTÄNDIGEN Artikel mit natürlichem Abschluss
-- Beende JEDEN Artikel mit einem vollständigen Fazit-Abschnitt
+- Beende JEDEN Artikel mit einem vollständigen "## Fazit" Abschnitt
 - Schreibe IMMER vollständige Sätze - breche niemals mitten im Satz ab
-- Der Artikel muss SEO-optimiert sein (mindestens 600 Wörter für gutes Ranking)
+- **KRITISCH**: Zähle während dem Schreiben mit und stelle sicher, dass du die Mindestwortanzahl für die Podcast-Länge erreichst
+- **NIEMALS** weniger als die Mindestwortanzahl schreiben - füge weitere Details hinzu wenn nötig
+- Der letzte Satz des Fazits MUSS mit einem Punkt (.), Ausrufezeichen (!) oder Fragezeichen (?) enden
 - Alle Hauptthemen des Podcasts müssen erwähnt werden
+- **BEVOR DU ANTWORTEST**: Überprüfe deine Wortanzahl - wenn unter Minimum, erweitere den Artikel
 
 **BEISPIEL-STRUKTUR:**
 {

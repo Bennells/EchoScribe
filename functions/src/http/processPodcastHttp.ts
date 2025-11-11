@@ -145,7 +145,7 @@ export const processPodcastHttp = onRequest(
 
       // Process with Vertex AI (using optimized two-stage approach)
       logger.info(`[HTTP] Step 4: Processing with Vertex AI (Two-Stage Pipeline)`);
-      const article = await processAudioTwoStage(storagePath, mimeType);
+      const article = await processAudioTwoStage(storagePath, mimeType, podcastData.duration);
       logger.info(`[HTTP] ✅ Article generated | Title: ${article.title}`);
 
       // Save article to Firestore
