@@ -1,115 +1,23 @@
 # Firebase App Hosting Configuration - PRODUCTION (prod)
 # https://firebase.google.com/docs/app-hosting/configure
+#
+# This file contains PRODUCTION environment-specific configuration.
+# Shared configuration is defined in apphosting.yaml (base).
 
-# Cloud Run configuration
-runConfig:
-  minInstances: 0  # Scale to zero for cost savings
-  maxInstances: 10
-  concurrency: 80
-  cpu: 1
-  memoryMiB: 512
-
-# Environment variables and secrets
+# Environment variables (production-specific)
 env:
   # ==========================================
-  # Public Firebase Configuration (Client SDK)
+  # Firebase Configuration
   # ==========================================
-  # Firebase Client SDK configuration as public NEXT_PUBLIC_* variables
-  # These values are safe to expose as they're visible in the client bundle anyway
-  # Access control is managed via Firebase Security Rules, not API keys
-  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: "AIzaSyBHOHVbQrDAHVbqlewREbvIYRk9e106hqM"
-    availability:
-      - BUILD
-      - RUNTIME
-
-  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    value: "echoscribe-prod.firebaseapp.com"
-    availability:
-      - BUILD
-      - RUNTIME
-
-  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    value: "echoscribe-prod"
-    availability:
-      - BUILD
-      - RUNTIME
-
-  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    value: "echoscribe-prod.firebasestorage.app"
-    availability:
-      - BUILD
-      - RUNTIME
-
-  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    value: "673230184143"
-    availability:
-      - BUILD
-      - RUNTIME
-
-  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    value: "1:673230184143:web:555fa51175651e86d161ba"
-    availability:
-      - BUILD
-      - RUNTIME
-
-  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-    value: "G-TKZ3LW111N"
-    availability:
-      - BUILD
-      - RUNTIME
+  # Firebase Client SDK config is automatically provided by App Hosting via
+  # FIREBASE_WEBAPP_CONFIG environment variable during build time.
+  # No manual configuration needed - WIF handles authentication automatically.
 
   # ==========================================
   # Stripe Configuration
   # ==========================================
   - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
     value: "pk_live_51SJzrMGiTikY0UunvyCcfhbL6wXnWqXSwJxjVIh48BkgGQQA3rFHpFPGQEGQjIuYpjJqFFj7YxKRFR7OqWRE5b4600OcQGqhrB"
-    availability:
-      - BUILD
-      - RUNTIME
-
-  # Stripe Secret Key (from Secret Manager)
-  - variable: STRIPE_SECRET_KEY
-    secret: STRIPE_SECRET_KEY
-    availability:
-      - RUNTIME
-
-  # Stripe Webhook Secret (from Secret Manager)
-  - variable: STRIPE_WEBHOOK_SECRET
-    secret: STRIPE_WEBHOOK_SECRET
-    availability:
-      - RUNTIME
-
-  # ==========================================
-  # Stripe Price IDs (from Secret Manager)
-  # ==========================================
-  - variable: STRIPE_PRICE_ID_STARTER_MONTHLY
-    secret: STRIPE_PRICE_ID_STARTER_MONTHLY
-    availability:
-      - RUNTIME
-
-  - variable: STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY
-    secret: STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY
-    availability:
-      - RUNTIME
-
-  - variable: STRIPE_PRICE_ID_BUSINESS_MONTHLY
-    secret: STRIPE_PRICE_ID_BUSINESS_MONTHLY
-    availability:
-      - RUNTIME
-
-  # Legacy Pro tier (for backward compatibility)
-  - variable: STRIPE_PRICE_ID_PRO_MONTHLY
-    secret: STRIPE_PRICE_ID_PROFESSIONAL_MONTHLY
-    availability:
-      - RUNTIME
-
-  # ==========================================
-  # Environment Configuration
-  # ==========================================
-  # Environment identifier (test/production)
-  - variable: NEXT_PUBLIC_ENVIRONMENT
-    value: "production"
     availability:
       - BUILD
       - RUNTIME

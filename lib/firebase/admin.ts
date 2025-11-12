@@ -17,10 +17,11 @@ function createFirebaseAdminApp() {
   // - Firebase App Hosting: Uses Workload Identity (automatic)
   // - Cloud Functions: Uses Workload Identity (automatic)
 
-  // Explicitly set project ID to ensure correct Firebase project is used
-  // This is especially important when switching between projects
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.GCLOUD_PROJECT;
-  const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+  // Project ID is automatically detected by ADC in App Hosting via WIF
+  // In development, GCLOUD_PROJECT is set by gcloud CLI
+  // In App Hosting, ADC automatically uses the correct project
+  const projectId = process.env.GCLOUD_PROJECT;
+  const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
 
   return admin.initializeApp({
     credential: admin.credential.applicationDefault(),

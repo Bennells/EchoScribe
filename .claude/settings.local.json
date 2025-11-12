@@ -218,7 +218,14 @@
       "Bash(git -C \"d:\\Projects\\EchoScribe\" show cefcbcb:functions/src/utils/prompts.ts)",
       "Bash(npm outdated:*)",
       "Bash(exit 0)",
-      "Bash(npm --prefix \"d:\\Projects\\EchoScribe\\functions\" run build)"
+      "Bash(npm --prefix \"d:\\Projects\\EchoScribe\\functions\" run build)",
+      "mcp__firebase__apphosting_list_backends",
+      "mcp__firebase__firebase_get_environment",
+      "mcp__firebase__firebase_list_apps",
+      "mcp__firebase__firebase_get_sdk_config",
+      "WebSearch",
+      "WebFetch(domain:firebase.google.com)",
+      "Bash(git mv:*)"
     ],
     "deny": [],
     "ask": []
