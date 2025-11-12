@@ -3,11 +3,11 @@
 #
 # This is the base configuration file. Environment-specific configurations:
 # - apphosting.test.yaml (for test environment)
-# - apphosting.production.yaml (for production environment)
+# - apphosting.prod.yaml (for production environment)
 #
 # Make sure to set the "Environment name" in Firebase Console:
 # - Test backend: Set to "test"
-# - Production backend: Set to "production"
+# - Production backend: Set to "prod"
 
 # Cloud Run configuration
 runConfig:
