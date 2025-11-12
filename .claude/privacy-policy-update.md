@@ -24,7 +24,7 @@ Wenn Sie eine Podcast-Audio-Datei zu EchoScribe hochladen, wird diese Datei für
 Audio-Dateien werden nach 3 Tagen automatisch durch unsere Speicher-Richtlinien (Lifecycle Policy) gelöscht. Diese Löschung erfolgt automatisch und kann nicht rückgängig gemacht werden.
 
 **Ihre Rechte:**
-Gemäß DSGVO Art. 17 (Recht auf Löschung) können Sie jederzeit die sofortige Löschung Ihrer Audio-Dateien beantragen, auch vor Ablauf der 3-Tage-Frist. Kontaktieren Sie uns dazu unter: [support@echoscribe.de]
+Gemäß DSGVO Art. 17 (Recht auf Löschung) können Sie jederzeit die sofortige Löschung Ihrer Audio-Dateien beantragen, auch vor Ablauf der 3-Tage-Frist. Kontaktieren Sie uns dazu unter: [info@echoscribe.de]
 
 **Datensicherheit:**
 Ihre Audio-Dateien werden verschlüsselt in Google Cloud Storage (Region: Europa) gespeichert und sind nur für autorisierte Verarbeitungsprozesse zugänglich.
@@ -51,7 +51,7 @@ When you upload a podcast audio file to EchoScribe, the file is stored in our sy
 Audio files are automatically deleted after 3 days through our storage lifecycle policies. This deletion is automatic and cannot be reversed.
 
 **Your Rights:**
-Under GDPR Art. 17 (Right to Erasure), you may request immediate deletion of your audio files at any time, even before the 3-day period expires. Contact us at: [support@echoscribe.de]
+Under GDPR Art. 17 (Right to Erasure), you may request immediate deletion of your audio files at any time, even before the 3-day period expires. Contact us at: [info@echoscribe.de]
 
 **Data Security:**
 Your audio files are stored encrypted in Google Cloud Storage (Region: Europe) and are only accessible to authorized processing systems.

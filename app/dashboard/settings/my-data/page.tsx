@@ -145,7 +145,7 @@ export default function MyDataPage() {
             "Alle Daten werden bis zur Kontolöschung gespeichert. Nach Kontolöschung werden alle Daten innerhalb von 30 Tagen vollständig gelöscht.",
           userRights: [
             "Recht auf Auskunft (Art. 15 DSGVO) - Diese Exportfunktion",
-            "Recht auf Berichtigung (Art. 16 DSGVO) - Kontaktieren Sie support@echoscribe.de",
+            "Recht auf Berichtigung (Art. 16 DSGVO) - Kontaktieren Sie info@echoscribe.de",
             "Recht auf Löschung (Art. 17 DSGVO) - Verfügbar in den Kontoeinstellungen",
             "Recht auf Datenportabilität (Art. 20 DSGVO) - Diese Exportfunktion",
           ],
@@ -464,7 +464,7 @@ export default function MyDataPage() {
                   Einstellungen
                 </Link>
               </li>
-              <li>• <strong>Weitere Rechte:</strong> Kontaktieren Sie support@echoscribe.de</li>
+              <li>• <strong>Weitere Rechte:</strong> Kontaktieren Sie info@echoscribe.de</li>
             </ul>
           </div>
 

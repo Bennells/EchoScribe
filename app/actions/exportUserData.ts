@@ -231,11 +231,11 @@ export async function exportUserData(): Promise<{
 
         userRights: [
           "Recht auf Auskunft (Art. 15 DSGVO) - Diese Exportfunktion",
-          "Recht auf Berichtigung (Art. 16 DSGVO) - Kontaktieren Sie support@echoscribe.de",
+          "Recht auf Berichtigung (Art. 16 DSGVO) - Kontaktieren Sie info@echoscribe.de",
           "Recht auf Löschung (Art. 17 DSGVO) - Verfügbar in den Kontoeinstellungen",
           "Recht auf Datenportabilität (Art. 20 DSGVO) - Diese Exportfunktion",
-          "Recht auf Widerspruch (Art. 21 DSGVO) - Kontaktieren Sie support@echoscribe.de",
-          "Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO) - Kontaktieren Sie support@echoscribe.de",
+          "Recht auf Widerspruch (Art. 21 DSGVO) - Kontaktieren Sie info@echoscribe.de",
+          "Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO) - Kontaktieren Sie info@echoscribe.de",
         ],
       },
     };

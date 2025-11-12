@@ -47,9 +47,10 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-2xl font-semibold mt-8 mb-4">4. Google Gemini AI</h2>
           <p>
-            Zur Verarbeitung Ihrer Podcasts nutzen wir Google Gemini AI. Die Audio-Dateien werden
-            an Google-Server übertragen, verarbeitet und die Ergebnisse zurückgesendet. Google
-            speichert diese Daten nicht dauerhaft.
+            Zur Verarbeitung Ihrer Podcasts nutzen wir Google Gemini AI in der EU-Region (europe-west1).
+            Die Audio-Dateien werden an Google-Server in der EU übertragen, dort verarbeitet und die
+            Ergebnisse zurückgesendet. Die Verarbeitung erfolgt vollständig innerhalb der EU. Google
+            speichert diese Daten nicht dauerhaft für Training oder andere Zwecke.
           </p>
         </section>
 
@@ -119,7 +120,7 @@ export default function PrivacyPage() {
           <p className="mt-4 p-4 bg-muted rounded-lg">
             <strong>Kontakt für Datenschutzanfragen:</strong><br />
             Für die Ausübung weiterer Rechte oder bei Fragen zum Datenschutz kontaktieren Sie uns
-            bitte unter: support@echoscribe.de
+            bitte unter: info@echoscribe.de
           </p>
         </section>
 

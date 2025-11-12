@@ -23,7 +23,7 @@ const faqs = [
   {
     question: "Sind meine Daten sicher?",
     answer:
-      "Absolut! Wir sind vollständig DSGVO-konform mit Hosting in der EU. Ihre Podcast-Dateien und generierten Artikel werden sicher verschlüsselt gespeichert. Sie können Ihre Daten jederzeit exportieren oder löschen.",
+      "Absolut! Wir sind vollständig DSGVO-konform. Alle Ihre Daten werden in der EU gehostet UND verarbeitet (Firebase + Google Cloud in europe-west1). Ihre Podcast-Dateien und generierten Artikel werden sicher verschlüsselt gespeichert. Die KI-Verarbeitung findet ausschließlich auf EU-Servern statt. Sie können Ihre Daten jederzeit exportieren oder löschen.",
   },
 ];
 
