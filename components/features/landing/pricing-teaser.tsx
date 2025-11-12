@@ -11,7 +11,6 @@ const pricingTiers = [
     features: [
       "100 Minuten pro Monat",
       "Social Media Posts",
-      "Show Notes",
       "SEO-Paket",
       "Massen-Upload",
     ],
@@ -24,7 +23,6 @@ const pricingTiers = [
     features: [
       "240 Minuten pro Monat",
       "Social Media Posts",
-      "Show Notes",
       "SEO-Paket",
       "Massen-Upload",
     ],
@@ -37,7 +35,6 @@ const pricingTiers = [
     features: [
       "600 Minuten pro Monat",
       "Social Media Posts",
-      "Show Notes",
       "SEO-Paket",
       "Massen-Upload",
     ],
@@ -51,7 +48,6 @@ const pricingTiers = [
     features: [
       "2000 Minuten pro Monat",
       "Social Media Posts",
-      "Show Notes",
       "SEO-Paket",
       "Massen-Upload",
     ],

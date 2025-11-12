@@ -17,8 +17,8 @@ export function FinalCta() {
             </h2>
 
             <p className="text-xl text-blue-50 max-w-2xl mx-auto leading-relaxed">
-              Starten Sie noch heute kostenlos. Verwandeln Sie Ihre Podcasts in SEO-optimierte Artikel,
-              Social Media Posts und Show Notes – ohne Kreditkarte.
+              Starten Sie noch heute kostenlos. Verwandeln Sie Ihre Podcasts in SEO-optimierte Artikel
+              und Social Media Posts – ohne Kreditkarte.
             </p>
 
             {/* Benefits */}

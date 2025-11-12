@@ -2,7 +2,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
-import { processAudioTwoStage } from "../services/vertexai";
+import { processAudioTwoStage } from "../services/vertexai/index";
 import { config } from "../config/environment";
 import { safeRefundQuota } from "../utils/quotaHelpers";
 
@@ -35,7 +35,6 @@ export const processPodcastHttp = onRequest(
     cpu: 2,
     timeoutSeconds: 3600, // 60 minutes - supports podcasts up to 4 hours
     maxInstances: 3, // Limit concurrent processing (same as old rateLimits)
-    // No secrets needed - uses Application Default Credentials (ADC) via WIF
   },
   async (req, res) => {
     // Only accept POST requests
@@ -82,39 +81,60 @@ export const processPodcastHttp = onRequest(
         return;
       }
 
-      const podcastData = podcastDoc.data();
-      if (!podcastData) {
-        throw new Error("Podcast data is empty");
-      }
+      // ============================================
+      // ATOMIC STATUS UPDATE: Use transaction to prevent race conditions
+      // ============================================
+      logger.info(`[HTTP] Step 2: Atomically checking and updating status`);
 
-      // Check if already processing or completed
-      if (podcastData.status === "completed") {
-        logger.info(`[HTTP] ⏭️  Podcast ${podcastId} already completed - skipping`);
-        res.status(200).json({
-          status: "skipped",
-          reason: "already completed",
-          podcastId,
+      let podcastData: any;
+      try {
+        const transactionResult = await db.runTransaction(async (transaction) => {
+          const doc = await transaction.get(podcastRef);
+
+          if (!doc.exists) {
+            throw new Error("Podcast deleted during processing check");
+          }
+
+          const data = doc.data();
+          if (!data) {
+            throw new Error("Podcast data is empty");
+          }
+
+          // Check if already processing or completed
+          if (data.status === "completed") {
+            return { skip: true, reason: "already completed", data };
+          }
+
+          if (data.status === "processing") {
+            return { skip: true, reason: "already processing", data };
+          }
+
+          // Atomically update to processing status
+          transaction.update(podcastRef, {
+            status: "processing",
+            processingStartedAt: FieldValue.serverTimestamp(),
+          });
+
+          return { skip: false, data };
         });
-        return;
-      }
 
-      if (podcastData.status === "processing") {
-        logger.warn(`[HTTP] ⚠️  Podcast ${podcastId} already being processed - skipping`);
-        res.status(200).json({
-          status: "skipped",
-          reason: "already processing",
-          podcastId,
-        });
-        return;
-      }
+        if (transactionResult.skip) {
+          logger.info(`[HTTP] ⏭️  Podcast ${podcastId} ${transactionResult.reason} - skipping`);
+          res.status(200).json({
+            status: "skipped",
+            reason: transactionResult.reason,
+            podcastId,
+          });
+          return;
+        }
 
-      // Update status to processing
-      logger.info(`[HTTP] Step 2: Updating status to processing`);
-      await podcastRef.update({
-        status: "processing",
-        processingStartedAt: FieldValue.serverTimestamp(),
-      });
-      logger.info(`[HTTP] ✅ Status updated | User: ${podcastData.userId} | Duration: ${podcastData.duration}min`);
+        podcastData = transactionResult.data;
+        logger.info(`[HTTP] ✅ Status updated atomically | User: ${podcastData.userId} | Duration: ${podcastData.duration}min`);
+
+      } catch (transactionError: any) {
+        logger.error(`[HTTP] ❌ Transaction failed: ${transactionError.message}`);
+        throw transactionError;
+      }
 
       // ============================================
       // RESPOND IMMEDIATELY - Don't block storage trigger
@@ -143,13 +163,35 @@ export const processPodcastHttp = onRequest(
 
       logger.info(`[HTTP] ✅ File verified | Size: ${sizeMB}MB | Type: ${mimeType}`);
 
-      // Process with Vertex AI (using optimized two-stage approach)
+      // Process with Vertex AI (two-stage teaser approach)
       logger.info(`[HTTP] Step 4: Processing with Vertex AI (Two-Stage Pipeline)`);
-      const article = await processAudioTwoStage(storagePath, mimeType, podcastData.duration);
-      logger.info(`[HTTP] ✅ Article generated | Title: ${article.title}`);
+      logger.info(`[HTTP] Stage 1: Audio → Teaser Article (500-1200 words)`);
+      logger.info(`[HTTP] Stage 2: Article → SEO + Social Media Metadata`);
+      logger.info(`[HTTP] Using Vertex AI gs:// URIs (EU-compliant)`);
+
+      // Update progress: Article generation starting
+      await podcastRef.update({
+        processingStage: "generating_article",
+        processingStageUpdatedAt: FieldValue.serverTimestamp(),
+      });
+
+      const article = await processAudioTwoStage(
+        storagePath,
+        mimeType,
+        podcastData.duration
+      );
+      logger.info(`[HTTP] ✅ Processing complete | Title: ${article.title}`);
+
+      // Update progress: Processing complete, saving results
+      await podcastRef.update({
+        processingStage: "saving_results",
+        processingStageUpdatedAt: FieldValue.serverTimestamp(),
+      });
 
       // Save article to Firestore
       logger.info(`[HTTP] Step 5: Saving results to Firestore`);
+
+      // Save article
       const articleData: any = {
         podcastId,
         userId: podcastData.userId,
@@ -175,20 +217,23 @@ export const processPodcastHttp = onRequest(
 
       const articleRef = await db.collection("articles").add(articleData);
 
-      logger.info(`[HTTP] ✅ Results saved | Article ID: ${articleRef.id}`);
+      logger.info(`[HTTP] ✅ Article saved | Article ID: ${articleRef.id}`);
 
-      // Update podcast status to completed
+      // Update podcast status to completed (no transcript in Single-Stage pipeline)
       logger.info(`[HTTP] Step 6: Updating podcast status to completed`);
       await podcastRef.update({
         status: "completed",
         articleId: articleRef.id,
         processingCompletedAt: FieldValue.serverTimestamp(),
       });
-      logger.info(`[HTTP] ✅ Status updated to completed`);
+      logger.info(`[HTTP] ✅ Podcast updated with article ID and status`);
 
       logger.info("=".repeat(80));
       logger.info(`[HTTP] ✅ COMPLETED - Processing finished successfully`);
+      logger.info(`[HTTP] Article ID: ${articleRef.id} | Title: ${article.title}`);
+      logger.info(`[HTTP] Note: Response already sent (202 Accepted) - this completed in background`);
       logger.info("=".repeat(80));
+
     } catch (error: any) {
       logger.error("=".repeat(80));
       logger.error(`[HTTP] ❌ ERROR - Processing failed for podcast ${podcastId}:`, {

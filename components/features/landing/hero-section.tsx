@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Lock, X, Mic, Sparkles, FileText, Share2, BookOpen, Tag } from "lucide-react";
+import { ArrowRight, Shield, Lock, X, Mic, Sparkles, FileText, Share2, Tag } from "lucide-react";
 import { LAUNCH_SPECIAL_MODE } from "@/lib/constants/pricing";
 
 export function HeroSection() {
@@ -28,7 +28,7 @@ export function HeroSection() {
 
             {/* Subheadline */}
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              Verwandeln Sie Ihre Podcast-Episoden automatisch in SEO-Artikel, Social Media Posts und Show Notes.
+              Verwandeln Sie Ihre Podcast-Episoden automatisch in SEO-Artikel und Social Media Posts.
               Erreichen Sie mehr Hörer auf allen Kanälen.
             </p>
 
@@ -136,16 +136,6 @@ export function HeroSection() {
                       </div>
                     </div>
 
-                    {/* Show Notes */}
-                    <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-violet-50/50 transition-colors">
-                      <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <BookOpen className="h-4 w-4 text-purple-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground">Podcast Show Notes</p>
-                        <p className="text-xs text-muted-foreground">Kapitel • Zitate • Ressourcen</p>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Quick Stats */}

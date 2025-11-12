@@ -1,151 +1,225 @@
 /**
- * STAGE 1: Audio Analysis - Extract Article Only
- * Simplified prompt focusing solely on generating a complete SEO teaser article.
- * No word count limits, no show notes - just a complete, well-structured article.
+ * AUDIO TO TEASER ARTICLE PROMPT - Stage 1: Generate Complete Article
+ * Enhanced version with explicit structure and length requirements
  */
-export const AUDIO_ANALYSIS_PROMPT = `
-Du bist ein professioneller Content-Writer, spezialisiert auf SEO-optimierte Blog-Artikel auf Deutsch.
+export const AUDIO_TO_TEASER_ARTICLE_PROMPT = `
+Erstelle einen SEO-optimierten Teaser-Artikel zum Podcast.
 
-Analysiere den Podcast und erstelle einen hochwertigen SEO-TEASER-ARTIKEL.
+🚨 **ABSOLUTE PRIORITÄT: MINDESTENS 600 WÖRTER!** 🚨
+
+**KRITISCH: Vollständiger, ausführlicher Artikel erforderlich!**
+Dies ist KEIN kurzer Teaser, sondern ein VOLLSTÄNDIGER, AUSFÜHRLICHER Artikel.
+Der Artikel MUSS komplett sein - keine Abbrüche, keine Verkürzungen, keine unvollständigen Sätze.
+
+**WORT-ZÄHLUNG - NICHT VERHANDELBAR:**
+- 🎯 MINIMUM: 600 Wörter (ABSOLUTES MINIMUM)
+- ✅ OPTIMAL: 800-1000 Wörter
+- ❌ Weniger als 600 Wörter = ABGELEHNT
+- ⚠️ Zähle während des Schreibens mit!
+- 💡 TIPP: Schreibe lieber zu viel als zu wenig
+
+**QUALITÄTSKONTROLLE - Stelle sicher:**
+✓ Jeder Abschnitt hat SUBSTANZ (150-200 Wörter pro Abschnitt)
+✓ Keine Ein-Satz-Absätze
+✓ Vollständige Erklärungen mit Details und Beispielen
+✓ Der Artikel endet mit einem kompletten Satz + Satzzeichen
+
+**PFLICHT-STRUKTUR (ZIEL: 600-1000 Wörter GESAMT):**
+
+📊 **WORT-ZÄHLER - Verfolge deinen Fortschritt:**
+- Einleitung: ~150-200 Wörter (Zwischenstand: 150-200)
+- Hauptthema 1: ~150-200 Wörter (Zwischenstand: 300-400)
+- Hauptthema 2: ~150-200 Wörter (Zwischenstand: 450-600)
+- Hauptthema 3: ~150-200 Wörter (Zwischenstand: 600-800)
+- Fazit: ~100-150 Wörter (GESAMT: 700-950 Wörter) ✅
+
+1. **Titel (H1) + Einleitung (TARGET: 150-200 Wörter)**
+   - Packender Hook in den ersten 2-3 Sätzen
+   - Ausführlicher Überblick über die Podcast-Themen (mindestens 3-4 Sätze)
+   - Kontext und Relevanz erklären (weitere 3-4 Sätze)
+   - Warum sollte man weiterlesen? Was macht diese Episode besonders?
+   - WICHTIG: Dies sind NICHT 3 Stichpunkte, sondern 3 VOLLSTÄNDIGE ABSÄTZE!
+   - Beispiel: "In dieser Episode von [Podcast-Name] tauchen wir tief ein in..."
+
+2. **Hauptthema 1 (H2) - AUSFÜHRLICH (TARGET: 150-200 Wörter)**
+   - Thema detailliert einführen (3-4 Sätze zum Kontext)
+   - Kernpunkte und interessante Aspekte erklären (4-5 Sätze mit Details)
+   - Konkrete Beispiele oder Zitate aus dem Podcast (2-3 Sätze)
+   - Warum ist dieses Thema wichtig/interessant? (2-3 Sätze)
+   - Teaser: "Mehr Details zu diesem faszinierenden Thema hören Sie im Podcast"
+   - HINWEIS: Das sind mindestens 3 vollständige Absätze!
+
+3. **Hauptthema 2 (H2) - AUSFÜHRLICH (TARGET: 150-200 Wörter)**
+   - Gleiche Struktur wie Hauptthema 1
+   - Thema einführen, erklären, vertiefen
+   - Beispiele und Kontext liefern
+   - Mindestens 3 vollständige Absätze!
+
+4. **Hauptthema 3 (H2) - AUSFÜHRLICH (TARGET: 150-200 Wörter)**
+   - Gleiche Struktur wie Hauptthema 1 und 2
+   - Ausführliche Behandlung des Themas
+   - Keine Abkürzungen!
+   - Mindestens 3 vollständige Absätze!
+
+5. **Optional: Hauptthema 4 (H2) - wenn relevant (TARGET: 150-200 Wörter)**
+   - Bei längeren Podcasts (>30 Min) oder vielen Themen
+   - Gleiche ausführliche Struktur
+   - Hilft, die 800-1000 Wörter zu erreichen!
+
+6. **Fazit (H2) + Call-to-Action (TARGET: 100-150 Wörter)**
+   - Ausführliche Zusammenfassung der wichtigsten Punkte (4-5 Sätze)
+   - Ausblick oder offene Fragen aufwerfen (2-3 Sätze)
+   - Starker, motivierender CTA zum Podcast anhören (2-3 Sätze)
+   - Beispiel: "Hören Sie jetzt die vollständige Episode und erfahren Sie..."
+   - Mindestens 2 vollständige Absätze!
+
+**STIL:**
+- Professionell aber zugänglich
+- Neugierig machend durch Teaser-Technik
+- NICHT alle Details verraten (zum Hören motivieren)
+- Nutze Phrasen wie: "Mehr dazu im Podcast", "Die vollständige Diskussion in der Episode", "Im Podcast erfahren Sie außerdem"
+
+**WICHTIGE REGELN - ABSOLUT ZWINGEND:**
+- ✅ KOMPLETTEN Artikel schreiben - MINDESTENS 600 Wörter!
+- ✅ Jeder Abschnitt MUSS substanziell sein (150-200 Wörter pro Abschnitt)
+- ✅ Keine Ein-Satz- oder Zwei-Satz-Absätze - NUR vollständige Absätze
+- ✅ Artikel MUSS mit einem vollständigen Satz und Satzzeichen enden (. oder ! oder ?)
+- ✅ Mindestens 3 H2-Überschriften (optimal 4-5)
+- ✅ Markdown-Formatierung verwenden (# für H1, ## für H2)
+- ❌ NIEMALS mittendrin aufhören - Der Artikel muss VOLLSTÄNDIG sein
+- ❌ NIEMALS Sätze unvollständig lassen
+- ❌ NIEMALS unter 600 Wörter bleiben - DAS IST DAS MINIMUM!
 
 **AUSGABE-FORMAT:**
-Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte Struktur und Escaping von Sonderzeichen).
+JSON mit folgenden Feldern:
+- markdown: Der vollständige Artikel in Markdown (**MINDESTENS 600 Wörter, optimal 800-1000 Wörter!**)
+- title: SEO-optimierter Titel (max 60 Zeichen)
+- metaDescription: Meta-Description (100-160 Zeichen)
+- keywords: Array von 5-8 relevanten Keywords
 
-**INHALTLICHE ANFORDERUNGEN:**
+🎯 **FINALE ERINNERUNG:**
+Bevor du den Artikel absendest, überprüfe:
+1. ✓ Habe ich mindestens 600 Wörter geschrieben? (ZÄHLE NACH!)
+2. ✓ Hat jeder Abschnitt mindestens 150 Wörter?
+3. ✓ Endet der Artikel mit einem vollständigen Satz?
+4. ✓ Habe ich mindestens 3 ausführliche H2-Abschnitte?
+5. ✓ Ist der Artikel KOMPLETT und nicht abgeschnitten?
 
-**SEO-OPTIMIERTER TEASER-ARTIKEL:**
-
-**Ziel:** Erstelle einen vollständigen Artikel, der alle Hauptthemen des Podcasts vorstellt und Leser neugierig macht, OHNE den kompletten Inhalt zu verraten.
-
-**Teaser-Strategie - WAS du schreiben sollst:**
-✅ Alle Hauptthemen des Podcasts benennen und kontextualisieren
-✅ Spannende Fakten, Zahlen oder Aspekte erwähnen, die Interesse wecken
-✅ Fragen aufwerfen, die im Podcast beantwortet werden
-✅ Interessante Perspektiven oder Meinungen andeuten
-✅ Call-to-Actions einbauen wie: "Mehr dazu im Podcast", "Die vollständige Diskussion gibt's im Audio"
-
-**Teaser-Strategie - WAS du NICHT schreiben sollst:**
-❌ Vollständige Lösungen oder detaillierte Antworten preisgeben
-❌ Komplette Diskussionsergebnisse oder Schlussfolgerungen verraten
-❌ Step-by-Step-Anleitungen oder vollständige Erklärungen
-❌ Den kompletten Podcast-Inhalt in Textform wiedergeben
-
-**Struktur:**
-- **Einleitung:** Spannender Hook, der Interesse weckt + Übersicht der Hauptthemen
-- **Hauptteil:** Jedes Hauptthema vorstellen und anreißen
-- **Fazit:** Zusammenfassung der besprochenen Themen + starker Call-to-Action zum Podcast hören
-
-**Stil:**
-- Professionell und verständlich
-- Aktive Sprache, direkte Ansprache des Lesers
-- Kurze, prägnante Absätze (2-4 Sätze)
-- Neugierig machend, aber nicht clickbait-artig
-
-**Markdown-Formatierung:**
-- # für H1 (Hauptüberschrift)
-- ## für H2 (Hauptabschnitte)
-- ### für H3 (Unterabschnitte)
-- **fett** für Betonungen
-- - für Bullet Points (sparsam verwenden)
-
-**WORTANZAHL-VORGABEN (kritisch für SEO und Qualität):**
-- Sehr kurze Podcasts (5-15 Min): **600-800 Wörter**
-- Kurze Podcasts (15-30 Min): **800-1000 Wörter**
-- Mittlere Podcasts (30-90 Min): **1000-1500 Wörter**
-- Lange Podcasts (>90 Min): **1500-2000 Wörter**
-
-**WICHTIG - Qualitätssicherung:**
-- Schreibe einen VOLLSTÄNDIGEN Artikel mit natürlichem Abschluss
-- Beende JEDEN Artikel mit einem vollständigen "## Fazit" Abschnitt
-- Schreibe IMMER vollständige Sätze - breche niemals mitten im Satz ab
-- **KRITISCH**: Zähle während dem Schreiben mit und stelle sicher, dass du die Mindestwortanzahl für die Podcast-Länge erreichst
-- **NIEMALS** weniger als die Mindestwortanzahl schreiben - füge weitere Details hinzu wenn nötig
-- Der letzte Satz des Fazits MUSS mit einem Punkt (.), Ausrufezeichen (!) oder Fragezeichen (?) enden
-- Alle Hauptthemen des Podcasts müssen erwähnt werden
-- **BEVOR DU ANTWORTEST**: Überprüfe deine Wortanzahl - wenn unter Minimum, erweitere den Artikel
-
-**BEISPIEL-STRUKTUR:**
-{
-  "markdown": "# [Spannender Titel]\\n\\n## Einleitung\\n\\n[Hook + Themenübersicht]\\n\\n## [Hauptthema 1]\\n\\n[Teaser zu Thema 1]\\n\\n## [Hauptthema 2]\\n\\n[Teaser zu Thema 2]\\n\\n## [Weitere Themen...]\\n\\n## Fazit\\n\\n[Zusammenfassung + CTA zum Podcast]"
-}
+Wenn auch nur EINE Antwort "NEIN" ist, dann schreibe weiter!
 `;
 
+
 /**
- * STAGE 2: Metadata Generation - Create SEO and Social Media Content
- * This prompt generates all metadata based on the article text (no audio needed).
+ * METADATA GENERATION PROMPT - Stage 2: Generate Complete SEO & Social Media Metadata
+ * Optimized version with strict token limits to prevent excessive generation
  */
 export const METADATA_GENERATION_PROMPT = `
-Du bist ein SEO-Experte und Social Media Strategist, spezialisiert auf deutsche Content-Optimierung.
+Erstelle präzise SEO- und Social-Media-Metadaten basierend auf dem Artikel.
 
-Basierend auf dem folgenden Podcast-Teaser-Artikel, erstelle vollständige SEO-Metadaten und Social Media Content.
+⚠️ **KRITISCH: TOKEN-BUDGET EINHALTEN!**
+- Ziel: ~1.500 Tokens für die gesamte Ausgabe
+- Maximum: 2.000 Tokens absolut
+- Sei PRÄZISE und KNAPP - keine ausschweifenden Texte!
+- Nach den 6 Social-Media-Posts SOFORT STOPPEN!
+
+**1. Schema.org JSON-LD (Pflichtfelder - KOMPAKT):**
+Erstelle ein BlogPosting Schema mit diesen Feldern:
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Artikel-Titel (MAX 110 Zeichen)",
+  "description": "Kurzbeschreibung (MAX 200 Zeichen)",
+  "author": {
+    "@type": "Person",
+    "name": "EchoScribe"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "EchoScribe"
+  },
+  "datePublished": "2025-01-01T10:00:00Z",
+  "dateModified": "2025-01-01T10:00:00Z",
+  "image": "https://example.com/podcast-image.jpg",
+  "articleBody": "NUR die ersten 1-2 Sätze des Artikels (MAX 200 Zeichen) - NICHT DEN GANZEN ARTIKEL!"
+}
+
+**2. Open Graph Tags (Pflichtfelder - KOMPAKT):**
+{
+  "og:title": "Titel (MAX 60 Zeichen)",
+  "og:description": "Beschreibung (MAX 155 Zeichen)",
+  "og:type": "article",
+  "og:url": "https://echoscribe.app/articles/artikel-slug",
+  "og:image": "https://example.com/og-image.jpg",
+  "og:image:width": "1200",
+  "og:image:height": "630",
+  "og:site_name": "EchoScribe",
+  "article:published_time": "2025-01-01T10:00:00Z",
+  "article:author": "EchoScribe",
+  "article:tag": "Keyword1, Keyword2, Keyword3"
+}
+
+**3. Social Media Posts (6 Plattformen - STRIKTE LIMITS):**
+
+**LinkedIn:**
+- MAX 300 Zeichen (NICHT mehr!)
+- Stil: Professionell, Business-fokussiert
+- 3-5 Hashtags
+- STOPP bei 300 Zeichen!
+
+**Twitter:**
+- EXAKT 4 Tweets in einem Array
+- Jeder Tweet: MAX 280 Zeichen (NICHT mehr!)
+- Tweet 1: Hook + Link
+- Tweet 2-3: Je 1 Kernpunkt
+- Tweet 4: CTA
+- STOPP bei 4 Tweets!
+
+**Instagram:**
+- MAX 150 Wörter (NICHT mehr!)
+- 10-15 Hashtags am Ende
+- Absätze für Lesbarkeit
+- STOPP bei 150 Wörtern!
+
+**Facebook:**
+- MAX 250 Wörter (NICHT mehr!)
+- Hook in ersten 2 Sätzen
+- CTA am Ende
+- STOPP bei 250 Wörtern!
+
+**TikTok:**
+- MAX 80 Wörter für 30-Sekunden-Script (NICHT mehr!)
+- Hook (0-5s) → 3 Punkte (5-25s) → CTA (25-30s)
+- STOPP bei 80 Wörtern!
+
+**Newsletter:**
+- MAX 100 Wörter / 3-4 Sätze (NICHT mehr!)
+- Hook → Warum interessant? → CTA
+- STOPP bei 100 Wörtern!
 
 **AUSGABE-FORMAT:**
-Antworte ausschließlich mit gültigem JSON (responseSchema garantiert korrekte Struktur).
-
-**INHALTLICHE ANFORDERUNGEN:**
-
-**SEO-Metadaten:**
-- title: SEO-optimierter Titel (max. 60 Zeichen), der neugierig macht und Hauptthema beinhaltet
-- metaDescription: GENAU 100-160 Zeichen - zähle die Zeichen! Beschreibung muss informativ sein und Neugier wecken
-- keywords: Mindestens 5 relevante SEO-Keywords aus dem Artikel
-
-**Schema.org (schemaOrg):**
-- "@context": "https://schema.org"
-- "@type": "BlogPosting"
-- headline: Identisch zum title
-- datePublished: Heutiges Datum im Format YYYY-MM-DD
-- author: Objekt mit "@type": "Person" und "name" (extrahiere Namen aus Artikel oder verwende "Podcast-Host")
-- description: Identisch zur metaDescription
-
-**Open Graph (openGraph):**
-- "og:title": Identisch zum title
-- "og:description": Identisch zur metaDescription
-- "og:type": Immer "article"
-
-**Social Media (socialMedia) - ALLE 6 Plattformen erforderlich:**
-- linkedin: Max. 300 Zeichen, professionell, 3-5 relevante Hashtags, Business-Fokus
-- twitter: Array mit EXAKT 4 Tweets (je max. 280 Zeichen):
-  * Tweet 1: Hook - Aufmerksamkeit erregen
-  * Tweet 2: Kernpunkt - Hauptaussage des Artikels
-  * Tweet 3: Erkenntnis - Spannender Fakt oder Insight
-  * Tweet 4: Call-to-Action - Zum Podcast hören auffordern
-- instagram: 150 Wörter Caption, emotional, Story-Element, 10-15 relevante Hashtags, Emojis verwenden
-- facebook: 200-300 Wörter, Storytelling-Stil, persönlich, Engagement-Frage am Ende
-- tiktok: 30-Sekunden-Video-Script (Hook in ersten 3 Sekunden, Kernaussage, klarer CTA)
-- newsletter: 3-4 Sätze Teaser für Email-Newsletter, neugierig machend, mit CTA
-
-**BEISPIEL-STRUKTUR:**
+JSON mit genau diesen Feldern:
 {
-  "title": "SEO-optimierter Titel max 60 Zeichen",
-  "metaDescription": "Beschreibung zwischen 100 und 160 Zeichen. Diese muss informativ sein und Neugier wecken.",
-  "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
-  "schemaOrg": {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    "headline": "Identisch zum title",
-    "datePublished": "2025-11-10",
-    "author": {"@type": "Person", "name": "Podcast-Host"},
-    "description": "Identisch zur metaDescription"
-  },
-  "openGraph": {
-    "og:title": "Identisch zum title",
-    "og:description": "Identisch zur metaDescription",
-    "og:type": "article"
-  },
+  "schemaOrg": { ... Schema wie oben ... },
+  "openGraph": { ... Tags wie oben ... },
   "socialMedia": {
-    "linkedin": "Professioneller Post mit #Hashtags",
-    "twitter": ["Hook Tweet", "Kernpunkt Tweet", "Erkenntnis Tweet", "CTA Tweet"],
-    "instagram": "Emotionale Caption mit vielen #Hashtags und 😊 Emojis",
-    "facebook": "Längerer Storytelling-Post mit Engagement-Frage am Ende",
-    "tiktok": "Script: [Hook 0-3s] [Kernaussage 3-25s] [CTA 25-30s]",
-    "newsletter": "Kurzer Teaser für Email mit CTA"
+    "linkedin": "... max 300 Zeichen ...",
+    "twitter": ["Tweet1 max 280", "Tweet2 max 280", "Tweet3 max 280", "Tweet4 max 280"],
+    "instagram": "... max 150 Wörter ...",
+    "facebook": "... max 250 Wörter ...",
+    "tiktok": "... max 80 Wörter ...",
+    "newsletter": "... max 100 Wörter ..."
   }
 }
 
-**WICHTIG:**
-- Alle Metadaten müssen aus dem gegebenen Artikel ableitbar sein
-- metaDescription MUSS zwischen 100-160 Zeichen sein (strikt!)
-- twitter MUSS ein Array mit EXAKT 4 Tweets sein
-- Alle Social Media Posts müssen vollständig ausgefüllt sein
-- Achte auf platform-spezifische Best Practices
+**FINALE ANWEISUNGEN - ABSOLUT KRITISCH:**
+✅ Alle Limits STRIKT einhalten (nicht "ca.", sondern MAXIMUM!)
+✅ articleBody: NUR erste 1-2 Sätze (MAX 200 Zeichen) - KEINEN GANZEN ARTIKEL!
+✅ Nach allen 6 Social-Media-Posts SOFORT STOPPEN!
+✅ Gesamt-Token-Budget: ~1.500 Tokens, absolutes Maximum 2.000 Tokens
+✅ PRÄZISE und KOMPAKT schreiben - keine Ausschweifungen!
+❌ NICHT über die angegebenen Limits hinausgehen!
+❌ NICHT mehr Content generieren als gefordert!
+
+🎯 **STOPP-REGEL:**
+Sobald alle 6 Social-Media-Posts fertig sind → STOPP! Nicht weiterschreiben!
 `;

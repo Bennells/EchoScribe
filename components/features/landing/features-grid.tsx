@@ -6,7 +6,6 @@ import {
   Settings,
   Shield,
   Share2,
-  BookOpen,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -28,12 +27,6 @@ const features = [
     title: "Social Media Content",
     description:
       "Fertige Posts für LinkedIn, Twitter, Instagram und Facebook. Maximale Reichweite auf allen Kanälen.",
-  },
-  {
-    icon: BookOpen,
-    title: "Podcast Show Notes",
-    description:
-      "Automatisch generierte Kapitel, Zitate und Ressourcen. Professionelle Show Notes in Sekunden.",
   },
   {
     icon: Tag,

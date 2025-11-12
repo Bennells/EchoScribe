@@ -2,6 +2,52 @@
  * TypeScript type definitions for podcast processing and blog article generation
  */
 
+/**
+ * Token usage information from Vertex AI / Gemini API
+ * Used for cost tracking and analytics
+ */
+export interface TokenUsageInfo {
+  /** Number of input/prompt tokens used */
+  inputTokens: number;
+
+  /** Number of output/completion tokens generated */
+  outputTokens: number;
+
+  /** Total tokens used (input + output) */
+  totalTokens: number;
+
+  /** Estimated cost in USD */
+  costUSD: number;
+
+  /** Estimated cost in EUR */
+  costEUR: number;
+}
+
+/**
+ * Complete token usage tracking for two-stage processing pipeline
+ */
+export interface PodcastTokenUsage {
+  /** Stage 1: Audio → Article generation */
+  stage1: TokenUsageInfo & {
+    /** Audio input cost (separate from text tokens) */
+    audioCostUSD: number;
+    audioCostEUR: number;
+  };
+
+  /** Stage 2: Article → Metadata generation */
+  stage2: TokenUsageInfo;
+
+  /** Combined totals across both stages */
+  total: {
+    totalTokens: number;
+    totalCostUSD: number;
+    totalCostEUR: number;
+  };
+
+  /** Timestamp when costs were calculated */
+  calculatedAt: Date;
+}
+
 export interface SocialMediaContent {
   linkedin: string;
   twitter: string[];
@@ -35,48 +81,6 @@ export interface BlogArticle {
   openGraph: Record<string, string>;
   socialMedia?: SocialMediaContent;
   showNotes?: ShowNotes;
+  tokenUsage?: PodcastTokenUsage;
 }
 
-/**
- * Audio analysis result from Stage 1 (audio → article only)
- * Contains only the markdown teaser article extracted from audio.
- * Show notes have been removed to simplify generation and prevent truncation.
- */
-export interface AudioAnalysisResult {
-  markdown: string;
-}
-
-/**
- * Metadata result from Stage 2 (article → metadata)
- * Contains SEO metadata and social media content generated from article text
- */
-export interface MetadataResult {
-  title: string;
-  metaDescription: string;
-  keywords: string[];
-  schemaOrg: Record<string, any>;
-  openGraph: Record<string, string>;
-  socialMedia: SocialMediaContent;
-}
-
-/**
- * @deprecated Use AudioAnalysisResult and MetadataResult instead
- */
-export interface BlogArticleCoreResult {
-  title: string;
-  slug: string;
-  metaDescription: string;
-  keywords: string[];
-  markdown: string;
-  html: string;
-  schemaOrg: Record<string, any>;
-  openGraph: Record<string, string>;
-}
-
-/**
- * @deprecated Use AudioAnalysisResult and MetadataResult instead
- */
-export interface BlogArticleMetadataResult {
-  socialMedia: SocialMediaContent;
-  showNotes: ShowNotes;
-}

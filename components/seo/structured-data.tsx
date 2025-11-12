@@ -165,7 +165,6 @@ export function SoftwareApplicationSchema() {
       "Meta-Tags und Keywords",
       "Schema.org Integration",
       "Social Media Posts für LinkedIn, Twitter, Instagram, Facebook",
-      "Show Notes Generierung",
       "DSGVO-konform",
     ],
   };

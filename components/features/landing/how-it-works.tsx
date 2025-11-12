@@ -14,14 +14,14 @@ const steps = [
     icon: Sparkles,
     title: "KI-Verarbeitung",
     description:
-      "Automatische Transkription und Erstellung von SEO-Artikeln, Social Posts und Show Notes.",
+      "Automatische Transkription und Erstellung von SEO-Artikeln und Social Posts.",
   },
   {
     number: "03",
     icon: FileText,
     title: "Fertig zum Teilen",
     description:
-      "Blog-Artikel, Social Media Content und Show Notes – alles bereit für Ihre Kanäle.",
+      "Blog-Artikel und Social Media Content – alles bereit für Ihre Kanäle.",
   },
 ];
 

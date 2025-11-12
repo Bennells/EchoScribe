@@ -29,7 +29,6 @@ const allTiers: PricingTierConfig[] = [
     features: [
       LAUNCH_SPECIAL_MODE ? "200 Minuten pro Monat" : "100 Minuten pro Monat",
       "Social Media Posts",
-      "Show Notes",
       "SEO-Paket",
       "Massen-Upload",
     ],
@@ -45,7 +44,6 @@ const allTiers: PricingTierConfig[] = [
     features: [
       "240 Minuten pro Monat",
       "Social Media Posts",
-      "Show Notes",
       "SEO-Paket",
       "Massen-Upload",
     ],
@@ -60,7 +58,6 @@ const allTiers: PricingTierConfig[] = [
     features: [
       "600 Minuten pro Monat",
       "Social Media Posts",
-      "Show Notes",
       "SEO-Paket",
       "Massen-Upload",
     ],
@@ -76,7 +73,6 @@ const allTiers: PricingTierConfig[] = [
     features: [
       "2000 Minuten pro Monat",
       "Social Media Posts",
-      "Show Notes",
       "SEO-Paket",
       "Massen-Upload",
     ],
