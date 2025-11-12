@@ -2,7 +2,8 @@ import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
-import { processAudioTwoStage } from "../services/vertexai/index";
+import { processAudioWithOpenAI } from "../services/openai/index";
+import { openaiApiKey } from "../services/openai/client";
 import { config } from "../config/environment";
 import { safeRefundQuota } from "../utils/quotaHelpers";
 
@@ -35,6 +36,9 @@ export const processPodcastHttp = onRequest(
     cpu: 2,
     timeoutSeconds: 3600, // 60 minutes - supports podcasts up to 4 hours
     maxInstances: 3, // Limit concurrent processing (same as old rateLimits)
+    secrets: [openaiApiKey], // Required for OpenAI API access
+    // NOTE: CPU throttling workaround requires manual gcloud update after deployment:
+    // gcloud run services update processpodcasthttp --region=europe-west3 --cpu-throttling=false
   },
   async (req, res) => {
     // Only accept POST requests
@@ -163,11 +167,8 @@ export const processPodcastHttp = onRequest(
 
       logger.info(`[HTTP] ✅ File verified | Size: ${sizeMB}MB | Type: ${mimeType}`);
 
-      // Process with Vertex AI (two-stage teaser approach)
-      logger.info(`[HTTP] Step 4: Processing with Vertex AI (Two-Stage Pipeline)`);
-      logger.info(`[HTTP] Stage 1: Audio → Teaser Article (500-1200 words)`);
-      logger.info(`[HTTP] Stage 2: Article → SEO + Social Media Metadata`);
-      logger.info(`[HTTP] Using Vertex AI gs:// URIs (EU-compliant)`);
+      // Process with OpenAI
+      logger.info(`[HTTP] Step 4: Processing with OpenAI API`);
 
       // Update progress: Article generation starting
       await podcastRef.update({
@@ -175,7 +176,7 @@ export const processPodcastHttp = onRequest(
         processingStageUpdatedAt: FieldValue.serverTimestamp(),
       });
 
-      const article = await processAudioTwoStage(
+      const article = await processAudioWithOpenAI(
         storagePath,
         mimeType,
         podcastData.duration

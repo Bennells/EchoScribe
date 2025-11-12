@@ -137,6 +137,23 @@ async function transcribeWithStreaming(
   const readStream = file.createReadStream();
   const writeStream = fs.createWriteStream(tmpFilePath);
 
+  // Track download progress
+  let downloadedBytes = 0;
+  let lastLoggedMB = 0;
+
+  readStream.on('data', (chunk: Buffer) => {
+    downloadedBytes += chunk.length;
+    const currentMB = Math.floor(downloadedBytes / (1024 * 1024));
+
+    // Log every 1MB
+    if (currentMB > lastLoggedMB) {
+      const elapsedSec = (Date.now() - downloadStart) / 1000;
+      const speedMBps = (downloadedBytes / (1024 * 1024)) / elapsedSec;
+      logger.info(`[GPT-4o-transcribe] Download progress: ${currentMB} MB / ${fileSizeMB.toFixed(2)} MB (${speedMBps.toFixed(2)} MB/s)`);
+      lastLoggedMB = currentMB;
+    }
+  });
+
   await new Promise<void>((resolve, reject) => {
     readStream.pipe(writeStream);
     writeStream.on('finish', resolve);
@@ -145,7 +162,8 @@ async function transcribeWithStreaming(
   });
 
   const downloadDuration = ((Date.now() - downloadStart) / 1000).toFixed(2);
-  logger.info(`[GPT-4o-transcribe] ✅ Download complete in ${downloadDuration}s (${fileSizeMB.toFixed(2)} MB)`);
+  const avgSpeedMBps = (fileSizeMB / parseFloat(downloadDuration)).toFixed(2);
+  logger.info(`[GPT-4o-transcribe] ✅ Download complete in ${downloadDuration}s (${fileSizeMB.toFixed(2)} MB @ ${avgSpeedMBps} MB/s)`);
 
   try {
     // Get OpenAI client
