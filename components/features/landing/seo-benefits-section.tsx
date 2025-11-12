@@ -9,7 +9,7 @@ const benefits = [
   },
   {
     icon: Users,
-    title: "Mehr Hörer",
+    title: "Mehr Hörer*innen",
     description:
       "Menschen finden Ihre Podcasts über Google-Suche – erschließen Sie neue Zielgruppen.",
   },
@@ -38,10 +38,10 @@ export function SeoBenefitsSection() {
             <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
               SEO-optimierte Artikel
             </span>{" "}
-            für Podcaster wichtig sind
+            für Podcaster*innen wichtig sind
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Die meisten Hörer finden neue Podcasts über Google, nicht über Podcast-Apps.
+            Die meisten Hörer*innen finden neue Podcasts über Google, nicht über Podcast-Apps.
             Mit SEO-optimierten Artikeln erschließen Sie diese riesige Zielgruppe.
           </p>
         </div>
@@ -70,7 +70,7 @@ export function SeoBenefitsSection() {
         {/* Stats or Additional Info */}
         <div className="mt-16 bg-gradient-to-r from-blue-600 to-violet-600 rounded-2xl p-8 md:p-12 text-white text-center">
           <h3 className="text-3xl md:text-4xl font-bold mb-4">
-            Die meisten Podcast-Hörer
+            Die meisten Podcast-Hörer*innen
           </h3>
           <p className="text-xl md:text-2xl opacity-90 max-w-2xl mx-auto">
             suchen zuerst auf Google nach Podcasts zu ihren Interessen.

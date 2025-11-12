@@ -29,7 +29,7 @@ export function HeroSection() {
             {/* Subheadline */}
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed">
               Verwandeln Sie Ihre Podcast-Episoden automatisch in SEO-Artikel und Social Media Posts.
-              Erreichen Sie mehr Hörer auf allen Kanälen.
+              Erreichen Sie mehr Hörer*innen auf allen Kanälen.
             </p>
 
             {LAUNCH_SPECIAL_MODE && (

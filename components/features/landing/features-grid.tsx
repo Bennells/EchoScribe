@@ -14,7 +14,7 @@ const features = [
     icon: Search,
     title: "SEO-Optimierung",
     description:
-      "Meta-Tags, Keywords und OpenGraph für Top-Rankings. Lassen Sie sich von mehr Hörern auf Google finden.",
+      "Meta-Tags, Keywords und OpenGraph für Top-Rankings. Lassen Sie sich von mehr Hörer*innen auf Google finden.",
   },
   {
     icon: Mic,

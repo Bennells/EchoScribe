@@ -72,7 +72,7 @@ export default function PrivacyPage() {
             <li>Wie lange Ihre Daten gespeichert werden</li>
           </ul>
           <p className="mt-4">
-            <strong>So nutzen Sie Ihr Auskunftsrecht:</strong> Als registrierter Nutzer können Sie
+            <strong>So nutzen Sie Ihr Auskunftsrecht:</strong> Als registrierte*r Nutzer*in können Sie
             jederzeit in Ihren{" "}
             <Link href="/dashboard/settings/my-data" className="underline text-primary hover:text-primary/80">
               Kontoeinstellungen unter &quot;Meine Daten&quot;

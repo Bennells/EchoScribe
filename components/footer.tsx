@@ -39,7 +39,7 @@ export function Footer() {
               Impressum
             </Link>
             <a
-              href="mailto:support@echoscribe.com"
+              href="mailto:info@echoscribe.de"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               Kontakt

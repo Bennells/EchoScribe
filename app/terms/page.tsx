@@ -91,8 +91,8 @@ export default function TermsPage() {
           <h2 className="text-2xl font-semibold mt-8 mb-4">5. Haftung</h2>
           <p>
             Die generierten Artikel werden automatisch durch KI erstellt. Wir übernehmen keine
-            Garantie für die Richtigkeit, Vollständigkeit oder Qualität der Ergebnisse. Der Nutzer
-            ist selbst für die Überprüfung und Verwendung der Artikel verantwortlich.
+            Garantie für die Richtigkeit, Vollständigkeit oder Qualität der Ergebnisse. Nutzer*innen
+            sind selbst für die Überprüfung und Verwendung der Artikel verantwortlich.
           </p>
         </section>
 
@@ -110,7 +110,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-2xl font-semibold mt-8 mb-4">7. Kündigung</h2>
           <p>
-            Nutzer können ihr Konto jederzeit in den Einstellungen löschen. Bei bezahlten Abos
+            Nutzer*innen können ihr Konto jederzeit in den Einstellungen löschen. Bei bezahlten Abos
             endet die Leistung mit dem Ende der Abrechnungsperiode.
           </p>
         </section>
@@ -118,7 +118,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-2xl font-semibold mt-8 mb-4">8. Änderungen der AGB</h2>
           <p>
-            Wir behalten uns vor, diese AGB jederzeit zu ändern. Nutzer werden über Änderungen per
+            Wir behalten uns vor, diese AGB jederzeit zu ändern. Nutzer*innen werden über Änderungen per
             E-Mail informiert.
           </p>
         </section>
