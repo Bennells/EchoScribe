@@ -3,9 +3,17 @@
  * Enhanced version with explicit structure and length requirements
  */
 export const AUDIO_TO_TEASER_ARTICLE_PROMPT = `
-Erstelle einen SEO-optimierten Teaser-Artikel zum Podcast.
+⚠️⚠️⚠️ **KRITISCHE WARNUNG - LIES DIES ZUERST!** ⚠️⚠️⚠️
 
-🚨 **ABSOLUTE PRIORITÄT: MINDESTENS 600 WÖRTER!** 🚨
+🚨 **ABSOLUTE PRIORITÄT: MINDESTENS 600 WÖRTER - NICHT VERHANDELBAR!** 🚨
+
+**DIESE ANFORDERUNG IST ZWINGEND:**
+- Wenn du WENIGER als 600 Wörter schreibst → Wird ABGELEHNT und muss neu gemacht werden
+- Das kostet zusätzliche Tokens und Verarbeitungszeit
+- Schreibe lieber 700-900 Wörter, um sicher zu sein!
+- ZÄHLE deine Wörter während des Schreibens mit!
+
+Erstelle einen SEO-optimierten Teaser-Artikel zum Podcast.
 
 **KRITISCH: Vollständiger, ausführlicher Artikel erforderlich!**
 Dies ist KEIN kurzer Teaser, sondern ein VOLLSTÄNDIGER, AUSFÜHRLICHER Artikel.
@@ -25,6 +33,33 @@ Der Artikel MUSS komplett sein - keine Abbrüche, keine Verkürzungen, keine unv
 ✓ Der Artikel endet mit einem kompletten Satz + Satzzeichen
 
 **PFLICHT-STRUKTUR (ZIEL: 600-1000 Wörter GESAMT):**
+
+🔥 **MARKDOWN-SYNTAX BEISPIEL - GENAU SO FORMATIEREN:**
+
+BEISPIEL:
+# Haupttitel des Artikels
+
+Einleitungsparagraph mit mehreren Sätzen...
+
+Zweiter Paragraph der Einleitung...
+
+## Erstes Hauptthema
+
+Erster Paragraph zum Thema...
+
+Zweiter Paragraph mit mehr Details...
+
+## Zweites Hauptthema
+
+Content hier...
+
+## Drittes Hauptthema
+
+Content hier...
+
+## Fazit
+
+Abschluss...
 
 📊 **WORT-ZÄHLER - Verfolge deinen Fortschritt:**
 - Einleitung: ~150-200 Wörter (Zwischenstand: 150-200)
@@ -85,10 +120,18 @@ Der Artikel MUSS komplett sein - keine Abbrüche, keine Verkürzungen, keine unv
 - ✅ Keine Ein-Satz- oder Zwei-Satz-Absätze - NUR vollständige Absätze
 - ✅ Artikel MUSS mit einem vollständigen Satz und Satzzeichen enden (. oder ! oder ?)
 - ✅ Mindestens 3 H2-Überschriften (optimal 4-5)
-- ✅ Markdown-Formatierung verwenden (# für H1, ## für H2)
+- ✅ **KRITISCH: Markdown-Formatierung korrekt verwenden:**
+  - **Haupttitel: GENAU EIN # gefolgt von Leerzeichen**
+    Beispiel: "# Kalk und Welk: Eine Achterbahnfahrt"
+  - **Überschriften: GENAU ZWEI ## gefolgt von Leerzeichen**
+    Beispiel: "## Zwischen Tegernsee-Idylle und Zehenbruch"
+  - **Absätze: Leere Zeilen zwischen Absätzen**
+  - **NICHT schreiben:** "Überschrift ohne ##" oder "# # mit Leerzeichen"
+  - **RICHTIG:** "## Überschrift" (zwei Rauten, dann Leerzeichen, dann Text)
 - ❌ NIEMALS mittendrin aufhören - Der Artikel muss VOLLSTÄNDIG sein
 - ❌ NIEMALS Sätze unvollständig lassen
 - ❌ NIEMALS unter 600 Wörter bleiben - DAS IST DAS MINIMUM!
+- ❌ NIEMALS Überschriften ohne ## schreiben!
 
 **AUSGABE-FORMAT:**
 JSON mit folgenden Feldern:

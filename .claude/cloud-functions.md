@@ -2,10 +2,35 @@
 
 ## Overview
 
+**Current Architecture:** HTTP Function-based Processing (No Cloud Tasks)
+
 All Cloud Functions use automatic region configuration based on environment:
 - **TEST** (`echoscribe-test`): `europe-west1` (Multi-Region EU)
 - **PROD** (`echoscribe-prod`): `europe-west3` (Deutschland)
-- **Service Account:** `436441931185-compute@developer.gserviceaccount.com` (TEST)
+- **Service Accounts:**
+  - TEST: `436441931185-compute@developer.gserviceaccount.com`
+  - PROD: `673230184143-compute@developer.gserviceaccount.com`
+
+### Architecture Change (November 2024)
+
+**Old Architecture (Deprecated):**
+- ❌ Cloud Tasks queue for job management
+- ❌ Separate task handler function
+- ❌ Complex queue configuration
+- ❌ Potential zombie task issues
+
+**New Architecture (Current):**
+- ✅ Direct HTTP function invocation
+- ✅ Service-to-service authentication
+- ✅ Zombie prevention built-in
+- ✅ Simpler deployment and maintenance
+- ✅ Lower costs (no Cloud Tasks overhead)
+- ✅ Atomic quota management with transactions
+
+**Functions:**
+1. `onPodcastUploaded` - Storage trigger (handles upload + quota)
+2. `processPodcastHttp` - HTTP function (processes audio with Vertex AI)
+3. `cleanupStuckPodcasts` - Scheduled maintenance
 
 ## Region Configuration
 
@@ -135,163 +160,212 @@ gcloud run services list --project=echoscribe-prod \
 
 ---
 
-## Podcast Processing Flow (Cloud Tasks)
+## Podcast Processing Flow (HTTP Function)
 
-**Architecture:** Storage Trigger → Cloud Tasks Queue → Task Handler → Gemini Processing
+**Architecture:** Storage Trigger → HTTP Cloud Function → Vertex AI Processing
 
 ```
 1. User uploads audio file
    ↓
 2. onPodcastUploaded (Storage Trigger)
+   - Validates audio duration server-side using music-metadata
+   - Atomic quota reservation with transaction
    - Creates Firestore document (status: "queued")
-   - Enqueues Cloud Task
    - Returns immediately (~1-2 seconds)
    ↓
-3. Cloud Tasks Queue (processPodcastTask)
-   - Picks up task from queue
-   - Max 3 concurrent tasks
-   - Automatic retry (5 attempts with exponential backoff)
+3. Calls processPodcastHttp (HTTP Function)
+   - Service-to-service authentication via Google Auth (ID token)
+   - POST request with podcastId, storagePath, userId
    ↓
-4. processPodcastTask (Task Handler)
+4. processPodcastHttp (Background Processing)
+   - Zombie prevention: Checks if podcast still exists
+   - Atomic status check (prevents duplicate processing)
+   - Returns 202 Accepted immediately (storage trigger completes)
+   - Continues processing in background
    - Downloads audio from Storage
-   - Updates status to "processing"
-   - Sends to Gemini API (2-10 minutes)
-   - Generates blog article
-   - Saves to Firestore
-   - Updates status to "completed"
+   - Two-stage Vertex AI pipeline:
+     * Stage 1: Audio → Teaser Article (500-1200 words)
+     * Stage 2: Article → SEO + Social Media Metadata
+   - Saves article to Firestore
+   - Updates podcast status to "completed"
+   - On error: Refunds quota automatically
 ```
+
+**Key Benefits:**
+- ✅ **No Zombie Tasks:** Deleted podcasts are detected before processing starts
+- ✅ **Simpler Architecture:** Direct HTTP invocation, no persistent queue management
+- ✅ **Automatic Retry:** Built-in HTTP retry on 500 errors
+- ✅ **Lower Costs:** No Cloud Tasks quota or management overhead
+- ✅ **Quota Safety:** Atomic reservation + automatic refund on errors
+- ✅ **Race Condition Protection:** Transaction-based quota checks
 
 ## Key Implementation Details
 
-### Task Queue Configuration
+### HTTP Function Invocation
 
-**File:** `functions/src/lib/taskQueue.ts`
+**File:** `functions/src/triggers/onPodcastUploaded.ts`
 
 ```typescript
-// IMPORTANT: For non-default regions (europe-west1), use this format:
-const queuePath = "locations/europe-west1/functions/processPodcastTask";
-const functionUri = "https://europe-west1-echoscribe-test.cloudfunctions.net/processPodcastTask";
+// Get the HTTP function URL from config (automatically adjusts for TEST/PROD)
+const httpFunctionUrl = config.functions.processPodcastHttp.uri;
+// TEST: https://europe-west1-echoscribe-test.cloudfunctions.net/processPodcastHttp
+// PROD: https://europe-west3-echoscribe-prod.cloudfunctions.net/processPodcastHttp
 
-const queue = getFunctions().taskQueue(queuePath);
+// Get authenticated client for service-to-service communication
+// This automatically generates an ID token with the correct audience
+const client = await auth.getIdTokenClient(httpFunctionUrl);
 
-await queue.enqueue(
-  { podcastId, storagePath },
-  {
-    scheduleDelaySeconds: 0,
-    dispatchDeadlineSeconds: 30 * 60,  // Max 30 minutes (API limit)
-    uri: functionUri,  // REQUIRED for Cloud Tasks routing
-  }
-);
+// Make authenticated request to HTTP function
+const response = await client.request({
+  url: httpFunctionUrl,
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  data: {
+    podcastId,
+    storagePath: filePath,
+    userId,
+  },
+});
 ```
 
 ### Critical Requirements
 
-1. ✅ **Queue path format:** `locations/{region}/functions/{functionName}`
-   - For non-default regions (not `us-central1`), must use full path
-   - Cannot use simple function name for custom regions
+1. ✅ **Service-to-Service Authentication**
+   - Uses Google Auth Library (`GoogleAuth` from `google-auth-library`)
+   - Automatically generates ID tokens for authenticated requests
+   - No manual token management needed
 
-2. ✅ **URI option required:** Must include `uri` in enqueue options
-   - Tells Cloud Tasks where to send the HTTP request
-   - Must be the full Cloud Functions URL
+2. ✅ **HTTP Function Configuration**
+   - **Timeout:** 3600 seconds (60 minutes)
+   - **Memory:** 4 GiB (handles large audio files up to 500 MB)
+   - **CPU:** 2 vCPUs (faster processing)
+   - **Max Instances:** 3 (limits concurrent processing)
 
-3. ✅ **Dispatch deadline:** Max 1800 seconds (30 minutes)
-   - API limit enforced by Firebase Admin SDK
-   - Task handler can run longer (1 hour), but dispatch must complete within 30 min
+3. ✅ **Atomic Status Updates**
+   - Uses Firestore transactions to prevent race conditions
+   - Checks if podcast is already processing or completed
+   - Prevents duplicate processing of same podcast
 
-4. ✅ **Task handler timeout:** 3600 seconds (1 hour)
-   - Configured in `processPodcastTask` function options
-   - Sufficient time for large audio file processing
+4. ✅ **Immediate Response Pattern**
+   - Returns 202 Accepted immediately after status update
+   - Continues processing in background
+   - Storage trigger completes quickly (~2-3 seconds)
 
-5. ✅ **Memory allocation:** 1 GiB
-   - Required for processing large audio files (up to 20 MB)
-   - Base64 encoding increases size by ~33%
+5. ✅ **Zombie Prevention**
+   - Checks if podcast document exists before processing
+   - Returns 200 OK if podcast deleted (prevents retries)
+   - Saves costs by not processing deleted uploads
 
 ## Function Configuration
 
 ### onPodcastUploaded (Storage Trigger)
 
 **Type:** Storage Trigger (`onObjectFinalized`)
-**Timeout:** ~60 seconds (default)
-**Memory:** 256 MB (default)
-**Trigger:** File upload to `podcasts/{userId}/{filename}` path
+**Timeout:** Default (540 seconds)
+**Memory:** 2 GiB (handles metadata extraction for large files)
+**Trigger:** File upload to `podcasts/{userId}/{timestamp}_{duration}min_{filename}` path
+**Region:** Automatic (TEST: europe-west1, PROD: europe-west3)
 
 **Responsibilities:**
-1. Extract userId and filename from storage path
-2. Create Firestore document with status "queued"
-3. Enqueue Cloud Task for background processing
-4. Return immediately (fast response)
+1. **Duration Validation:** Server-side validation using `music-metadata` library
+   - Extracts actual audio duration from file metadata
+   - Compares with client-reported duration
+   - Logs warnings for >5% discrepancy, errors for >15%
+2. **Atomic Quota Reservation:** Transaction-based quota check
+   - Checks if user has sufficient quota
+   - Reserves quota immediately (prevents race conditions)
+   - Creates podcast document with "queued" status
+   - If quota exceeded: Deletes file + creates "quota_exceeded" document
+3. **Post-Transaction Verification:** Catches race conditions
+   - Verifies quota still available after transaction
+   - Rollbacks and refunds if quota exceeded by concurrent uploads
+4. **HTTP Function Invocation:** Calls `processPodcastHttp` with authentication
+   - Uses Google Auth for service-to-service communication
+   - Returns immediately (fast response ~1-2 seconds)
 
 **File:** `functions/src/triggers/onPodcastUploaded.ts`
 
-### processPodcastTask (Task Handler)
+### processPodcastHttp (HTTP Function)
 
-**Type:** Cloud Task Handler (`onTaskDispatched`)
-**Timeout:** 3600 seconds (1 hour)
-**Memory:** 1 GiB
-**Region:** europe-west1
+**Type:** HTTP Cloud Function (`onRequest`)
+**Timeout:** 3600 seconds (60 minutes, supports up to 4-hour podcasts)
+**Memory:** 4 GiB (handles large audio files up to 500 MB)
+**CPU:** 2 vCPUs (faster processing)
+**Max Instances:** 3 (prevents overwhelming Vertex AI)
+**Region:** Automatic (TEST: europe-west1, PROD: europe-west3)
 
 **Responsibilities:**
-1. Update Firestore status to "processing"
-2. Download audio file from Storage
-3. Send to Gemini API for transcription and article generation
-4. Parse and validate Gemini response
-5. Save article to Firestore
-6. Update podcast status to "completed"
-7. Increment user quota
+1. **Zombie Prevention:** Checks if podcast document exists
+2. **Atomic Status Check:** Transaction ensures not already processing/completed
+3. **Immediate Response:** Returns 202 Accepted after status update
+4. **Background Processing:**
+   - Verifies audio file exists in Storage
+   - Downloads audio file
+   - Processes with Vertex AI (Two-Stage Pipeline):
+     * Stage 1: Audio → Teaser Article (500-1200 words)
+     * Stage 2: Article → SEO + Social Media Metadata
+   - Saves article to Firestore
+   - Updates podcast status to "completed"
+5. **Error Handling:**
+   - Refunds quota automatically on errors
+   - Updates podcast status to "error"
+   - Logs detailed error information
 
-**File:** `functions/src/tasks/processPodcastTask.ts`
+**File:** `functions/src/http/processPodcastHttp.ts`
 
 **Error Handling:**
-- Automatic retry up to 5 attempts
-- Exponential backoff: 60s → 120s → 240s → 3600s
-- Updates podcast status to "error" on final failure
+- Automatic HTTP retry on 500 errors (built-in)
+- Quota refunded on all errors
+- Detailed error logging with stack traces
+- Podcast status updated to "error" with details
 
-## Cloud Tasks Queue Configuration
+## Concurrency & Rate Limiting
 
-**Queue Name:** `processPodcastTask`
-**Location:** `europe-west1`
+**HTTP Function Configuration:**
+- **Max Instances:** 3 (configured in `processPodcastHttp` options)
+  - Prevents overwhelming Vertex AI
+  - Limits concurrent audio processing
+  - Prevents storage/memory issues from parallel downloads
 
-**Settings:**
-- **Max concurrent dispatches:** 3
-  - Prevents overwhelming Gemini API
-  - Prevents storage/memory issues from too many parallel downloads
-
-- **Max attempts:** 5
-  - Automatic retry on failure
-  - Handles transient Gemini API issues
-
-- **Backoff configuration:**
-  - **Min backoff:** 60 seconds
-  - **Max backoff:** 3600 seconds (1 hour)
-  - **Max doublings:** 3
-  - **Pattern:** 1min → 2min → 4min → 1hr → 1hr
-
-**View queue:**
-```bash
-gcloud tasks queues describe processPodcastTask \
-  --location=europe-west1 \
-  --project=echoscribe-test
-```
+**Benefits over Cloud Tasks:**
+- ✅ Simpler configuration (no separate queue to manage)
+- ✅ Built-in HTTP retry on transient errors
+- ✅ No queue management costs
+- ✅ Direct invocation reduces latency
 
 ## IAM Permissions Required
 
-**Service Account:** `436441931185-compute@developer.gserviceaccount.com`
+**Service Accounts:**
+- **TEST:** `436441931185-compute@developer.gserviceaccount.com`
+- **PROD:** `673230184143-compute@developer.gserviceaccount.com`
 
 **Required Roles:**
 
 | Role | Purpose |
 |------|---------|
-| `roles/cloudtasks.enqueuer` | Enqueue tasks to Cloud Tasks queue |
-| `roles/cloudtasks.taskRunner` | Execute tasks from queue |
 | `roles/datastore.user` | Read/write Firestore documents |
-| `roles/secretmanager.secretAccessor` | Access GEMINI_API_KEY secret |
 | `roles/storage.objectViewer` | Read audio files from Storage |
+| `roles/aiplatform.user` | Access Vertex AI Gemini API |
+| `roles/run.invoker` | Invoke HTTP Cloud Functions (service-to-service) |
+
+**No Longer Required (removed Cloud Tasks):**
+- ~~`roles/cloudtasks.enqueuer`~~ - No queue management needed
+- ~~`roles/cloudtasks.taskRunner`~~ - No task execution needed
 
 **Verify permissions:**
 ```bash
+# TEST
 gcloud projects get-iam-policy echoscribe-test \
   --flatten="bindings[].members" \
   --filter="bindings.members:436441931185-compute@developer.gserviceaccount.com" \
+  --format="table(bindings.role)"
+
+# PROD
+gcloud projects get-iam-policy echoscribe-prod \
+  --flatten="bindings[].members" \
+  --filter="bindings.members:673230184143-compute@developer.gserviceaccount.com" \
   --format="table(bindings.role)"
 ```
 
@@ -299,24 +373,39 @@ gcloud projects get-iam-policy echoscribe-test \
 
 ### Deploy all functions:
 ```bash
+# TEST
 firebase use test
+firebase deploy --only functions
+
+# PROD
+firebase use prod
 firebase deploy --only functions
 ```
 
 ### Deploy specific function:
 ```bash
+# Deploy storage trigger
 firebase deploy --only functions:onPodcastUploaded
-firebase deploy --only functions:processPodcastTask
+
+# Deploy HTTP processor
+firebase deploy --only functions:processPodcastHttp
 ```
 
 ### View logs:
 ```bash
-# All functions
+# All functions (Firebase CLI)
 firebase functions:log --project echoscribe-test
 
-# Specific function
+# Specific function logs (gcloud)
+# Storage trigger
 gcloud logging read "resource.type=cloud_function AND resource.labels.function_name=onPodcastUploaded" \
   --limit=50 \
+  --project=echoscribe-test
+
+# HTTP function (Cloud Run revision)
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=processpodcasthttp" \
+  --limit=50 \
+  --format=json \
   --project=echoscribe-test
 ```
 
@@ -324,93 +413,108 @@ gcloud logging read "resource.type=cloud_function AND resource.labels.function_n
 
 ### Common Issues & Solutions
 
-#### ✅ SOLVED: "Queue does not exist" error
+#### Podcast stuck in "queued" status
 
-**Symptom:**
-```
-FirebaseFunctionsError: Queue does not exist. If you just created the queue,
-wait at least a minute for the queue to initialize.
-```
+**Symptom:** Podcast uploaded successfully, status shows "queued", but never progresses to "processing"
 
-**Cause:** Wrong queue reference format
+**Possible Causes:**
+1. HTTP function not invoked (check storage trigger logs)
+2. Authentication failure (service-to-service auth issue)
+3. HTTP function invocation failed (check error logs)
 
-**Solution:** Use qualified resource name format:
-```typescript
-// ❌ Wrong (for non-default regions)
-const queue = getFunctions().taskQueue("processPodcastTask");
+**Solution:**
+```bash
+# Check storage trigger logs
+gcloud logging read "resource.labels.function_name=onPodcastUploaded AND severity>=WARNING" \
+  --limit=20 \
+  --project=echoscribe-test
 
-// ✅ Correct
-const queue = getFunctions().taskQueue("locations/europe-west1/functions/processPodcastTask");
-```
+# Check if HTTP function was called
+gcloud logging read "resource.labels.service_name=processpodcasthttp" \
+  --limit=20 \
+  --project=echoscribe-test
 
----
-
-#### ✅ SOLVED: "Function name must be a single string or a qualified resource name"
-
-**Symptom:**
-```
-FirebaseFunctionsError: Function name must be a single string or a qualified resource name
-```
-
-**Cause:** Using Extension URI instead of qualified resource name
-
-**Solution:** Use `locations/{region}/functions/{name}` format, NOT the HTTPS URL:
-```typescript
-// ❌ Wrong
-const queue = getFunctions().taskQueue(
-  "https://europe-west1-echoscribe-test.cloudfunctions.net/processPodcastTask"
-);
-
-// ✅ Correct
-const queue = getFunctions().taskQueue(
-  "locations/europe-west1/functions/processPodcastTask"
-);
+# Check for authentication errors
+gcloud logging read "textPayload=~'authentication' OR textPayload=~'403'" \
+  --limit=20 \
+  --project=echoscribe-test
 ```
 
 ---
 
-#### ✅ SOLVED: "dispatchDeadlineSeconds must be in the range of 15s to 30 mins"
+#### HTTP function returns 403 Forbidden
 
-**Symptom:**
+**Symptom:** Storage trigger fails with "403 Forbidden" when calling HTTP function
+
+**Cause:** Missing `roles/run.invoker` permission for service account
+
+**Solution:**
+```bash
+# Grant run.invoker role to compute service account
+gcloud projects add-iam-policy-binding echoscribe-test \
+  --member="serviceAccount:436441931185-compute@developer.gserviceaccount.com" \
+  --role="roles/run.invoker" \
+  --condition=None
 ```
-dispatchDeadlineSeconds must be a non-negative duration in seconds and
-must be in the range of 15s to 30 mins.
-```
-
-**Cause:** Set to 3600 seconds (1 hour), but API max is 1800 seconds (30 minutes)
-
-**Solution:** Use 30 minutes max for dispatch deadline:
-```typescript
-await queue.enqueue(data, {
-  dispatchDeadlineSeconds: 30 * 60,  // ✅ 30 minutes (max)
-  // NOT: 60 * 60  // ❌ 1 hour (exceeds limit)
-});
-```
-
-**Note:** Task handler can still run for 1 hour; this limit is only for the dispatch/enqueue operation.
 
 ---
 
-#### ✅ SOLVED: Gemini not processing uploaded files
+#### Vertex AI returns "Permission denied" error
 
-**Symptom:** Files upload successfully, Firestore document created with status "queued", but never progresses to "processing"
+**Symptom:** Processing fails with Vertex AI permission errors in logs
 
-**Root Cause:** Combination of issues:
-1. Incorrect queue path format for non-default region
-2. Missing `uri` option in enqueue call
-3. Task not being dispatched to Cloud Tasks
+**Cause:** Missing `roles/aiplatform.user` permission for service account
 
-**Solution:** Use correct format with both requirements:
+**Solution:**
+```bash
+# Grant aiplatform.user role to compute service account
+gcloud projects add-iam-policy-binding echoscribe-test \
+  --member="serviceAccount:436441931185-compute@developer.gserviceaccount.com" \
+  --role="roles/aiplatform.user" \
+  --condition=None
+```
+
+---
+
+#### Processing fails with "Quota not refunded" error
+
+**Symptom:** Processing fails but quota is not returned to user
+
+**Cause:** Error in quota refund logic or transaction failure
+
+**Solution:** The system uses `safeRefundQuota()` which prevents negative quota. Check logs:
+```bash
+# Check for quota refund attempts
+gcloud logging read "textPayload=~'Refunding quota' OR textPayload=~'safeRefundQuota'" \
+  --limit=20 \
+  --project=echoscribe-test
+```
+
+**Manual quota adjustment (if needed):**
 ```typescript
-const queuePath = "locations/europe-west1/functions/processPodcastTask";
-const functionUri = "https://europe-west1-echoscribe-test.cloudfunctions.net/processPodcastTask";
+// In Firebase Console > Firestore
+// Update user document: quota.used -= <duration_in_minutes>
+```
 
-const queue = getFunctions().taskQueue(queuePath);
+---
 
-await queue.enqueue(data, {
-  uri: functionUri,  // ← REQUIRED!
-  dispatchDeadlineSeconds: 30 * 60,
-});
+#### Zombie tasks processing deleted podcasts
+
+**Symptom:** Processing continues even after user deleted the podcast
+
+**Status:** ✅ SOLVED in current architecture
+
+**How it's prevented:**
+1. `processPodcastHttp` checks if podcast exists before processing
+2. Returns 200 OK if podcast deleted (prevents retries)
+3. Transaction checks ensure atomic status updates
+
+**Verify:**
+```bash
+# Check for zombie prevention logs
+gcloud logging read "textPayload=~'zombie prevention' OR textPayload=~'not found - skipping'" \
+  --limit=20 \
+  --project=echoscribe-test
 ```
 
 ---

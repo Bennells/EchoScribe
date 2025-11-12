@@ -199,12 +199,17 @@ export function validateArticleCompleteness(markdown: string, stage: string): vo
   // Structure analysis
   const hasH1 = markdown.includes('# ');
   const hasH2 = markdown.includes('## ');
+
+  // Count H2 headings - article needs at least 3
+  const h2Matches = markdown.match(/^## .+$/gm);
+  const h2Count = h2Matches ? h2Matches.length : 0;
+
   const hasFazit = /##\s*(Fazit|Zusammenfassung|Schluss|Abschluss)/i.test(markdown);
   const lastChar = markdown.trim().slice(-1);
   const endsWithPunctuation = ['.', '!', '?', ')'].includes(lastChar);
 
   logger.info(`[${stage}]    - Has H1 heading: ${hasH1 ? '✅' : '❌'}`);
-  logger.info(`[${stage}]    - Has H2 sections: ${hasH2 ? '✅' : '❌'}`);
+  logger.info(`[${stage}]    - H2 sections count: ${h2Count} ${h2Count >= 3 ? '✅' : '❌ (need at least 3)'}`);
   logger.info(`[${stage}]    - Has conclusion (Fazit): ${hasFazit ? '✅' : '⚠️'}`);
   logger.info(`[${stage}]    - Ends with punctuation: ${endsWithPunctuation ? '✅' : `❌ (last char: '${lastChar}')`}`);
 
@@ -214,9 +219,12 @@ export function validateArticleCompleteness(markdown: string, stage: string): vo
     throw new Error(`[${stage}] Article validation failed: No H1 heading found`);
   }
 
-  if (!hasH2) {
-    logger.error(`[${stage}] ❌ Article missing H2 sections`);
-    throw new Error(`[${stage}] Article validation failed: No H2 sections found - article needs proper structure`);
+  if (!hasH2 || h2Count < 3) {
+    logger.error(`[${stage}] ❌ Article has insufficient H2 sections: ${h2Count} (minimum: 3)`);
+    if (h2Matches) {
+      logger.error(`[${stage}] Found H2 headings: ${h2Matches.join(', ')}`);
+    }
+    throw new Error(`[${stage}] Article validation failed: Only ${h2Count} H2 sections found (minimum: 3 required)`);
   }
 
   // BLOCKING: Check for proper ending (not truncated mid-sentence)

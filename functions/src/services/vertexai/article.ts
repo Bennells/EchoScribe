@@ -38,6 +38,7 @@ export async function generateArticleDirectlyFromAudio(
 }> {
   const MAX_ATTEMPTS = 2; // Try up to 2 times if article is too short
   let lastError: Error | null = null;
+  let previousArticle: { markdown: string; wordCount: number } | undefined;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
@@ -45,7 +46,7 @@ export async function generateArticleDirectlyFromAudio(
       logger.info(`[Direct Audio → Article] Starting article generation (Attempt ${attempt}/${MAX_ATTEMPTS})`);
       logger.info("=".repeat(80));
 
-      const result = await generateArticleAttempt(storagePath, mimeType, durationMinutes, attempt);
+      const result = await generateArticleAttempt(storagePath, mimeType, durationMinutes, attempt, previousArticle);
 
       // Success! Return the result
       if (attempt > 1) {
@@ -64,7 +65,22 @@ export async function generateArticleDirectlyFromAudio(
 
       if (isWordCountError && attempt < MAX_ATTEMPTS) {
         logger.warn(`[Direct] ⚠️ Attempt ${attempt} produced article that's too short`);
-        logger.warn(`[Direct] Retrying with stronger prompt (attempt ${attempt + 1}/${MAX_ATTEMPTS})...`);
+
+        // Extract word count from error message if possible
+        const wordCountMatch = typedError.message.match(/(\d+)\s+words/);
+        const actualWordCount = wordCountMatch ? parseInt(wordCountMatch[1]) : 0;
+
+        // Try to get the article from the error context
+        // We'll need to capture this in the attempt function
+        if ((error as any).articleData) {
+          previousArticle = {
+            markdown: (error as any).articleData.markdown,
+            wordCount: actualWordCount
+          };
+          logger.info(`[Direct] Captured previous article (${actualWordCount} words) for refinement`);
+        }
+
+        logger.warn(`[Direct] Retrying with article refinement (attempt ${attempt + 1}/${MAX_ATTEMPTS})...`);
         continue;
       }
 
@@ -84,7 +100,8 @@ async function generateArticleAttempt(
   storagePath: string,
   mimeType: string,
   durationMinutes: number | undefined,
-  attempt: number
+  attempt: number,
+  previousArticle?: { markdown: string; wordCount: number }
 ): Promise<{
   markdown: string;
   title: string;
@@ -113,7 +130,7 @@ async function generateArticleAttempt(
       properties: {
         markdown: {
           type: SchemaType.STRING,
-          description: "Complete teaser article in Markdown format. MUST be 600-1000 words. MUST include H1 title, at least 3 H2 sections, and a conclusion. MUST end with complete sentence and punctuation. NO truncation allowed."
+          description: "Complete teaser article in Markdown format. MUST be 600-1000 words. CRITICAL: MUST use proper Markdown syntax with one H1 title starting with single # (e.g., '# Titel'), and at least 3 H2 sections each starting with double ## (e.g., '## Überschrift'). Each H2 section must have multiple paragraphs. MUST end with complete sentence and punctuation. NO truncation allowed. Example structure: '# Main Title\\n\\nIntro paragraph...\\n\\n## First Topic\\n\\nParagraph 1...\\n\\nParagraph 2...\\n\\n## Second Topic\\n\\nParagraph 1...'"
         },
         title: {
           type: SchemaType.STRING,
@@ -155,45 +172,109 @@ async function generateArticleAttempt(
       },
     });
 
-    // Build stronger prompt on retry attempts
-    let promptText = AUDIO_TO_TEASER_ARTICLE_PROMPT;
+    // Build prompt and request based on whether this is a retry with previous article
+    let articleRequest;
 
-    if (attempt > 1) {
-      // On retry, add emphasis to word count requirement
-      promptText = `${AUDIO_TO_TEASER_ARTICLE_PROMPT}
+    if (attempt > 1 && previousArticle) {
+      // RETRY WITH REFINEMENT: Multi-turn conversation approach
+      logger.info(`[Direct] Using multi-turn refinement with previous article (${previousArticle.wordCount} words)`);
 
-⚠️ **KRITISCHE WARNUNG - DIES IST EIN ERNEUTER VERSUCH:**
-Der vorherige Artikel war ZU KURZ und wurde ABGELEHNT.
+      const refinementPrompt = `${AUDIO_TO_TEASER_ARTICLE_PROMPT}
 
-**DU MUSST JETZT MINDESTENS 600 WÖRTER SCHREIBEN!**
+⚠️⚠️⚠️ **KRITISCHE WARNUNG - DIES IST EIN REFINEMENT-VERSUCH** ⚠️⚠️⚠️
 
-Schreibe ausführlicher:
-- Jeder Abschnitt muss MINDESTENS 150-200 Wörter haben
-- Füge mehr Details, Beispiele und Kontext hinzu
-- Erkläre die Themen umfassender
-- Nutze vollständige Absätze, keine kurzen Stichpunkte
-- Zähle deine Wörter und stelle sicher: MINDESTENS 600!
+**DEIN VORHERIGER ARTIKEL WAR ZU KURZ:**
+- Du hast nur ${previousArticle.wordCount} Wörter geschrieben
+- Das Minimum ist 600 Wörter - du bist ${600 - previousArticle.wordCount} Wörter unter dem Minimum!
 
-Dies ist deine letzte Chance. Der Artikel MUSS komplett und lang genug sein.`;
-    }
+**HIER IST DEIN VORHERIGER ARTIKEL:**
 
-    // Build request with audio
-    const articleRequest = {
-      contents: [{
-        role: "user",
-        parts: [
+\`\`\`markdown
+${previousArticle.markdown}
+\`\`\`
+
+**AUFGABE - ERWEITERE DIESEN ARTIKEL:**
+
+1. **Behalte die guten Teile** - Der Grundaufbau und gute Inhalte können bleiben
+2. **Erweitere dünne Abschnitte** - Jeder Abschnitt braucht MINDESTENS 150-200 Wörter
+3. **Füge mehr Details hinzu:**
+   - Erweitere Erklärungen mit mehr Kontext
+   - Füge konkrete Beispiele und Zitate aus dem Podcast hinzu
+   - Vertiefe interessante Aspekte
+   - Stelle Zusammenhänge her
+4. **Füge fehlende Abschnitte hinzu** falls nötig
+5. **Stelle sicher: MINDESTENS 600 Wörter im finalen Artikel!**
+
+**WICHTIG:**
+- Dies ist KEINE Zusammenfassung - erweitere den Artikel ausführlich!
+- Behalte alle SEO-Optimierungen (Title, Meta Description, Keywords)
+- Der erweiterte Artikel muss vollständig und abgeschlossen sein
+- Zähle deine Wörter während des Schreibens!
+
+Dies ist deine LETZTE CHANCE. Der Artikel MUSS jetzt mindestens 600 Wörter haben!`;
+
+      // Multi-turn request: Show previous generation in conversation history
+      articleRequest = {
+        contents: [
           {
-            fileData: {
-              fileUri: audioUri,
-              mimeType: mimeType,
-            },
+            role: "user",
+            parts: [
+              {
+                fileData: {
+                  fileUri: audioUri,
+                  mimeType: mimeType,
+                },
+              },
+              {
+                text: AUDIO_TO_TEASER_ARTICLE_PROMPT,
+              },
+            ],
           },
           {
-            text: promptText,
+            role: "model",
+            parts: [
+              {
+                text: JSON.stringify({
+                  markdown: previousArticle.markdown,
+                  title: "(previous title)",
+                  metaDescription: "(previous meta)",
+                  keywords: ["(previous)", "keywords)"]
+                }),
+              },
+            ],
+          },
+          {
+            role: "user",
+            parts: [
+              {
+                text: refinementPrompt,
+              },
+            ],
           },
         ],
-      }],
-    };
+      };
+
+    } else {
+      // FIRST ATTEMPT or retry without previous article: Simple single-turn request
+      const promptText = AUDIO_TO_TEASER_ARTICLE_PROMPT;
+
+      articleRequest = {
+        contents: [{
+          role: "user",
+          parts: [
+            {
+              fileData: {
+                fileUri: audioUri,
+                mimeType: mimeType,
+              },
+            },
+            {
+              text: promptText,
+            },
+          ],
+        }],
+      };
+    }
 
     logger.info("[Direct] Sending audio to Gemini Flash for direct article generation (STREAMING)...");
     const startTime = Date.now();
@@ -398,8 +479,15 @@ Dies ist deine letzte Chance. Der Artikel MUSS komplett und lang genug sein.`;
       throw new Error(`[Stage 1] Missing required fields: ${missingFields.join(', ')}`);
     }
 
-    // Validate article completeness
-    validateArticleCompleteness(articleData.markdown, "Stage 1");
+    // Validate article completeness and capture article data in error if validation fails
+    try {
+      validateArticleCompleteness(articleData.markdown, "Stage 1");
+    } catch (validationError: unknown) {
+      // Attach article data to error so we can use it for retry refinement
+      const typedError = validationError instanceof Error ? validationError : new Error(String(validationError));
+      (typedError as any).articleData = articleData;
+      throw typedError;
+    }
 
     logger.info(`[Stage 1] ✅ Teaser article generation successful`);
     logger.info(`[Stage 1] Article length: ${articleData.markdown.length} characters`);

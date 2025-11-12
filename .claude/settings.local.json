@@ -226,7 +226,11 @@
       "WebSearch",
       "WebFetch(domain:firebase.google.com)",
       "Bash(git mv:*)",
-      "mcp__firebase__functions_list_functions"
+      "mcp__firebase__functions_list_functions",
+      "WebFetch(domain:firebase.blog)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" tasks queues list --location=europe-west1 --project=echoscribe-prod --format=json)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" tasks queues list --location=europe-west3 --project=echoscribe-prod --format=json)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []
