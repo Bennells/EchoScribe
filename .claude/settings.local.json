@@ -225,7 +225,8 @@
       "mcp__firebase__firebase_get_sdk_config",
       "WebSearch",
       "WebFetch(domain:firebase.google.com)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "mcp__firebase__functions_list_functions"
     ],
     "deny": [],
     "ask": []
