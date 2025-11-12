@@ -39,14 +39,29 @@ export default function TermsPage() {
           <h2 className="text-2xl font-semibold mt-8 mb-4">2. Leistungsbeschreibung</h2>
           <p>
             EchoScribe bietet einen Service zur automatischen Umwandlung von Audio-Podcasts in
-            SEO-optimierte Blog-Artikel mittels künstlicher Intelligenz (Google Gemini AI).
+            SEO-optimierte Blog-Artikel mittels künstlicher Intelligenz (OpenAI ChatGPT).
           </p>
+
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg my-4">
+            <p className="font-semibold text-yellow-900">Hinweis zur Datenverarbeitung:</p>
+            <p className="text-yellow-800 mt-2">
+              Die KI-Verarbeitung erfolgt durch OpenAI auf Servern in den USA. Alle anderen Daten
+              (Account, Dateien, Artikel) werden ausschließlich in der EU gespeichert. Details finden
+              Sie in unserer{" "}
+              <Link href="/privacy" className="underline font-semibold">
+                Datenschutzerklärung
+              </Link>
+              .
+            </p>
+          </div>
+
           <h3 className="text-xl font-semibold mt-6 mb-3">2.1 Leistungsumfang</h3>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Upload von Audio-Dateien (max. 500 MB)</li>
-            <li>Automatische Transkription und Artikel-Generierung</li>
+            <li>Upload von Audio-Dateien (max. 500 MB) mit Speicherung in der EU</li>
+            <li>Automatische Transkription und Artikel-Generierung durch OpenAI (USA)</li>
             <li>Bereitstellung in Markdown- und HTML-Format</li>
             <li>SEO-Optimierung (Meta-Descriptions, Keywords, Schema.org)</li>
+            <li>Automatische Löschung der Audio-Dateien nach 30 Tagen</li>
           </ul>
         </section>
 

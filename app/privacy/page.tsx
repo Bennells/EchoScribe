@@ -3,7 +3,7 @@ import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
   title: "Datenschutzerklärung - EchoScribe",
-  description: "Datenschutzerklärung für EchoScribe. DSGVO-konforme Verarbeitung Ihrer Podcast-Daten auf deutschen Servern.",
+  description: "Datenschutzerklärung für EchoScribe. EU-Hosting mit KI-Verarbeitung durch OpenAI (USA).",
   path: "/privacy",
   noIndex: true,
 });
@@ -37,20 +37,57 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">3. Firebase & Google Cloud</h2>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">3. Hosting und Infrastruktur (EU)</h2>
           <p>
             Diese Website nutzt Firebase von Google für Authentifizierung, Datenbank und
-            Datei-Speicherung. Ihre Daten werden auf Servern von Google in der EU gespeichert.
+            Datei-Speicherung. <strong>Alle Ihre Daten (Account-Daten, Audio-Dateien, generierte
+            Artikel) werden ausschließlich auf Servern von Google in der EU gespeichert.</strong>
           </p>
+          <p className="mt-2">
+            Verwendete Services mit EU-Hosting:
+          </p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>Firebase Authentication (Benutzer-Authentifizierung)</li>
+            <li>Cloud Firestore (Datenbank)</li>
+            <li>Cloud Storage (Datei-Speicherung)</li>
+            <li>Firebase App Hosting (Webserver)</li>
+          </ul>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">4. Google Gemini AI</h2>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">4. KI-Verarbeitung durch OpenAI (USA)</h2>
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+            <p className="font-semibold text-yellow-900">Wichtiger Hinweis zur Datenverarbeitung:</p>
+            <p className="text-yellow-800 mt-2">
+              Für die KI-gestützte Verarbeitung Ihrer Audio-Dateien verwenden wir die OpenAI API
+              (ChatGPT). Diese Verarbeitung erfolgt auf Servern von OpenAI in den USA.
+            </p>
+          </div>
+
+          <h3 className="text-xl font-semibold mt-6 mb-3">Ablauf der Verarbeitung:</h3>
+          <ol className="list-decimal pl-6 space-y-2">
+            <li><strong>EU:</strong> Sie laden Ihre Audio-Datei auf unsere Server in der EU hoch</li>
+            <li><strong>USA:</strong> Die Audio-Datei wird zur Verarbeitung an OpenAI-Server in den USA übertragen</li>
+            <li><strong>USA:</strong> OpenAI erstellt Transkript und Blog-Artikel</li>
+            <li><strong>EU:</strong> Die Ergebnisse werden zurück auf unsere EU-Server übertragen und dort gespeichert</li>
+            <li><strong>Automatische Löschung:</strong> Die Original-Audio-Datei wird nach 30 Tagen automatisch aus unserem EU-Storage gelöscht</li>
+          </ol>
+
+          <h3 className="text-xl font-semibold mt-6 mb-3">Datenschutz bei OpenAI:</h3>
           <p>
-            Zur Verarbeitung Ihrer Podcasts nutzen wir Google Gemini AI in der EU-Region (europe-west1).
-            Die Audio-Dateien werden an Google-Server in der EU übertragen, dort verarbeitet und die
-            Ergebnisse zurückgesendet. Die Verarbeitung erfolgt vollständig innerhalb der EU. Google
-            speichert diese Daten nicht dauerhaft für Training oder andere Zwecke.
+            Wir nutzen die <strong>OpenAI API mit Zero Data Retention</strong>. Das bedeutet:
+          </p>
+          <ul className="list-disc pl-6 space-y-2 mt-2">
+            <li>OpenAI speichert Ihre Daten <strong>nicht dauerhaft</strong></li>
+            <li>Ihre Daten werden <strong>nicht für Training</strong> der KI-Modelle verwendet</li>
+            <li>Die Daten werden nur zur Verarbeitung Ihrer Anfrage verwendet und danach gelöscht</li>
+            <li>OpenAI hat strenge Datenschutzrichtlinien gemäß ihrer Privacy Policy</li>
+          </ul>
+
+          <p className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+            <strong>Rechtsgrundlage:</strong> Die Datenübermittlung in die USA erfolgt auf Basis Ihrer
+            Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) durch Nutzung des Services. Sie können dieser
+            Verarbeitung jederzeit widersprechen, indem Sie den Service nicht mehr nutzen.
           </p>
         </section>
 

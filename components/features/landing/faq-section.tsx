@@ -21,9 +21,14 @@ const faqs = [
       "Bei bezahlten Plänen wird Ihr Kontingent jeden Monat automatisch zurückgesetzt. Wenn Sie Ihr Kontingent vorher aufbrauchen, können Sie entweder auf einen höheren Plan upgraden oder bis zur nächsten Zurücksetzung warten. Ihre bereits erstellten Artikel bleiben verfügbar.",
   },
   {
-    question: "Sind meine Daten sicher?",
+    question: "Sind meine Daten sicher und wo werden sie verarbeitet?",
     answer:
-      "Absolut! Wir sind vollständig DSGVO-konform. Alle Ihre Daten werden in der EU gehostet UND verarbeitet (Firebase + Google Cloud in europe-west1). Ihre Podcast-Dateien und generierten Artikel werden sicher verschlüsselt gespeichert. Die KI-Verarbeitung findet ausschließlich auf EU-Servern statt. Sie können Ihre Daten jederzeit exportieren oder löschen.",
+      "Absolut! Wir sind DSGVO-konform. Alle Ihre Daten (Account, Audio-Dateien, Artikel) werden ausschließlich in der EU gehostet (Firebase + Google Cloud europe-west1). Für die KI-Verarbeitung nutzen wir OpenAI (USA) mit Zero Data Retention - OpenAI speichert Ihre Daten NICHT dauerhaft und verwendet sie NICHT für Training. Audio-Dateien werden nach 30 Tagen automatisch gelöscht. Sie können Ihre Daten jederzeit exportieren oder löschen. Details in unserer Datenschutzerklärung.",
+  },
+  {
+    question: "Warum nutzt ihr OpenAI und nicht eine EU-basierte KI?",
+    answer:
+      "OpenAI bietet derzeit die beste Qualität für Audio-Transkription und Content-Generierung. Wir nutzen die API mit Zero Data Retention, d.h. Ihre Daten werden nur für die Verarbeitung verwendet und danach nicht gespeichert oder für Training verwendet. Wir beobachten EU-basierte Alternativen und werden wechseln, sobald diese eine vergleichbare Qualität bieten.",
   },
 ];
 

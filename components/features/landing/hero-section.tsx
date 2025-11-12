@@ -60,16 +60,26 @@ export function HeroSection() {
             <div className="flex flex-wrap justify-center lg:justify-start items-center gap-6 pt-8 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-blue-600" />
-                <span>100% DSGVO-konform</span>
+                <span>EU-Hosting</span>
               </div>
               <div className="flex items-center gap-2">
                 <Lock className="h-5 w-5 text-blue-600" />
-                <span>Sichere Datenverarbeitung</span>
+                <span>DSGVO-konform</span>
               </div>
               <div className="flex items-center gap-2">
                 <X className="h-5 w-5 text-blue-600" />
                 <span>Jederzeit kündbar</span>
               </div>
+            </div>
+
+            {/* Data Processing Notice */}
+            <div className="pt-4 max-w-xl mx-auto lg:mx-0">
+              <p className="text-xs text-muted-foreground">
+                KI-Verarbeitung durch OpenAI (USA). Alle Daten werden in der EU gespeichert.{" "}
+                <Link href="/privacy" className="underline hover:text-foreground">
+                  Details zum Datenschutz
+                </Link>
+              </p>
             </div>
           </div>
 
