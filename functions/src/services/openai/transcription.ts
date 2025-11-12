@@ -97,18 +97,18 @@ export async function transcribeAudio(
 }
 
 /**
- * Transcribe small file using direct download to /tmp
+ * Transcribe small file using streaming download to /tmp
  *
  * FAST PATH (Phase 1):
- * - Downloads file to /tmp using admin SDK
- * - OpenAI SDK reads from local file (fast)
+ * - Streams file to /tmp using createReadStream (fast!)
+ * - OpenAI SDK reads from local file
  * - Automatically cleans up temp file
  * - Works with Workload Identity (no signBlob permission needed)
  *
  * Why this approach:
- * 1. Direct download works with Cloud Run service account
- * 2. Local /tmp file = fastest for OpenAI SDK
- * 3. No special IAM permissions required
+ * 1. createReadStream() is MUCH faster than file.download()
+ * 2. Works with Cloud Run service account (no special permissions)
+ * 3. Local /tmp file = fastest for OpenAI SDK
  *
  * @param file Cloud Storage file reference
  * @param fileSizeMB File size in MB
@@ -127,14 +127,22 @@ async function transcribeWithStreaming(
   durationSeconds?: number;
 }> {
 
-  // Download file directly to /tmp (no signed URL needed, works with Workload Identity)
+  // Fast download using streaming (works with Workload Identity)
   const tmpFilePath = `/tmp/${Date.now()}_${file.name.split('/').pop()}`;
   logger.info(`[GPT-4o-transcribe] Downloading file to: ${tmpFilePath}`);
 
   const downloadStart = Date.now();
 
-  // Download directly using admin SDK (works with Workload Identity)
-  await file.download({ destination: tmpFilePath });
+  // Stream download using createReadStream (MUCH faster than file.download())
+  const readStream = file.createReadStream();
+  const writeStream = fs.createWriteStream(tmpFilePath);
+
+  await new Promise<void>((resolve, reject) => {
+    readStream.pipe(writeStream);
+    writeStream.on('finish', resolve);
+    writeStream.on('error', reject);
+    readStream.on('error', reject);
+  });
 
   const downloadDuration = ((Date.now() - downloadStart) / 1000).toFixed(2);
   logger.info(`[GPT-4o-transcribe] ✅ Download complete in ${downloadDuration}s (${fileSizeMB.toFixed(2)} MB)`);
