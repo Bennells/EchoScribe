@@ -1,11 +1,12 @@
 import * as logger from "firebase-functions/logger";
-import { VERTEX_AI_REQUEST_TIMEOUT_MS } from "./constants";
+import { OPENAI_REQUEST_TIMEOUT_MS } from "./constants";
 
 /**
- * Execute a function with a timeout
+ * Execute a function with a timeout and progress heartbeat logging
  *
  * If the function doesn't complete within the specified timeout,
- * a timeout error is thrown.
+ * a timeout error is thrown. Logs progress every 30 seconds to show
+ * the operation is still running.
  *
  * @param fn Function to execute
  * @param timeoutMs Timeout in milliseconds (default from constants)
@@ -15,22 +16,40 @@ import { VERTEX_AI_REQUEST_TIMEOUT_MS } from "./constants";
  */
 export async function withTimeout<T>(
   fn: () => Promise<T>,
-  timeoutMs: number = VERTEX_AI_REQUEST_TIMEOUT_MS,
+  timeoutMs: number = OPENAI_REQUEST_TIMEOUT_MS,
   operationName: string = "Operation"
 ): Promise<T> {
-  return Promise.race([
-    fn(),
-    new Promise<T>((_, reject) => {
-      setTimeout(() => {
-        reject(
-          new Error(
-            `${operationName} timed out after ${timeoutMs / 1000}s. ` +
-            `Consider increasing timeout or checking API availability.`
-          )
-        );
-      }, timeoutMs);
-    }),
-  ]);
+  const startTime = Date.now();
+
+  // Set up heartbeat logging every 30 seconds
+  const heartbeatInterval = setInterval(() => {
+    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+    logger.info(`[${operationName}] Still processing... (${elapsedSeconds}s elapsed)`);
+  }, 30000); // Log every 30 seconds
+
+  try {
+    const result = await Promise.race([
+      fn(),
+      new Promise<T>((_, reject) => {
+        setTimeout(() => {
+          reject(
+            new Error(
+              `${operationName} timed out after ${timeoutMs / 1000}s. ` +
+              `Consider increasing timeout or checking API availability.`
+            )
+          );
+        }, timeoutMs);
+      }),
+    ]);
+
+    // Clear heartbeat on success
+    clearInterval(heartbeatInterval);
+    return result;
+  } catch (error) {
+    // Clear heartbeat on error
+    clearInterval(heartbeatInterval);
+    throw error;
+  }
 }
 
 /**

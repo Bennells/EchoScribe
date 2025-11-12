@@ -35,10 +35,8 @@ export const processPodcastHttp = onRequest(
     memory: "4GiB",
     cpu: 2,
     timeoutSeconds: 3600, // 60 minutes - supports podcasts up to 4 hours
-    maxInstances: 3, // Limit concurrent processing (same as old rateLimits)
+    maxInstances: 3, // Limit concurrent processing
     secrets: [openaiApiKey], // Required for OpenAI API access
-    // NOTE: CPU throttling workaround requires manual gcloud update after deployment:
-    // gcloud run services update processpodcasthttp --region=europe-west3 --cpu-throttling=false
   },
   async (req, res) => {
     // Only accept POST requests

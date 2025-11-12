@@ -230,7 +230,19 @@
       "WebFetch(domain:firebase.blog)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" tasks queues list --location=europe-west1 --project=echoscribe-prod --format=json)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" tasks queues list --location=europe-west3 --project=echoscribe-prod --format=json)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "WebFetch(domain:platform.openai.com)",
+      "WebFetch(domain:openai.com)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets list --project=echoscribe-test --filter=\"name:OPENAI\" --format=\"table(name)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" storage buckets describe gs://echoscribe-test.firebasestorage.app --project=echoscribe-test --format=\"value(location)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets list --project=echoscribe-prod --filter=\"name:OPENAI\" --format=\"table(name)\")",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets create OPENAI_API_KEY --data-file=- --project=echoscribe-prod)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets add-iam-policy-binding OPENAI_API_KEY --member=\"serviceAccount:673230184143-compute@developer.gserviceaccount.com\" --role=\"roles/secretmanager.secretAccessor\" --project=echoscribe-prod)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets add-iam-policy-binding OPENAI_API_KEY --member=\"serviceAccount:firebase-app-hosting-compute@echoscribe-prod.iam.gserviceaccount.com\" --role=\"roles/secretmanager.secretAccessor\" --project=echoscribe-prod)",
+      "WebFetch(domain:github.com)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services update processpodcasthttp --region=europe-west3 --cpu-throttling=false --project=echoscribe-prod)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services update processpodcasthttp --region=europe-west3 --no-cpu-throttling --project=echoscribe-prod)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services update processpodcasthttp --region=europe-west1 --no-cpu-throttling --project=echoscribe-test)"
     ],
     "deny": [],
     "ask": []

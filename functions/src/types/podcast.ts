@@ -3,7 +3,7 @@
  */
 
 /**
- * Token usage information from Vertex AI / Gemini API
+ * Token usage information from OpenAI API
  * Used for cost tracking and analytics
  */
 export interface TokenUsageInfo {
@@ -68,6 +68,15 @@ export interface ShowNotes {
   quotes: string[];
   resources: string[];
   guests: string;
+}
+
+/**
+ * Complete metadata including Schema.org, Open Graph, and social media content
+ */
+export interface PodcastMetadata {
+  schemaOrg: Record<string, any>;
+  openGraph: Record<string, string>;
+  socialMedia: SocialMediaContent;
 }
 
 export interface BlogArticle {

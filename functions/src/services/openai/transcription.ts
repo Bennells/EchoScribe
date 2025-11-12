@@ -7,12 +7,18 @@ import { retryWithExponentialBackoff, withTimeout } from "./utils";
 import { getOpenAICircuitBreaker } from "./circuit-breaker";
 import { chunkAudioFile, cleanupChunks, mergeTranscripts } from "./audio-chunker";
 import { TRANSCRIPTION_TIMEOUT_MS } from "./constants";
+import {
+  createTempFilePath,
+  cleanupTempFile,
+  formatBytes,
+  getFileSize,
+} from "./temp-file-manager";
 
 /**
  * Transcribe audio file using OpenAI GPT-4o-transcribe API
  *
  * This function handles both small (<25MB) and large (>25MB) files:
- * - Small files: Stream directly from Cloud Storage (no temp files, very fast)
+ * - Small files: Download to /tmp, transcribe directly
  * - Large files: Chunk into 20-minute segments, transcribe each, merge results
  *
  * Uses retry logic, circuit breaker, and timeout protection
@@ -77,11 +83,11 @@ export async function transcribeAudio(
 
     } else {
       // ========================================
-      // SMALL FILE PATH: Stream directly (FAST!)
+      // SMALL FILE PATH: Direct download (simple!)
       // ========================================
-      logger.info(`[GPT-4o-transcribe] File is under 25 MB, using fast streaming`);
+      logger.info(`[GPT-4o-transcribe] File is under 25 MB, downloading to /tmp`);
 
-      return await transcribeWithStreaming(file, fileSizeMB, durationMinutes, startTime);
+      return await transcribeSmallFile(file, storagePath, fileSizeMB, durationMinutes, startTime);
     }
 
   } catch (error: unknown) {
@@ -97,26 +103,22 @@ export async function transcribeAudio(
 }
 
 /**
- * Transcribe small file using streaming download to /tmp
+ * Transcribe small file using direct download to /tmp
  *
- * FAST PATH (Phase 1):
- * - Streams file to /tmp using createReadStream (fast!)
+ * Simple approach:
+ * - Downloads file to /tmp using file.download()
  * - OpenAI SDK reads from local file
  * - Automatically cleans up temp file
- * - Works with Workload Identity (no signBlob permission needed)
- *
- * Why this approach:
- * 1. createReadStream() is MUCH faster than file.download()
- * 2. Works with Cloud Run service account (no special permissions)
- * 3. Local /tmp file = fastest for OpenAI SDK
  *
  * @param file Cloud Storage file reference
+ * @param storagePath Cloud Storage path (for logging)
  * @param fileSizeMB File size in MB
  * @param durationMinutes Optional duration in minutes
  * @param startTime Start time for duration calculation
  */
-async function transcribeWithStreaming(
-  file: any, // Cloud Storage file reference (admin.storage().bucket().file())
+async function transcribeSmallFile(
+  file: any,
+  storagePath: string,
   fileSizeMB: number,
   durationMinutes: number | undefined,
   startTime: number
@@ -127,45 +129,21 @@ async function transcribeWithStreaming(
   durationSeconds?: number;
 }> {
 
-  // Fast download using streaming (works with Workload Identity)
-  const tmpFilePath = `/tmp/${Date.now()}_${file.name.split('/').pop()}`;
-  logger.info(`[GPT-4o-transcribe] Downloading file to: ${tmpFilePath}`);
+  // Create temp file path using centralized utility
+  const tmpFilePath = createTempFilePath(storagePath);
+  logger.info(`[GPT-4o-transcribe] Downloading to: ${tmpFilePath}`);
+  logger.info(`[GPT-4o-transcribe] File size: ${formatBytes(fileSizeMB * 1024 * 1024)}`);
 
   const downloadStart = Date.now();
 
-  // Stream download using createReadStream (MUCH faster than file.download())
-  const readStream = file.createReadStream();
-  const writeStream = fs.createWriteStream(tmpFilePath);
-
-  // Track download progress
-  let downloadedBytes = 0;
-  let lastLoggedMB = 0;
-
-  readStream.on('data', (chunk: Buffer) => {
-    downloadedBytes += chunk.length;
-    const currentMB = Math.floor(downloadedBytes / (1024 * 1024));
-
-    // Log every 1MB
-    if (currentMB > lastLoggedMB) {
-      const elapsedSec = (Date.now() - downloadStart) / 1000;
-      const speedMBps = (downloadedBytes / (1024 * 1024)) / elapsedSec;
-      logger.info(`[GPT-4o-transcribe] Download progress: ${currentMB} MB / ${fileSizeMB.toFixed(2)} MB (${speedMBps.toFixed(2)} MB/s)`);
-      lastLoggedMB = currentMB;
-    }
-  });
-
-  await new Promise<void>((resolve, reject) => {
-    readStream.pipe(writeStream);
-    writeStream.on('finish', resolve);
-    writeStream.on('error', reject);
-    readStream.on('error', reject);
-  });
-
-  const downloadDuration = ((Date.now() - downloadStart) / 1000).toFixed(2);
-  const avgSpeedMBps = (fileSizeMB / parseFloat(downloadDuration)).toFixed(2);
-  logger.info(`[GPT-4o-transcribe] ✅ Download complete in ${downloadDuration}s (${fileSizeMB.toFixed(2)} MB @ ${avgSpeedMBps} MB/s)`);
-
   try {
+    // Simple download to /tmp
+    await file.download({ destination: tmpFilePath });
+
+    const downloadDuration = ((Date.now() - downloadStart) / 1000).toFixed(2);
+    const actualSize = getFileSize(tmpFilePath);
+    logger.info(`[GPT-4o-transcribe] ✅ Download complete in ${downloadDuration}s (${formatBytes(actualSize)})`);
+
     // Get OpenAI client
     const openai = getOpenAIClient();
     const circuitBreaker = getOpenAICircuitBreaker();
@@ -175,7 +153,7 @@ async function transcribeWithStreaming(
       async () => {
         return await circuitBreaker.execute(async () => {
           return await retryWithExponentialBackoff(async () => {
-            // Read from local temp file (FAST!)
+            // Read from local temp file
             const audioStream = fs.createReadStream(tmpFilePath);
 
             const result = await openai.audio.transcriptions.create({
@@ -194,7 +172,7 @@ async function transcribeWithStreaming(
     );
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    logger.info(`[GPT-4o-transcribe] ✅ Transcription completed in ${duration}s (${downloadDuration}s download + API processing)`);
+    logger.info(`[GPT-4o-transcribe] ✅ Transcription completed in ${duration}s`);
 
     // Extract transcript text
     const transcriptText = typeof transcription === 'string'
@@ -202,13 +180,9 @@ async function transcribeWithStreaming(
       : transcription.text;
 
     logger.info(`[GPT-4o-transcribe] Transcript length: ${transcriptText.length} characters`);
-    logger.info(`[GPT-4o-transcribe] Transcript preview (first 200 chars): ${transcriptText.slice(0, 200)}...`);
+    logger.info(`[GPT-4o-transcribe] Preview: ${transcriptText.slice(0, 200)}...`);
 
     const durationSeconds = durationMinutes ? durationMinutes * 60 : undefined;
-
-    if (durationMinutes) {
-      logger.info(`[GPT-4o-transcribe] Audio duration (provided): ${durationMinutes} minutes`);
-    }
 
     // Calculate cost
     const audioMinutes = durationMinutes || 1;
@@ -226,16 +200,8 @@ async function transcribeWithStreaming(
       durationSeconds,
     };
   } finally {
-    // Clean up temp file
-    try {
-      if (fs.existsSync(tmpFilePath)) {
-        fs.unlinkSync(tmpFilePath);
-        logger.info(`[GPT-4o-transcribe] 🧹 Cleaned up temp file`);
-      }
-    } catch (cleanupError: unknown) {
-      const error = cleanupError instanceof Error ? cleanupError : new Error(String(cleanupError));
-      logger.warn(`[GPT-4o-transcribe] ⚠️ Failed to clean up temp file: ${error.message}`);
-    }
+    // Clean up temp file using centralized utility
+    cleanupTempFile(tmpFilePath);
   }
 }
 

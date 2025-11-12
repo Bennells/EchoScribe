@@ -1,7 +1,7 @@
 /**
- * Circuit Breaker Pattern for Vertex AI API Calls
+ * Circuit Breaker Pattern for OpenAI API Calls
  *
- * Protects the system from repeated calls to a failing service (Vertex AI).
+ * Protects the system from repeated calls to a failing service.
  * Opens the circuit after N consecutive failures and prevents further calls
  * for a cooldown period, saving quota and providing faster user feedback.
  *
@@ -14,7 +14,7 @@
 import * as logger from "firebase-functions/logger";
 import {
   CIRCUIT_BREAKER_FAILURE_THRESHOLD,
-  CIRCUIT_BREAKER_COOLDOWN_SECONDS,
+  CIRCUIT_BREAKER_COOLDOWN_MS,
 } from "./constants";
 
 /**
@@ -240,30 +240,30 @@ export class CircuitBreaker {
 }
 
 /**
- * Singleton instance for Vertex AI circuit breaker
+ * Singleton instance for OpenAI circuit breaker
  */
-let vertexAICircuitBreaker: CircuitBreaker | null = null;
+let openAICircuitBreaker: CircuitBreaker | null = null;
 
 /**
- * Get the Vertex AI circuit breaker instance (singleton)
+ * Get the OpenAI circuit breaker instance (singleton)
  */
-export function getVertexAICircuitBreaker(): CircuitBreaker {
-  if (!vertexAICircuitBreaker) {
-    vertexAICircuitBreaker = new CircuitBreaker({
+export function getOpenAICircuitBreaker(): CircuitBreaker {
+  if (!openAICircuitBreaker) {
+    openAICircuitBreaker = new CircuitBreaker({
       failureThreshold: CIRCUIT_BREAKER_FAILURE_THRESHOLD,
-      cooldownSeconds: CIRCUIT_BREAKER_COOLDOWN_SECONDS,
-      serviceName: "Vertex AI / Gemini",
+      cooldownSeconds: CIRCUIT_BREAKER_COOLDOWN_MS / 1000, // Convert ms to seconds
+      serviceName: "OpenAI API",
     });
   }
 
-  return vertexAICircuitBreaker;
+  return openAICircuitBreaker;
 }
 
 /**
- * Reset the Vertex AI circuit breaker (for testing)
+ * Reset the OpenAI circuit breaker (for testing)
  */
-export function resetVertexAICircuitBreaker(): void {
-  if (vertexAICircuitBreaker) {
-    vertexAICircuitBreaker.reset();
+export function resetOpenAICircuitBreaker(): void {
+  if (openAICircuitBreaker) {
+    openAICircuitBreaker.reset();
   }
 }
