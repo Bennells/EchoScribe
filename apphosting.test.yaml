@@ -1,13 +1,5 @@
-# Firebase App Hosting Configuration - BASE/FALLBACK
+# Firebase App Hosting Configuration - TEST
 # https://firebase.google.com/docs/app-hosting/configure
-#
-# This is the base configuration file. Environment-specific configurations:
-# - apphosting.test.yaml (for test environment)
-# - apphosting.production.yaml (for production environment)
-#
-# Make sure to set the "Environment name" in Firebase Console:
-# - Test backend: Set to "test"
-# - Production backend: Set to "production"
 
 # Cloud Run configuration
 runConfig:
