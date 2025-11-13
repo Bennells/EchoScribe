@@ -449,7 +449,8 @@ export default function MyDataPage() {
           <div>
             <h3 className="text-sm font-medium mb-2">Drittanbieter</h3>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• <strong>Google Cloud Platform:</strong> Hosting, Speicherung, AI-Verarbeitung (Gemini)</li>
+              <li>• <strong>Google Cloud Platform:</strong> Hosting und Speicherung</li>
+              <li>• <strong>OpenAI:</strong> AI-Verarbeitung (Transkription und Artikelgenerierung)</li>
               <li>• <strong>Stripe:</strong> Zahlungsabwicklung und Abo-Verwaltung</li>
             </ul>
           </div>

@@ -9,7 +9,7 @@ Wandeln Sie Podcasts automatisch in SEO-optimierte Blog-Artikel um.
 - **Database:** Firestore
 - **Storage:** Firebase Storage
 - **Auth:** Firebase Authentication
-- **AI:** Google Gemini 2.5 Flash
+- **AI:** OpenAI (GPT-4o & GPT-4o-mini)
 - **Payment:** Stripe
 - **UI:** shadcn/ui Components
 - **Monitoring:** Sentry (Production Error Tracking)
@@ -19,7 +19,7 @@ Wandeln Sie Podcasts automatisch in SEO-optimierte Blog-Artikel um.
 - Node.js 20+
 - npm oder yarn
 - Firebase CLI (`npm install -g firebase-tools`)
-- Gemini API Key (https://aistudio.google.com/app/apikey)
+- OpenAI API Key (https://platform.openai.com/api-keys)
 
 ## 🛠️ Setup
 
@@ -85,7 +85,7 @@ npm run firebase:use:prod
 │   └── src/
 │       ├── triggers/        # Firestore/Storage Triggers
 │       ├── webhooks/        # Stripe Webhooks
-│       └── services/        # Business Logic (Gemini Integration)
+│       └── services/        # Business Logic (OpenAI Integration)
 ├── lib/
 │   ├── firebase/           # Firebase Client SDK
 │   └── utils/              # Helper Functions

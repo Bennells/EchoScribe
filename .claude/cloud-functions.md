@@ -29,7 +29,7 @@ All Cloud Functions use automatic region configuration based on environment:
 
 **Functions:**
 1. `onPodcastUploaded` - Storage trigger (handles upload + quota)
-2. `processPodcastHttp` - HTTP function (processes audio with Vertex AI)
+2. `processPodcastHttp` - HTTP function (processes audio with OpenAI)
 3. `cleanupStuckPodcasts` - Scheduled maintenance
 
 ## Region Configuration
@@ -162,7 +162,7 @@ gcloud run services list --project=echoscribe-prod \
 
 ## Podcast Processing Flow (HTTP Function)
 
-**Architecture:** Storage Trigger → HTTP Cloud Function → Vertex AI Processing
+**Architecture:** Storage Trigger → HTTP Cloud Function → OpenAI Processing
 
 ```
 1. User uploads audio file
@@ -183,9 +183,10 @@ gcloud run services list --project=echoscribe-prod \
    - Returns 202 Accepted immediately (storage trigger completes)
    - Continues processing in background
    - Downloads audio from Storage
-   - Two-stage Vertex AI pipeline:
-     * Stage 1: Audio → Teaser Article (500-1200 words)
-     * Stage 2: Article → SEO + Social Media Metadata
+   - Two-stage OpenAI pipeline:
+     * Stage 1: Audio → Transcription (GPT-4o-transcribe)
+     * Stage 2: Transcript → Article (GPT-4o-mini)
+     * Stage 3: Article → SEO + Social Media Metadata (GPT-4o-mini)
    - Saves article to Firestore
    - Updates podcast status to "completed"
    - On error: Refunds quota automatically
@@ -303,9 +304,10 @@ const response = await client.request({
 4. **Background Processing:**
    - Verifies audio file exists in Storage
    - Downloads audio file
-   - Processes with Vertex AI (Two-Stage Pipeline):
-     * Stage 1: Audio → Teaser Article (500-1200 words)
-     * Stage 2: Article → SEO + Social Media Metadata
+   - Processes with OpenAI (Two-Stage Pipeline):
+     * Stage 1: Audio → Transcription (GPT-4o-transcribe)
+     * Stage 2: Transcript → Article (GPT-4o-mini)
+     * Stage 3: Article → SEO + Social Media Metadata (GPT-4o-mini)
    - Saves article to Firestore
    - Updates podcast status to "completed"
 5. **Error Handling:**
@@ -347,7 +349,6 @@ const response = await client.request({
 |------|---------|
 | `roles/datastore.user` | Read/write Firestore documents |
 | `roles/storage.objectViewer` | Read audio files from Storage |
-| `roles/aiplatform.user` | Access Vertex AI Gemini API |
 | `roles/run.invoker` | Invoke HTTP Cloud Functions (service-to-service) |
 
 **No Longer Required (removed Cloud Tasks):**
@@ -454,23 +455,6 @@ gcloud logging read "textPayload=~'authentication' OR textPayload=~'403'" \
 gcloud projects add-iam-policy-binding echoscribe-test \
   --member="serviceAccount:436441931185-compute@developer.gserviceaccount.com" \
   --role="roles/run.invoker" \
-  --condition=None
-```
-
----
-
-#### Vertex AI returns "Permission denied" error
-
-**Symptom:** Processing fails with Vertex AI permission errors in logs
-
-**Cause:** Missing `roles/aiplatform.user` permission for service account
-
-**Solution:**
-```bash
-# Grant aiplatform.user role to compute service account
-gcloud projects add-iam-policy-binding echoscribe-test \
-  --member="serviceAccount:436441931185-compute@developer.gserviceaccount.com" \
-  --role="roles/aiplatform.user" \
   --condition=None
 ```
 

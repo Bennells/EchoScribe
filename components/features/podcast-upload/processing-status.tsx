@@ -14,10 +14,10 @@ export function ProcessingStatus({ processingStartedAt, fileSize }: ProcessingSt
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   // Calculate estimated duration based on file size
-  // Assumption: ~0.5 minutes (30 seconds) per 10 MB (based on real-world data)
-  // Updated 2025-11-11: 100MB file took ~5 minutes (was 0.3, now 0.5)
+  // Assumption: ~0.45 minutes (27 seconds) per 10 MB (based on real-world data)
+  // Updated 2025-11-13: 55min/100MB podcast took 4:30 minutes (was 0.5, now 0.45)
   const fileSizeMB = fileSize / 1024 / 1024;
-  const estimatedMinutes = Math.max(2, Math.ceil((fileSizeMB / 10) * 0.5));
+  const estimatedMinutes = Math.max(2, Math.ceil((fileSizeMB / 10) * 0.45));
   const estimatedSeconds = estimatedMinutes * 60;
 
   useEffect(() => {

@@ -9,19 +9,16 @@ import { BlogArticle, PodcastTokenUsage } from "../../types/podcast";
 /**
  * TWO-STAGE OPENAI PROCESSING PIPELINE
  *
- * Complete replacement for Gemini 2.5 Flash pipeline
- *
  * Architecture:
  * - Stage 0: GPT-4o-transcribe API → Audio transcription
  * - Stage 1: GPT-4o-mini → Article generation (with retry + GPT-4o fallback)
  * - Stage 2: GPT-4o-mini → Metadata generation
  *
- * Benefits over Gemini:
- * - 65-82% cost reduction
- * - 99%+ reliability (vs 85% with Gemini)
- * - No truncation issues (no thinking budget conflicts)
- * - No over-generation (strict token limits)
- * - Proven architecture (GPT-4o-transcribe + GPT is industry standard)
+ * Benefits:
+ * - High reliability and cost efficiency
+ * - No truncation issues (strict token limits)
+ * - No over-generation (controlled output size)
+ * - Industry-standard architecture
  *
  * @param storagePath - Cloud Storage path to audio file
  * @param mimeType - MIME type of audio (e.g., "audio/mpeg")

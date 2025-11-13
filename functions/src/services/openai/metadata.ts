@@ -15,7 +15,7 @@ import { TokenUsageInfo, PodcastMetadata } from "../../types/podcast";
  * - Generates Open Graph tags
  * - Generates social media posts for 6 platforms
  * - Uses structured output with STRICT token limits (2500 max)
- * - Prevents over-generation that occurred with Gemini (63k tokens!)
+ * - Prevents over-generation through controlled output
  *
  * @param articleMarkdown - The generated article in Markdown
  * @param articleTitle - The article title

@@ -7,7 +7,7 @@ Implemented comprehensive quota refund system that ensures users **NEVER** lose 
 ## Problems Solved
 
 ### ✅ Problem 1: Quota Lost on Processing Errors
-**Before:** If HTTP function accepted request but Vertex AI failed, user lost quota
+**Before:** If HTTP function accepted request but AI processing failed, user lost quota
 **After:** Quota always refunded on ANY error
 
 ### ✅ Problem 2: Negative Quota Bug
@@ -45,7 +45,7 @@ async function safeRefundQuota(userId, amount, reason)
 2. Check podcast exists (zombie prevention)
 3. Update status to "processing"
 4. **Respond 202 Accepted** ← Storage trigger completes here (< 30 seconds)
-5. Continue processing Vertex AI (up to 60 minutes)
+5. Continue processing with OpenAI (up to 60 minutes)
 6. On success: Save article, mark completed
 7. On error: Mark as error, **refund quota**
 
@@ -75,7 +75,7 @@ async function safeRefundQuota(userId, amount, reason)
 2. **HTTP function returns error** (4xx, 5xx status codes)
 3. **HTTP function crashes** (before or during processing)
 4. **HTTP function times out** (> 60 minutes)
-5. **Vertex AI fails** (invalid audio, API error, etc.)
+5. **AI processing fails** (invalid audio, API error, etc.)
 6. **Any other processing error**
 
 ### ❌ Quota NOT Refunded On:
@@ -111,9 +111,9 @@ await db.runTransaction(async (transaction) => {
 2. Processing completes → article created ✅
 3. **Quota NOT refunded** ✅
 
-### Test 2: Vertex AI Error
+### Test 2: AI Processing Error
 1. Upload invalid audio → quota reserved ✅
-2. Vertex AI fails immediately ✅
+2. AI processing fails immediately ✅
 3. **Quota refunded** ✅
 4. Quota never goes negative ✅
 
@@ -195,7 +195,7 @@ firebase functions:log --only cleanupStuckPodcasts
 
 2. **High Refund Rate Alert**
    - Trigger: > 10% of uploads get refunded
-   - Action: Check Vertex AI errors, audio validation
+   - Action: Check AI processing errors, audio validation
 
 3. **Negative Quota Attempt Alert**
    - Trigger: `actualRefunded` < `refundAmount`
