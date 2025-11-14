@@ -242,7 +242,14 @@
       "WebFetch(domain:github.com)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services update processpodcasthttp --region=europe-west3 --cpu-throttling=false --project=echoscribe-prod)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services update processpodcasthttp --region=europe-west3 --no-cpu-throttling --project=echoscribe-prod)",
-      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services update processpodcasthttp --region=europe-west1 --no-cpu-throttling --project=echoscribe-test)"
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" run services update processpodcasthttp --region=europe-west1 --no-cpu-throttling --project=echoscribe-test)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets describe OPENAI_API_KEY --project=echoscribe-prod)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions list OPENAI_API_KEY --project=echoscribe-prod)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets get-iam-policy OPENAI_API_KEY --project=echoscribe-prod)",
+      "mcp__firebase__firebase_update_environment",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" firestore indexes create --project=echoscribe-prod --quiet --file-path=firestore.indexes.json)",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" firestore indexes composite create --project=echoscribe-prod --collection-group=podcasts --query-scope=COLLECTION --field-config field-path=status,order=ASCENDING --field-config field-path=processingStartedAt,order=ASCENDING --field-config field-path=__name__,order=ASCENDING)",
+      "mcp__firebase__firebase_get_project"
     ],
     "deny": [],
     "ask": []
