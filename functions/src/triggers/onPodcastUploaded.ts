@@ -24,7 +24,7 @@ const auth = new GoogleAuth();
 export const onPodcastUploaded = onObjectFinalized(
   {
     region: config.region, // ✅ Automatisch: TEST=europe-west1, PROD=europe-west3
-    memory: "2GiB", // Handle files up to ~500 MB
+    memory: "2GiB", // Handle files up to ~250 MB
     // No bucket specified = listen to default project bucket
   },
   async (event) => {

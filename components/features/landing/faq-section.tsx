@@ -13,7 +13,7 @@ const faqs = [
   {
     question: "Which audio formats are supported?",
     answer:
-      "We support all common audio formats like MP3, WAV, M4A, FLAC and OGG. The maximum file size is 500MB per upload.",
+      "We support all common audio formats like MP3, WAV, M4A, FLAC and OGG. The maximum file size is 250MB per upload.",
   },
   {
     question: "What happens if I run out of my monthly quota?",

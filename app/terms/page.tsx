@@ -57,7 +57,7 @@ export default function TermsPage() {
 
           <h3 className="text-xl font-semibold mt-6 mb-3">2.1 Scope of Services</h3>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Upload of audio files (max. 500 MB) with storage in the EU</li>
+            <li>Upload of audio files (max. 250 MB) with storage in the EU</li>
             <li>Automatic transcription and article generation by OpenAI (USA)</li>
             <li>Provision in Markdown and HTML format</li>
             <li>SEO optimization (meta descriptions, keywords, Schema.org)</li>

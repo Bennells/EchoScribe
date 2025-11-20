@@ -229,7 +229,7 @@ export function PaymentMethodManager() {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              You haven't added a payment method yet.
+              You haven&apos;t added a payment method yet.
             </p>
             {!showUpdateForm && (
               <Button onClick={handleUpdateClick} className="w-full">

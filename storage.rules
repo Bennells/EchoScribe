@@ -11,12 +11,12 @@ service firebase.storage {
 
       // Allow upload if:
       // - User is authenticated and matches userId
-      // - File size is under 500 MB
+      // - File size is under 250 MB
       // - File is audio content type
       // Quota enforcement happens post-upload via onPodcastUploaded Cloud Function
       allow create: if request.auth != null
                     && request.auth.uid == userId
-                    && request.resource.size < 500 * 1024 * 1024
+                    && request.resource.size < 250 * 1024 * 1024
                     && request.resource.contentType.matches('audio/.*');
     }
   }

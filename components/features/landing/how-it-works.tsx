@@ -7,7 +7,7 @@ const steps = [
     icon: Upload,
     title: "Upload Podcast",
     description:
-      "Drag & drop your audio file. All common formats up to 500MB.",
+      "Drag & drop your audio file. All common formats up to 250MB.",
   },
   {
     number: "02",

@@ -104,7 +104,7 @@ export default function PricingPage() {
                 </h3>
                 <p className="text-muted-foreground">
                   Yes, we offer a 14-day money-back guarantee for all paid plans.
-                  If you're not satisfied, we'll refund you the full amount.
+                  If you&apos;re not satisfied, we&apos;ll refund you the full amount.
                 </p>
               </div>
 
