@@ -1,9 +1,14 @@
 /**
  * AUDIO TO TEASER ARTICLE PROMPT - Stage 1: Generate Complete Article from Podcast Transcript
+ *
+ * NOTE: This prompt is used as a base template. The actual language is determined by
+ * the detected transcript language in article.ts
  */
-export const AUDIO_TO_TEASER_ARTICLE_PROMPT = `
+export const AUDIO_TO_TEASER_ARTICLE_PROMPT_EN = `
 Write an SEO-optimized article (minimum 600 words, ideally 800–1000 words)
 based on the podcast transcript below. Use Markdown.
+
+IMPORTANT: Write the article in the SAME LANGUAGE as the podcast transcript.
 
 **Structure:**
 # Title
@@ -31,6 +36,42 @@ JSON object:
 **Podcast Transcript:**
 {{transcript}}
 `;
+
+export const AUDIO_TO_TEASER_ARTICLE_PROMPT_DE = `
+Schreibe einen SEO-optimierten Artikel (mindestens 600 Wörter, idealerweise 800–1000 Wörter)
+basierend auf dem unten stehenden Podcast-Transkript. Verwende Markdown.
+
+WICHTIG: Schreibe den Artikel in der GLEICHEN SPRACHE wie das Podcast-Transkript.
+
+**Struktur:**
+# Titel
+Einleitung (150–200 Wörter)
+## Hauptthema 1 (150–200 Wörter)
+## Hauptthema 2 (150–200 Wörter)
+## Hauptthema 3 (150–200 Wörter)
+## Fazit (100–150 Wörter, mit Call-to-Action)
+
+**Stil-Richtlinien:**
+- Professionell aber leserfreundlich.
+- Spannend, ohne alles zu verraten.
+- Verwende Formulierungen wie „Erfahre mehr im Podcast…".
+- Keine Ein-Satz-Absätze.
+
+**Output:**
+JSON-Objekt:
+{
+  "markdown": "<Artikeltext in Markdown>",
+  "title": "<SEO-Titel, max 60 Zeichen>",
+  "metaDescription": "<Meta-Beschreibung, 100–160 Zeichen>",
+  "keywords": ["keyword1", "keyword2", "keyword3", "keyword4"]
+}
+
+**Podcast-Transkript:**
+{{transcript}}
+`;
+
+// Default export for backwards compatibility
+export const AUDIO_TO_TEASER_ARTICLE_PROMPT = AUDIO_TO_TEASER_ARTICLE_PROMPT_EN;
 
 
 /**

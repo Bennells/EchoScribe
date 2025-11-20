@@ -3,8 +3,64 @@ import { getOpenAIClient } from "./client";
 import { calculateOpenAICost } from "./cost-calculator";
 import { retryWithExponentialBackoff, validateArticleCompleteness, withTimeout } from "./utils";
 import { getOpenAICircuitBreaker } from "./circuit-breaker";
-import { AUDIO_TO_TEASER_ARTICLE_PROMPT } from "../../utils/prompts";
 import { TokenUsageInfo } from "../../types/podcast";
+
+/**
+ * Detect language from transcript text
+ * Uses a simple heuristic based on common words to identify the most likely language
+ *
+ * Supports: English, German, Spanish, French, Italian, Portuguese, Dutch, and more
+ * Falls back to English if detection is uncertain
+ */
+function detectLanguage(text: string): string {
+  const sample = text.slice(0, 1000).toLowerCase();
+  const words = sample.split(/\s+/);
+
+  // Language detection patterns
+  const patterns = {
+    en: ["the", "and", "is", "are", "in", "to", "of", "for", "with", "that", "this", "from", "was", "were", "been", "have", "has"],
+    de: ["der", "die", "das", "und", "ist", "sind", "ein", "eine", "nicht", "auch", "von", "dem", "den", "des", "sich", "auf", "für", "mit", "wird", "werden"],
+    es: ["el", "la", "de", "que", "y", "en", "un", "ser", "se", "no", "estar", "por", "con", "para", "como", "más", "los", "las"],
+    fr: ["le", "de", "un", "être", "et", "à", "il", "avoir", "ne", "je", "son", "que", "se", "qui", "ce", "dans", "en", "du", "elle", "pour"],
+    it: ["il", "di", "e", "che", "non", "un", "essere", "per", "con", "come", "più", "nel", "della", "dei", "anche", "questa"],
+    pt: ["o", "de", "e", "que", "não", "um", "ser", "para", "com", "por", "mais", "os", "uma", "em", "no", "na"],
+    nl: ["de", "het", "een", "van", "en", "in", "op", "dat", "die", "te", "voor", "niet", "met", "aan", "zijn", "wordt"]
+  };
+
+  // Count matches for each language
+  const scores: Record<string, number> = {};
+  for (const [lang, keywords] of Object.entries(patterns)) {
+    scores[lang] = keywords.filter(word => words.includes(word)).length;
+  }
+
+  logger.info(`[OpenAI Article] Language detection scores:`, scores);
+
+  // Find language with highest score
+  const detectedLang = Object.entries(scores).reduce((best, [lang, score]) =>
+    score > best.score ? { lang, score } : best,
+    { lang: "en", score: scores.en }
+  ).lang;
+
+  logger.info(`[OpenAI Article] Detected language: ${detectedLang} (${getLanguageName(detectedLang)})`);
+
+  return detectedLang;
+}
+
+/**
+ * Get human-readable language name
+ */
+function getLanguageName(code: string): string {
+  const names: Record<string, string> = {
+    en: "English",
+    de: "German",
+    es: "Spanish",
+    fr: "French",
+    it: "Italian",
+    pt: "Portuguese",
+    nl: "Dutch"
+  };
+  return names[code] || code;
+}
 
 /**
  * Generate article from transcript using GPT-4o-mini
@@ -14,6 +70,7 @@ import { TokenUsageInfo } from "../../types/podcast";
  * - Generates 600-1000 word article in Markdown
  * - Returns article with SEO metadata (title, description, keywords)
  * - Uses structured output (JSON schema) for reliability
+ * - Automatically detects and matches transcript language
  *
  * @param transcript - Text transcript from Whisper
  * @param model - Model to use ("gpt-4o-mini" or "gpt-4o")
@@ -42,6 +99,10 @@ export async function generateArticleFromTranscript(
     const circuitBreaker = getOpenAICircuitBreaker();
 
     logger.info(`[OpenAI Article] Transcript length: ${transcript.length} characters`);
+
+    // Detect language from transcript (used for logging and quality assurance)
+    const detectedLanguage = detectLanguage(transcript);
+    logger.info(`[OpenAI Article] Processing with detected language: ${detectedLanguage}`);
 
     // Define article schema (OpenAI format)
     const articleSchema = {
@@ -73,13 +134,39 @@ export async function generateArticleFromTranscript(
       additionalProperties: false // Enable strict mode
     };
 
-    // Build system instruction
-    const systemInstruction = `Du bist ein professioneller Content-Writer für Podcast-Teaser-Artikel. Dein Ziel ist es, Leser neugierig zu machen und zum Podcast-Hören zu motivieren.`;
+    // Build language-neutral system instruction
+    const systemInstruction = `You are a professional content writer for podcast teaser articles. Your goal is to make readers curious and motivate them to listen to the podcast. Write in the same language as the transcript provided.`;
 
-    // Build user prompt
-    const userPrompt = `${AUDIO_TO_TEASER_ARTICLE_PROMPT}
+    // Build universal multilingual prompt
+    const userPrompt = `Write an SEO-optimized article (minimum 600 words, ideally 800–1000 words) based on the podcast transcript below.
 
-**PODCAST TRANSKRIPT:**
+CRITICAL REQUIREMENT: Write the ENTIRE article in the SAME LANGUAGE as the podcast transcript. Match the language exactly.
+
+**Structure:**
+- # Title
+- Introduction (150–200 words)
+- ## Main Topic 1 (150–200 words)
+- ## Main Topic 2 (150–200 words)
+- ## Main Topic 3 (150–200 words)
+- ## Conclusion (100–150 words, with Call-to-Action)
+
+**Style Guidelines:**
+- Professional yet reader-friendly
+- Intriguing without revealing everything
+- Use phrases like "Learn more in the podcast…" (translated to match the transcript language)
+- No single-sentence paragraphs
+- Use Markdown formatting
+
+**Output Format:**
+Return a JSON object with these exact fields:
+{
+  "markdown": "<Article text in Markdown, in the same language as the transcript>",
+  "title": "<SEO title, max 60 characters, in the same language as the transcript>",
+  "metaDescription": "<Meta description, 100–160 characters, in the same language as the transcript>",
+  "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"]
+}
+
+**Podcast Transcript:**
 
 ${transcript}`;
 
