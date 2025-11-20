@@ -181,14 +181,14 @@ export default function SettingsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Fehler beim Öffnen des Abrechnungsportals");
+        throw new Error(data.error || "Error opening billing portal");
       }
 
       // Redirect to Stripe Customer Portal
       window.location.href = data.url;
     } catch (error: any) {
       console.error("Portal error:", error);
-      toast.error(error.message || "Fehler beim Öffnen des Abrechnungsportals. Bitte versuchen Sie es erneut.");
+      toast.error(error.message || "Error opening billing portal. Please try again.");
       setPortalLoading(false);
     }
   };

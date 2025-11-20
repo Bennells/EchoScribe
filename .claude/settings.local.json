@@ -249,7 +249,8 @@
       "mcp__firebase__firebase_update_environment",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" firestore indexes create --project=echoscribe-prod --quiet --file-path=firestore.indexes.json)",
       "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" firestore indexes composite create --project=echoscribe-prod --collection-group=podcasts --query-scope=COLLECTION --field-config field-path=status,order=ASCENDING --field-config field-path=processingStartedAt,order=ASCENDING --field-config field-path=__name__,order=ASCENDING)",
-      "mcp__firebase__firebase_get_project"
+      "mcp__firebase__firebase_get_project",
+      "Bash(\"C:\\Users\\DElls\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd\" secrets versions access latest --secret=OPENAI_API_KEY --project=echoscribe-prod)"
     ],
     "deny": [],
     "ask": []

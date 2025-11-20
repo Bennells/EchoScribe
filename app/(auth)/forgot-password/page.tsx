@@ -26,15 +26,15 @@ export default function ForgotPasswordPage() {
     try {
       await resetPassword(email);
       setSuccess(true);
-      toast.success("E-Mail zum Zurücksetzen des Passworts wurde gesendet!");
+      toast.success("Password reset email sent!");
     } catch (err: any) {
       console.error(err);
       if (err.code === "auth/user-not-found") {
-        setError("Kein Konto mit dieser E-Mail-Adresse gefunden");
+        setError("No account found with this email address");
       } else if (err.code === "auth/invalid-email") {
-        setError("Ungültige E-Mail-Adresse");
+        setError("Invalid email address");
       } else {
-        setError("Fehler beim Senden der E-Mail. Bitte versuchen Sie es erneut.");
+        setError("Error sending email. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -45,21 +45,21 @@ export default function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Passwort zurücksetzen</CardTitle>
+          <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
           <CardDescription>
-            Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum
-            Zurücksetzen Ihres Passworts
+            Enter your email address and we'll send you a link to
+            reset your password
           </CardDescription>
         </CardHeader>
         <CardContent>
           {success ? (
             <div className="space-y-4">
               <div className="rounded-md bg-green-50 p-4 text-sm text-green-800">
-                Wir haben Ihnen eine E-Mail mit Anweisungen zum Zurücksetzen Ihres
-                Passworts gesendet. Bitte überprüfen Sie Ihr Postfach.
+                We've sent you an email with instructions to reset your
+                password. Please check your inbox.
               </div>
               <Button asChild className="w-full">
-                <Link href="/login">Zurück zur Anmeldung</Link>
+                <Link href="/login">Back to Sign In</Link>
               </Button>
             </div>
           ) : (
@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="name@beispiel.de"
+                  placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -80,12 +80,12 @@ export default function ForgotPasswordPage() {
               {error && <FormMessage>{error}</FormMessage>}
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Wird gesendet..." : "Link zum Zurücksetzen senden"}
+                {loading ? "Sending..." : "Send Reset Link"}
               </Button>
 
               <div className="mt-4 text-center text-sm">
                 <Link href="/login" className="text-primary hover:underline">
-                  Zurück zur Anmeldung
+                  Back to Sign In
                 </Link>
               </div>
             </Form>

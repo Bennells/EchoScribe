@@ -66,48 +66,48 @@ export function ChangeTierDialog({
           <div className="flex items-center gap-2">
             <Icon className={`h-6 w-6 ${isUpgrade ? 'text-green-500' : 'text-orange-500'}`} />
             <DialogTitle>
-              {isUpgrade ? 'Plan upgraden' : 'Plan ändern'}?
+              {isUpgrade ? 'Upgrade Plan' : 'Change Plan'}?
             </DialogTitle>
           </div>
           <DialogDescription className="pt-4 space-y-4">
             <div className="flex items-center justify-center gap-3 py-4">
               <div className="text-center">
-                <div className="text-sm text-muted-foreground mb-1">Aktuell</div>
+                <div className="text-sm text-muted-foreground mb-1">Current</div>
                 <div className="font-semibold text-lg">{currentInfo.label}</div>
-                <div className="text-sm text-muted-foreground">{currentInfo.price}/Monat</div>
+                <div className="text-sm text-muted-foreground">{currentInfo.price}/month</div>
               </div>
               <ArrowRight className="h-5 w-5 text-muted-foreground" />
               <div className="text-center">
-                <div className="text-sm text-muted-foreground mb-1">Neu</div>
+                <div className="text-sm text-muted-foreground mb-1">New</div>
                 <div className="font-semibold text-lg text-primary">{newInfo.label}</div>
-                <div className="text-sm text-muted-foreground">{newInfo.price}/Monat</div>
+                <div className="text-sm text-muted-foreground">{newInfo.price}/month</div>
               </div>
             </div>
 
             <div className="bg-muted p-4 rounded-md space-y-2 text-sm">
               <p className="font-medium">
-                {isUpgrade ? 'Was passiert beim Upgrade:' : 'Was passiert bei der Änderung:'}
+                {isUpgrade ? 'What happens on upgrade:' : 'What happens on change:'}
               </p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Ihr Plan wird sofort geändert</li>
+                <li>Your plan will be changed immediately</li>
                 <li>
-                  Neue monatliche Quota: <strong>{newInfo.quota} Podcasts</strong>
+                  New monthly quota: <strong>{newInfo.quota} podcasts</strong>
                 </li>
                 <li>
                   {isUpgrade
-                    ? 'Sie werden anteilig für den restlichen Monat belastet'
-                    : 'Sie erhalten eine anteilige Gutschrift für den restlichen Monat'
+                    ? 'You will be charged prorated for the remaining month'
+                    : 'You will receive a prorated credit for the remaining month'
                   }
                 </li>
                 <li>
-                  Ab dem nächsten Abrechnungszyklus: <strong>{newInfo.price}/Monat</strong>
+                  Starting next billing cycle: <strong>{newInfo.price}/month</strong>
                 </li>
               </ul>
             </div>
 
             {!isUpgrade && (
               <p className="text-sm text-amber-600 dark:text-amber-500">
-                ⚠️ Hinweis: Bei einem Downgrade wird Ihre monatliche Quota reduziert.
+                ⚠️ Note: Downgrading will reduce your monthly quota.
               </p>
             )}
           </DialogDescription>
@@ -118,7 +118,7 @@ export function ChangeTierDialog({
             onClick={() => setOpen(false)}
             disabled={loading}
           >
-            Abbrechen
+            Cancel
           </Button>
           <Button
             onClick={handleConfirm}
@@ -127,10 +127,10 @@ export function ChangeTierDialog({
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Wird geändert...
+                Changing...
               </>
             ) : (
-              `${isUpgrade ? 'Upgraden' : 'Ändern'} auf ${newInfo.label}`
+              `${isUpgrade ? 'Upgrade' : 'Change'} to ${newInfo.label}`
             )}
           </Button>
         </DialogFooter>

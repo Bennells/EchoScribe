@@ -34,13 +34,13 @@ export function UploadZone({ onFileSelect, disabled, selectedFiles: externalSele
   const validateFile = (file: File): boolean => {
     // Check file size
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("Datei ist zu groß. Maximale Größe: 500 MB");
+      toast.error("File is too large. Maximum size: 500 MB");
       return false;
     }
 
     // Check file type
     if (!ACCEPTED_TYPES.includes(file.type) && !file.name.match(/\.(mp3|wav|m4a|ogg)$/i)) {
-      toast.error("Ungültiger Dateityp. Erlaubt: MP3, WAV, M4A, OGG");
+      toast.error("Invalid file type. Allowed: MP3, WAV, M4A, OGG");
       return false;
     }
 
@@ -54,7 +54,7 @@ export function UploadZone({ onFileSelect, disabled, selectedFiles: externalSele
       if (validFiles.length === 0) return;
 
       if (validFiles.length < files.length) {
-        toast.error(`${files.length - validFiles.length} Datei(en) wurden übersprungen (ungültiges Format oder zu groß)`);
+        toast.error(`${files.length - validFiles.length} file(s) were skipped (invalid format or too large)`);
       }
 
       setInternalSelectedFiles(prev => [...prev, ...validFiles]);
@@ -162,7 +162,7 @@ export function UploadZone({ onFileSelect, disabled, selectedFiles: externalSele
                   htmlFor="file-upload"
                   className="text-sm text-primary hover:underline cursor-pointer"
                 >
-                  + Weitere Dateien hinzufügen
+                  + Add more files
                 </label>
               </div>
             )}
@@ -180,13 +180,13 @@ export function UploadZone({ onFileSelect, disabled, selectedFiles: externalSele
               }`}
             />
             <p className="text-lg font-medium mb-2">
-              {isDragging ? "Dateien hier ablegen" : "Podcast-Dateien hochladen"}
+              {isDragging ? "Drop files here" : "Upload podcast files"}
             </p>
             <p className="text-sm text-muted-foreground text-center">
-              Ziehen Sie Audio-Dateien hierher oder klicken Sie zum Auswählen
+              Drag and drop audio files here or click to select
               <br />
               <span className="text-xs">
-                Unterstützt: MP3, WAV, M4A, OGG (max. 500 MB pro Datei)
+                Supported: MP3, WAV, M4A, OGG (max. 500 MB per file)
               </span>
             </p>
           </label>

@@ -58,18 +58,18 @@ export function ProcessingStatus({ processingStartedAt, fileSize }: ProcessingSt
       <Clock className="h-4 w-4 text-yellow-600 animate-pulse" />
       <div className="flex flex-col gap-1 min-w-[140px]">
         <span className="text-sm text-yellow-600 font-medium">
-          Wird verarbeitet...
+          Processing...
         </span>
         {processingStartedAt ? (
           <>
             <span className="text-xs text-muted-foreground">
-              {formatTime(elapsedSeconds)} / ~{estimatedMinutes} Min
+              {formatTime(elapsedSeconds)} / ~{estimatedMinutes} min
             </span>
             <Progress value={progressPercent} className="h-1" />
           </>
         ) : (
           <span className="text-xs text-muted-foreground">
-            Startet in Kürze...
+            Starting soon...
           </span>
         )}
       </div>

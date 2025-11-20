@@ -25,14 +25,14 @@ const allTiers: PricingTierConfig[] = [
     id: "free",
     name: "Free",
     price: "€0",
-    description: LAUNCH_SPECIAL_MODE ? "200 Minuten pro Monat" : "100 Minuten pro Monat",
+    description: LAUNCH_SPECIAL_MODE ? "200 minutes per month" : "100 minutes per month",
     features: [
-      LAUNCH_SPECIAL_MODE ? "200 Minuten pro Monat" : "100 Minuten pro Monat",
+      LAUNCH_SPECIAL_MODE ? "200 minutes per month" : "100 minutes per month",
       "Social Media Posts",
-      "SEO-Paket",
-      "Massen-Upload",
+      "SEO Package",
+      "Bulk Upload",
     ],
-    buttonText: "Kostenlos starten",
+    buttonText: "Start for free",
     buttonVariant: "outline",
   },
   {
@@ -40,43 +40,43 @@ const allTiers: PricingTierConfig[] = [
     name: "Starter",
     price: "€19",
     priceAmount: 19,
-    description: "240 Minuten pro Monat",
+    description: "240 minutes per month",
     features: [
-      "240 Minuten pro Monat",
+      "240 minutes per month",
       "Social Media Posts",
-      "SEO-Paket",
-      "Massen-Upload",
+      "SEO Package",
+      "Bulk Upload",
     ],
-    buttonText: "Jetzt starten",
+    buttonText: "Get started",
   },
   {
     id: "professional",
     name: "Professional",
     price: "€49",
     priceAmount: 49,
-    description: "600 Minuten pro Monat",
+    description: "600 minutes per month",
     features: [
-      "600 Minuten pro Monat",
+      "600 minutes per month",
       "Social Media Posts",
-      "SEO-Paket",
-      "Massen-Upload",
+      "SEO Package",
+      "Bulk Upload",
     ],
     popular: true,
-    buttonText: "Jetzt upgraden",
+    buttonText: "Upgrade now",
   },
   {
     id: "business",
     name: "Business",
     price: "€149",
     priceAmount: 149,
-    description: "2000 Minuten pro Monat",
+    description: "2000 minutes per month",
     features: [
-      "2000 Minuten pro Monat",
+      "2000 minutes per month",
       "Social Media Posts",
-      "SEO-Paket",
-      "Massen-Upload",
+      "SEO Package",
+      "Bulk Upload",
     ],
-    buttonText: "Jetzt upgraden",
+    buttonText: "Upgrade now",
   },
 ];
 
@@ -100,15 +100,15 @@ export function PricingCards({
 }: PricingCardsProps) {
   const getButtonText = (tier: PricingTierConfig) => {
     if (!isAuthenticated) {
-      return tier.id === "free" ? "Kostenlos starten" : "Jetzt starten";
+      return tier.id === "free" ? "Start for free" : "Get started";
     }
 
     if (currentTier === tier.id) {
-      return "Aktueller Plan";
+      return "Current Plan";
     }
 
     if (tier.id === "free") {
-      return "Kostenlos";
+      return "Free";
     }
 
     // Determine if this is an upgrade or downgrade
@@ -117,9 +117,9 @@ export function PricingCards({
     const targetIndex = tierOrder.indexOf(tier.id);
 
     if (targetIndex > currentIndex) {
-      return "Zu diesem Plan wechseln";
+      return "Switch to this plan";
     } else {
-      return "Zu diesem Plan wechseln";
+      return "Switch to this plan";
     }
   };
 
@@ -158,14 +158,14 @@ export function PricingCards({
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                 <span className="bg-gradient-to-r from-blue-600 to-violet-600 text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
                   <Sparkles className="h-3.5 w-3.5" />
-                  LAUNCH SPECIAL: 200 MINUTEN GRATIS
+                  LAUNCH SPECIAL: 200 MINUTES FREE
                 </span>
               </div>
             )}
             {tier.popular && !LAUNCH_SPECIAL_MODE && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                 <span className="bg-gradient-to-r from-blue-600 to-violet-600 text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg">
-                  AM BELIEBTESTEN
+                  MOST POPULAR
                 </span>
               </div>
             )}
@@ -176,7 +176,7 @@ export function PricingCards({
             <div className="mt-6">
               <span className="text-4xl font-bold">{tier.price}</span>
               {tier.priceAmount && (
-                <span className="text-muted-foreground ml-1">/Monat</span>
+                <span className="text-muted-foreground ml-1">/month</span>
               )}
             </div>
           </CardHeader>
@@ -204,7 +204,7 @@ export function PricingCards({
               className="w-full"
             >
               {loading && loadingTier === tier.id
-                ? "Wird geladen..."
+                ? "Loading..."
                 : getButtonText(tier)}
             </Button>
           </CardContent>

@@ -48,25 +48,25 @@ function PaymentMethodFormContent() {
     try {
       const { error: submitError } = await elements.submit();
       if (submitError) {
-        setError(submitError.message || "Fehler beim Validieren der Zahlungsmethode");
+        setError(submitError.message || "Error validating payment method");
         setIsSubmitting(false);
         return;
       }
 
       const { error: confirmError } = await stripe.confirmSetup({
         elements,
-        confirmParams: {
+        confirmParams:{
           return_url: `${window.location.origin}/dashboard/settings?payment_method_updated=true`,
         },
       });
 
       if (confirmError) {
-        setError(confirmError.message || "Fehler beim Aktualisieren der Zahlungsmethode");
+        setError(confirmError.message || "Error updating payment method");
         setIsSubmitting(false);
       }
     } catch (error: any) {
       console.error("Payment method update error:", error);
-      setError("Ein unerwarteter Fehler ist aufgetreten");
+      setError("An unexpected error occurred");
       setIsSubmitting(false);
     }
   };
@@ -86,10 +86,10 @@ function PaymentMethodFormContent() {
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Wird aktualisiert...
+            Updating...
           </>
         ) : (
-          "Zahlungsmethode aktualisieren"
+          "Update Payment Method"
         )}
       </Button>
     </form>
@@ -116,7 +116,7 @@ export function PaymentMethodManager() {
       }
     } catch (error) {
       console.error("Error loading payment method:", error);
-      toast.error("Fehler beim Laden der Zahlungsmethode");
+      toast.error("Error loading payment method");
     } finally {
       setIsLoading(false);
     }
@@ -130,14 +130,14 @@ export function PaymentMethodManager() {
       });
 
       if (!response.ok) {
-        throw new Error("Fehler beim Erstellen des Setup-Intents");
+        throw new Error("Error creating setup intent");
       }
 
       const { clientSecret } = await response.json();
       setClientSecret(clientSecret);
     } catch (error) {
       console.error("Error creating setup intent:", error);
-      toast.error("Fehler beim Vorbereiten des Zahlungsformulars");
+      toast.error("Error preparing payment form");
       setShowUpdateForm(false);
     }
   };
@@ -157,13 +157,13 @@ export function PaymentMethodManager() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Zahlungsmethode</CardTitle>
-          <CardDescription>Verwalten Sie Ihre Zahlungsinformationen</CardDescription>
+          <CardTitle>Payment Method</CardTitle>
+          <CardDescription>Manage your payment information</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Wird geladen...</span>
+            <span>Loading...</span>
           </div>
         </CardContent>
       </Card>
@@ -173,8 +173,8 @@ export function PaymentMethodManager() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Zahlungsmethode</CardTitle>
-        <CardDescription>Verwalten Sie Ihre Zahlungsinformationen</CardDescription>
+        <CardTitle>Payment Method</CardTitle>
+        <CardDescription>Manage your payment information</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {paymentMethodInfo?.hasPaymentMethod && paymentMethodInfo.paymentMethod ? (
@@ -190,7 +190,7 @@ export function PaymentMethodManager() {
                         {paymentMethodInfo.paymentMethod.card.brand} •••• {paymentMethodInfo.paymentMethod.card.last4}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Gültig bis {paymentMethodInfo.paymentMethod.card.expMonth.toString().padStart(2, '0')}/{paymentMethodInfo.paymentMethod.card.expYear}
+                        Expires {paymentMethodInfo.paymentMethod.card.expMonth.toString().padStart(2, '0')}/{paymentMethodInfo.paymentMethod.card.expYear}
                       </div>
                       {isCardExpiringSoon(
                         paymentMethodInfo.paymentMethod.card.expMonth,
@@ -198,7 +198,7 @@ export function PaymentMethodManager() {
                       ) && (
                         <div className="flex items-center gap-1 text-sm text-amber-600 mt-1">
                           <AlertCircle className="h-3 w-3" />
-                          <span>Läuft bald ab</span>
+                          <span>Expiring soon</span>
                         </div>
                       )}
                     </div>
@@ -222,18 +222,18 @@ export function PaymentMethodManager() {
 
             {!showUpdateForm && (
               <Button onClick={handleUpdateClick} variant="outline" className="w-full">
-                Zahlungsmethode ändern
+                Change Payment Method
               </Button>
             )}
           </div>
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Sie haben noch keine Zahlungsmethode hinterlegt.
+              You haven't added a payment method yet.
             </p>
             {!showUpdateForm && (
               <Button onClick={handleUpdateClick} className="w-full">
-                Zahlungsmethode hinzufügen
+                Add Payment Method
               </Button>
             )}
           </div>
@@ -249,7 +249,7 @@ export function PaymentMethodManager() {
                 appearance: {
                   theme: "stripe",
                 },
-                locale: "de",
+                locale: "en",
               }}
             >
               <PaymentMethodFormContent />
@@ -260,7 +260,7 @@ export function PaymentMethodManager() {
               className="w-full"
               type="button"
             >
-              Abbrechen
+              Cancel
             </Button>
           </div>
         )}

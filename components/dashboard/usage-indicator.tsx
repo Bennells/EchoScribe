@@ -63,7 +63,7 @@ export function UsageIndicator() {
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">
-                  {used} / {monthly} Minuten genutzt
+                  {used} / {monthly} minutes used
                 </span>
               </div>
               <Badge variant={badgeVariant} className="text-xs">
@@ -77,9 +77,9 @@ export function UsageIndicator() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
             <span>
-              Zurücksetzen in{" "}
+              Resets in{" "}
               <span className="font-medium text-foreground">
-                {daysUntilReset} {daysUntilReset === 1 ? "Tag" : "Tagen"}
+                {daysUntilReset} {daysUntilReset === 1 ? "day" : "days"}
               </span>
             </span>
           </div>

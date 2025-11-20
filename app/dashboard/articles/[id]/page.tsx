@@ -86,7 +86,7 @@ export default function ArticleDetailPage() {
         <Button variant="ghost" asChild className="mb-4">
           <Link href="/dashboard/articles">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Zurück
+            Back
           </Link>
         </Button>
         <h1 className="text-3xl font-bold">{article.title}</h1>
