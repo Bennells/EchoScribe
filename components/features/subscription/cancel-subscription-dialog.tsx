@@ -39,7 +39,7 @@ export function CancelSubscriptionDialog({
     }
   };
 
-  const formattedDate = periodEndDate.toLocaleDateString("de-DE", {
+  const formattedDate = periodEndDate.toLocaleDateString("en-US", {
     day: "2-digit",
     month: "long",
     year: "numeric",
@@ -55,34 +55,34 @@ export function CancelSubscriptionDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="text-destructive hover:text-destructive">
-          Abo kündigen
+          Cancel Subscription
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-6 w-6 text-amber-500" />
-            <DialogTitle>Abonnement kündigen?</DialogTitle>
+            <DialogTitle>Cancel Subscription?</DialogTitle>
           </div>
           <DialogDescription className="pt-4 space-y-3">
             <p>
-              Möchten Sie Ihr <strong>{tierLabels[currentTier] || currentTier}</strong>-Abonnement wirklich kündigen?
+              Are you sure you want to cancel your <strong>{tierLabels[currentTier] || currentTier}</strong> subscription?
             </p>
             <div className="bg-muted p-4 rounded-md space-y-2 text-sm">
-              <p className="font-medium">Was passiert nach der Kündigung:</p>
+              <p className="font-medium">What happens after cancellation:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>
-                  Ihr Abonnement bleibt bis <strong>{formattedDate}</strong> aktiv
+                  Your subscription remains active until <strong>{formattedDate}</strong>
                 </li>
-                <li>Sie können alle Features bis zum Ende der Laufzeit nutzen</li>
+                <li>You can use all features until the end of the period</li>
                 <li>
-                  Nach dem {formattedDate} wird Ihr Konto auf den kostenlosen Plan herabgestuft
+                  After {formattedDate}, your account will be downgraded to the free plan
                 </li>
-                <li>Sie können die Kündigung jederzeit rückgängig machen</li>
+                <li>You can reverse the cancellation at any time</li>
               </ul>
             </div>
             <p className="text-sm text-muted-foreground">
-              Sie können jederzeit wieder upgraden, wenn Sie es sich anders überlegen.
+              You can upgrade again anytime if you change your mind.
             </p>
           </DialogDescription>
         </DialogHeader>
@@ -92,7 +92,7 @@ export function CancelSubscriptionDialog({
             onClick={() => setOpen(false)}
             disabled={loading}
           >
-            Abbrechen
+            Cancel
           </Button>
           <Button
             variant="destructive"
@@ -102,10 +102,10 @@ export function CancelSubscriptionDialog({
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Wird gekündigt...
+                Canceling...
               </>
             ) : (
-              "Abo kündigen"
+              "Cancel Subscription"
             )}
           </Button>
         </DialogFooter>

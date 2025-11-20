@@ -22,10 +22,10 @@ export default function DashboardError({
         <CardHeader>
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-6 w-6 text-destructive" />
-            <CardTitle className="text-destructive">Fehler im Dashboard</CardTitle>
+            <CardTitle className="text-destructive">Dashboard Error</CardTitle>
           </div>
           <CardDescription>
-            Beim Laden dieser Seite ist ein Fehler aufgetreten.
+            An error occurred while loading this page.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -38,14 +38,14 @@ export default function DashboardError({
           )}
           <div className="flex gap-2">
             <Button onClick={reset} className="flex-1">
-              Erneut versuchen
+              Try Again
             </Button>
             <Button
               variant="outline"
               onClick={() => (window.location.href = "/dashboard")}
               className="flex-1"
             >
-              Zum Dashboard
+              Go to Dashboard
             </Button>
           </div>
         </CardContent>

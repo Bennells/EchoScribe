@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("[AuthContext] Failed to create user document:", error);
       // Don't fail the signup if user document creation fails
       // The user can still authenticate, but may need to recreate the document
-      throw new Error("Benutzer erstellt, aber Fehler beim Speichern der Benutzerdaten: " + error.message);
+      throw new Error("User created, but error saving user data: " + error.message);
     }
 
     // Get the ID token and store it in httpOnly cookie

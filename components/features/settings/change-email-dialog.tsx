@@ -59,17 +59,17 @@ export function ChangeEmailDialog({
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
-      setErrors((prev) => ({ ...prev, email: "E-Mail-Adresse ist erforderlich" }));
+      setErrors((prev) => ({ ...prev, email: "Email address is required" }));
       return false;
     }
     if (!emailRegex.test(email)) {
-      setErrors((prev) => ({ ...prev, email: "Ungültige E-Mail-Adresse" }));
+      setErrors((prev) => ({ ...prev, email: "Invalid email address" }));
       return false;
     }
     if (email.toLowerCase() === currentEmail.toLowerCase()) {
       setErrors((prev) => ({
         ...prev,
-        email: "Die neue E-Mail-Adresse muss sich von der aktuellen unterscheiden",
+        email: "New email address must be different from current",
       }));
       return false;
     }
@@ -87,7 +87,7 @@ export function ChangeEmailDialog({
     }
 
     if (!password) {
-      setErrors({ password: "Passwort ist erforderlich" });
+      setErrors({ password: "Password is required" });
       return;
     }
 
@@ -96,7 +96,7 @@ export function ChangeEmailDialog({
     try {
       const user = auth.currentUser;
       if (!user || !user.email) {
-        throw new Error("Kein authentifizierter Benutzer gefunden");
+        throw new Error("No authenticated user found");
       }
 
       // Step 1: Re-authenticate user
@@ -106,11 +106,11 @@ export function ChangeEmailDialog({
       } catch (error: any) {
         console.error("Re-authentication failed:", error);
         if (error.code === "auth/wrong-password") {
-          setErrors({ password: "Falsches Passwort" });
+          setErrors({ password: "Incorrect password" });
         } else if (error.code === "auth/too-many-requests") {
-          setErrors({ general: "Zu viele Versuche. Bitte versuchen Sie es später erneut." });
+          setErrors({ general: "Too many attempts. Please try again later." });
         } else {
-          setErrors({ general: "Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut." });
+          setErrors({ general: "Authentication failed. Please try again." });
         }
         setLoading(false);
         return;
@@ -122,13 +122,13 @@ export function ChangeEmailDialog({
       } catch (error: any) {
         console.error("Email verification failed:", error);
         if (error.code === "auth/email-already-in-use") {
-          setErrors({ email: "Diese E-Mail-Adresse wird bereits verwendet" });
+          setErrors({ email: "This email address is already in use" });
         } else if (error.code === "auth/invalid-email") {
-          setErrors({ email: "Ungültige E-Mail-Adresse" });
+          setErrors({ email: "Invalid email address" });
         } else if (error.code === "auth/requires-recent-login") {
-          setErrors({ general: "Bitte melden Sie sich erneut an und versuchen Sie es erneut." });
+          setErrors({ general: "Please sign in again and try again." });
         } else {
-          setErrors({ general: "Fehler beim Senden der Bestätigungs-E-Mail. Bitte versuchen Sie es erneut." });
+          setErrors({ general: "Error sending verification email. Please try again." });
         }
         setLoading(false);
         return;
@@ -137,10 +137,10 @@ export function ChangeEmailDialog({
       // Step 3: Show verification step
       setStep("verification");
       setLoading(false);
-      toast.success("Bestätigungs-E-Mail wurde gesendet!");
+      toast.success("Verification email sent!");
     } catch (error: any) {
       console.error("Unexpected error:", error);
-      setErrors({ general: "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut." });
+      setErrors({ general: "An unexpected error occurred. Please try again." });
       setLoading(false);
     }
   };
@@ -151,7 +151,7 @@ export function ChangeEmailDialog({
     try {
       const user = auth.currentUser;
       if (!user) {
-        throw new Error("Kein authentifizierter Benutzer gefunden");
+        throw new Error("No authenticated user found");
       }
 
       // Get fresh ID token
@@ -161,15 +161,15 @@ export function ChangeEmailDialog({
       const result = await updateUserEmail(userId, newEmail, idToken);
 
       if (!result.success) {
-        throw new Error(result.error || "Fehler beim Aktualisieren der E-Mail-Adresse");
+        throw new Error(result.error || "Error updating email address");
       }
 
-      toast.success("E-Mail-Adresse erfolgreich geändert!");
+      toast.success("Email address successfully changed!");
       handleClose();
       onEmailChanged?.();
     } catch (error: any) {
       console.error("Failed to complete email change:", error);
-      toast.error(error.message || "Fehler beim Abschließen der E-Mail-Änderung");
+      toast.error(error.message || "Error completing email change");
     } finally {
       setLoading(false);
     }
@@ -180,20 +180,20 @@ export function ChangeEmailDialog({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Mail className="h-4 w-4 mr-2" />
-          E-Mail ändern
+          Change Email
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <Mail className="h-6 w-6 text-primary" />
-            <DialogTitle>E-Mail-Adresse ändern</DialogTitle>
+            <DialogTitle>Change Email Address</DialogTitle>
           </div>
           <DialogDescription className="pt-2">
             {step === "input" ? (
-              "Geben Sie Ihre neue E-Mail-Adresse und Ihr aktuelles Passwort ein, um fortzufahren."
+              "Enter your new email address and current password to proceed."
             ) : (
-              "Bestätigen Sie Ihre neue E-Mail-Adresse, um den Vorgang abzuschließen."
+              "Verify your new email address to complete the process."
             )}
           </DialogDescription>
         </DialogHeader>
@@ -201,7 +201,7 @@ export function ChangeEmailDialog({
         {step === "input" ? (
           <form onSubmit={handleSubmit} className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="current-email">Aktuelle E-Mail-Adresse</Label>
+              <Label htmlFor="current-email">Current Email Address</Label>
               <Input
                 id="current-email"
                 type="email"
@@ -212,11 +212,11 @@ export function ChangeEmailDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="new-email">Neue E-Mail-Adresse</Label>
+              <Label htmlFor="new-email">New Email Address</Label>
               <Input
                 id="new-email"
                 type="email"
-                placeholder="ihre.neue@email.com"
+                placeholder="your.new@email.com"
                 value={newEmail}
                 onChange={(e) => {
                   setNewEmail(e.target.value);
@@ -237,7 +237,7 @@ export function ChangeEmailDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Aktuelles Passwort</Label>
+              <Label htmlFor="password">Current Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -259,7 +259,7 @@ export function ChangeEmailDialog({
                 </p>
               )}
               <p className="text-sm text-muted-foreground">
-                Zur Sicherheit müssen Sie Ihr Passwort bestätigen
+                For security, you must confirm your password
               </p>
             </div>
 
@@ -274,8 +274,8 @@ export function ChangeEmailDialog({
 
             <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
               <p className="text-sm text-blue-600">
-                <strong>Wichtig:</strong> Sie erhalten eine Bestätigungs-E-Mail an Ihre neue
-                Adresse. Ihre E-Mail-Adresse wird erst nach der Bestätigung geändert.
+                <strong>Important:</strong> You will receive a verification email at your new
+                address. Your email address will only be changed after verification.
               </p>
             </div>
 
@@ -286,16 +286,16 @@ export function ChangeEmailDialog({
                 onClick={handleClose}
                 disabled={loading}
               >
-                Abbrechen
+                Cancel
               </Button>
               <Button type="submit" disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Wird gesendet...
+                    Sending...
                   </>
                 ) : (
-                  "Bestätigungs-E-Mail senden"
+                  "Send Verification Email"
                 )}
               </Button>
             </DialogFooter>
@@ -308,25 +308,25 @@ export function ChangeEmailDialog({
               </div>
 
               <div className="space-y-2">
-                <h3 className="font-semibold text-lg">Bestätigungs-E-Mail gesendet</h3>
+                <h3 className="font-semibold text-lg">Verification Email Sent</h3>
                 <p className="text-sm text-muted-foreground">
-                  Wir haben eine Bestätigungs-E-Mail an <strong>{newEmail}</strong> gesendet.
+                  We have sent a verification email to <strong>{newEmail}</strong>.
                 </p>
               </div>
 
               <div className="bg-amber-50 border border-amber-200 rounded-md p-4 w-full text-left">
                 <p className="text-sm text-amber-800 space-y-2">
-                  <strong>Nächste Schritte:</strong>
+                  <strong>Next Steps:</strong>
                   <ol className="list-decimal list-inside space-y-1 mt-2">
-                    <li>Öffnen Sie Ihr E-Mail-Postfach</li>
-                    <li>Klicken Sie auf den Bestätigungslink in der E-Mail</li>
-                    <li>Kehren Sie hierher zurück und klicken Sie auf &ldquo;Änderung abschließen&rdquo;</li>
+                    <li>Open your email inbox</li>
+                    <li>Click on the verification link in the email</li>
+                    <li>Return here and click &ldquo;Complete Change&rdquo;</li>
                   </ol>
                 </p>
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Keine E-Mail erhalten? Überprüfen Sie Ihren Spam-Ordner.
+                Didn&apos;t receive an email? Check your spam folder.
               </p>
             </div>
 
@@ -338,7 +338,7 @@ export function ChangeEmailDialog({
                 disabled={loading}
                 className="w-full sm:w-auto"
               >
-                Später fortfahren
+                Continue Later
               </Button>
               <Button
                 onClick={handleVerificationComplete}
@@ -348,12 +348,12 @@ export function ChangeEmailDialog({
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Wird abgeschlossen...
+                    Completing...
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Änderung abschließen
+                    Complete Change
                   </>
                 )}
               </Button>

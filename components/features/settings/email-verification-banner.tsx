@@ -62,11 +62,11 @@ export function EmailVerificationBanner({
       const updatedUser = auth.currentUser;
 
       if (!updatedUser) {
-        throw new Error("Benutzer nicht gefunden");
+        throw new Error("User not found");
       }
 
       if (!updatedUser.emailVerified) {
-        toast.error("Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse");
+        toast.error("Please verify your email address first");
         setIsVerifying(false);
         return;
       }
@@ -76,22 +76,22 @@ export function EmailVerificationBanner({
       const newEmail = updatedUser.email;
 
       if (!newEmail) {
-        throw new Error("Keine E-Mail-Adresse gefunden");
+        throw new Error("No email address found");
       }
 
       // Update Firestore and Stripe
       const result = await updateUserEmail(userId, newEmail, idToken);
 
       if (!result.success) {
-        throw new Error(result.error || "Fehler beim Aktualisieren der E-Mail-Adresse");
+        throw new Error(result.error || "Error updating email address");
       }
 
-      toast.success("E-Mail-Adresse erfolgreich geändert!");
+      toast.success("Email address successfully changed!");
       setHasVerificationEmail(false);
       onVerificationComplete?.();
     } catch (error: any) {
       console.error("Failed to complete email verification:", error);
-      toast.error(error.message || "Fehler beim Abschließen der E-Mail-Änderung");
+      toast.error(error.message || "Error completing email change");
     } finally {
       setIsVerifying(false);
     }
@@ -110,11 +110,11 @@ export function EmailVerificationBanner({
           <div className="flex items-start justify-between gap-2">
             <div>
               <h3 className="font-semibold text-blue-900">
-                E-Mail-Bestätigung ausstehend
+                Email Verification Pending
               </h3>
               <p className="text-sm text-blue-700 mt-1">
-                Sie haben eine Bestätigungs-E-Mail erhalten. Bitte bestätigen Sie Ihre neue
-                E-Mail-Adresse, um die Änderung abzuschließen.
+                You have received a verification email. Please verify your new
+                email address to complete the change.
               </p>
             </div>
             <Button
@@ -137,17 +137,17 @@ export function EmailVerificationBanner({
               {isVerifying ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Wird überprüft...
+                  Verifying...
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Änderung abschließen
+                  Complete Change
                 </>
               )}
             </Button>
             <p className="text-xs text-blue-600">
-              Klicken Sie hier, nachdem Sie die E-Mail bestätigt haben
+              Click here after verifying the email
             </p>
           </div>
         </div>

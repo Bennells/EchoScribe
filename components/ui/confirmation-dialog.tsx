@@ -27,8 +27,8 @@ export function ConfirmationDialog({
   trigger,
   title,
   description,
-  confirmText = "Bestätigen",
-  cancelText = "Abbrechen",
+  confirmText = "Confirm",
+  cancelText = "Cancel",
   onConfirm,
   variant = "default",
 }: ConfirmationDialogProps) {
@@ -76,7 +76,7 @@ export function ConfirmationDialog({
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Wird verarbeitet...
+                Processing...
               </>
             ) : (
               confirmText

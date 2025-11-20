@@ -71,7 +71,7 @@ export default function DashboardLayout({
             {/* Logo/Brand */}
             <div className="flex h-16 items-center border-b px-6">
               <Link href="/dashboard" className="text-xl font-bold">
-                EchoScribe
+                EchoScribes
               </Link>
             </div>
 
@@ -111,7 +111,7 @@ export default function DashboardLayout({
                 onClick={handleSignOut}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                Abmelden
+                Sign Out
               </Button>
             </div>
           </div>

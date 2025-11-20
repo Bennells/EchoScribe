@@ -47,31 +47,31 @@ export function DeleteAccountDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive">Konto löschen</Button>
+        <Button variant="destructive">Delete Account</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-6 w-6 text-destructive" />
-            <DialogTitle>Konto unwiderruflich löschen?</DialogTitle>
+            <DialogTitle>Permanently Delete Account?</DialogTitle>
           </div>
           <DialogDescription className="pt-4 space-y-3">
             <p>
-              Diese Aktion kann <strong>nicht rückgängig</strong> gemacht werden.
-              Dies wird dauerhaft:
+              This action <strong>cannot be undone</strong>.
+              This will permanently:
             </p>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>Ihr Konto ({userEmail}) löschen</li>
-              <li>Alle hochgeladenen Podcasts löschen</li>
-              <li>Alle generierten Artikel löschen</li>
-              <li>Ihr aktives Abonnement kündigen (falls vorhanden)</li>
-              <li>Alle Ihre Daten permanent entfernen</li>
+              <li>Delete your account ({userEmail})</li>
+              <li>Delete all uploaded podcasts</li>
+              <li>Delete all generated articles</li>
+              <li>Cancel your active subscription (if any)</li>
+              <li>Remove all your data permanently</li>
             </ul>
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <Label htmlFor="confirm" className="text-sm">
-            Geben Sie <strong>DELETE</strong> ein, um zu bestätigen:
+            Type <strong>DELETE</strong> to confirm:
           </Label>
           <Input
             id="confirm"
@@ -88,7 +88,7 @@ export function DeleteAccountDialog({
             onClick={() => setOpen(false)}
             disabled={loading}
           >
-            Abbrechen
+            Cancel
           </Button>
           <Button
             variant="destructive"
@@ -98,10 +98,10 @@ export function DeleteAccountDialog({
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Wird gelöscht...
+                Deleting...
               </>
             ) : (
-              "Konto permanent löschen"
+              "Permanently Delete Account"
             )}
           </Button>
         </DialogFooter>

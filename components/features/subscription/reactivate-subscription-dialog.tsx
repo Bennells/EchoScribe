@@ -39,7 +39,7 @@ export function ReactivateSubscriptionDialog({
     }
   };
 
-  const formattedDate = periodEndDate.toLocaleDateString("de-DE", {
+  const formattedDate = periodEndDate.toLocaleDateString("en-US", {
     day: "2-digit",
     month: "long",
     year: "numeric",
@@ -55,32 +55,32 @@ export function ReactivateSubscriptionDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="default" className="bg-green-600 hover:bg-green-700">
-          Kündigung rückgängig machen
+          Reactivate Subscription
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-6 w-6 text-green-600" />
-            <DialogTitle>Abonnement reaktivieren?</DialogTitle>
+            <DialogTitle>Reactivate Subscription?</DialogTitle>
           </div>
           <DialogDescription className="pt-4 space-y-3">
             <p>
-              Möchten Sie die Kündigung Ihres <strong>{tierLabels[currentTier] || currentTier}</strong>-Abonnements rückgängig machen?
+              Do you want to reverse the cancellation of your <strong>{tierLabels[currentTier] || currentTier}</strong> subscription?
             </p>
             <div className="bg-muted p-4 rounded-md space-y-2 text-sm">
-              <p className="font-medium">Was passiert nach der Reaktivierung:</p>
+              <p className="font-medium">What happens after reactivation:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>
-                  Ihr Abonnement läuft normal weiter über den {formattedDate} hinaus
+                  Your subscription will continue normally beyond {formattedDate}
                 </li>
-                <li>Die automatische Verlängerung wird wieder aktiviert</li>
-                <li>Sie behalten alle Premium-Features ohne Unterbrechung</li>
-                <li>Die Abrechnung erfolgt wie gewohnt zum nächsten Stichtag</li>
+                <li>Automatic renewal will be reactivated</li>
+                <li>You will keep all premium features without interruption</li>
+                <li>Billing will continue as usual on the next billing date</li>
               </ul>
             </div>
             <p className="text-sm text-muted-foreground">
-              Sie können Ihr Abonnement jederzeit wieder kündigen.
+              You can cancel your subscription again at any time.
             </p>
           </DialogDescription>
         </DialogHeader>
@@ -90,7 +90,7 @@ export function ReactivateSubscriptionDialog({
             onClick={() => setOpen(false)}
             disabled={loading}
           >
-            Abbrechen
+            Cancel
           </Button>
           <Button
             variant="default"
@@ -101,10 +101,10 @@ export function ReactivateSubscriptionDialog({
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Wird reaktiviert...
+                Reactivating...
               </>
             ) : (
-              "Abo reaktivieren"
+              "Reactivate Subscription"
             )}
           </Button>
         </DialogFooter>
