@@ -21,8 +21,8 @@ import {
 import { Metadata } from "next";
 
 export const metadata: Metadata = createMetadata({
-  title: "EchoScribe - Podcast zu Blog-Artikel | Automatische SEO-Optimierung",
-  description: "Wandeln Sie Podcasts automatisch in SEO-optimierte Blog-Artikel um. Mit Meta-Tags, Keywords, Schema.org und Social Media Posts. DSGVO-konform. Jetzt 200 Minuten gratis testen!",
+  title: "EchoScribe - Podcast to Blog Article | Automatic SEO Optimization",
+  description: "Automatically convert podcasts into SEO-optimized blog articles. With meta tags, keywords, Schema.org and social media posts. GDPR compliant. Try 200 minutes free now!",
   path: "/",
 });
 
@@ -43,7 +43,7 @@ export default function Home() {
         <div className="bg-gradient-to-r from-blue-600 to-violet-600 text-white py-3 px-4 text-center">
           <div className="container mx-auto flex items-center justify-center gap-2 text-sm md:text-base font-semibold">
             <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
-            <span>Launch Special: Jetzt kostenlos mit 200 Minuten starten!</span>
+            <span>Launch Special: Start free with 200 minutes now!</span>
             <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
           </div>
         </div>

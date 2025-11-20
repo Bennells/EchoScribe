@@ -49,7 +49,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Willkommen zurück, {user?.email?.split("@")[0]}!
+          Welcome back, {user?.email?.split("@")[0]}!
         </p>
       </div>
 
@@ -58,7 +58,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Podcasts hochgeladen
+              Podcasts Uploaded
             </CardTitle>
             <FileAudio className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
               {loading ? "..." : stats.thisMonth}
             </div>
             <p className="text-xs text-muted-foreground">
-              Diesen Monat
+              This Month
             </p>
           </CardContent>
         </Card>
@@ -75,7 +75,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Artikel generiert
+              Articles Generated
             </CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -84,7 +84,7 @@ export default function DashboardPage() {
               {loading ? "..." : stats.completed}
             </div>
             <p className="text-xs text-muted-foreground">
-              Gesamt
+              Total
             </p>
           </CardContent>
         </Card>
@@ -93,16 +93,16 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Schnellstart</CardTitle>
+          <CardTitle>Quick Start</CardTitle>
           <CardDescription>
-            Laden Sie Ihren ersten Podcast hoch und lassen Sie ihn in einen Blog-Artikel umwandeln
+            Upload your first podcast and convert it into a blog article
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild size="lg">
             <Link href="/dashboard/podcasts">
               <Upload className="mr-2 h-5 w-5" />
-              Podcast hochladen
+              Upload Podcast
             </Link>
           </Button>
         </CardContent>
@@ -111,17 +111,17 @@ export default function DashboardPage() {
       {/* Recent Activity */}
       <Card>
         <CardHeader>
-          <CardTitle>Letzte Aktivität</CardTitle>
+          <CardTitle>Recent Activity</CardTitle>
           <CardDescription>
-            Ihre zuletzt hochgeladenen Podcasts
+            Your recently uploaded podcasts
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Lädt...</p>
+            <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>
           ) : recentPodcasts.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Noch keine Podcasts hochgeladen
+              No podcasts uploaded yet
             </p>
           ) : (
             <div className="space-y-2">
@@ -133,16 +133,20 @@ export default function DashboardPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{podcast.fileName}</p>
                     <p className="text-xs text-muted-foreground">
-                      {podcast.uploadedAt.toDate().toLocaleDateString("de-DE")}
+                      {podcast.uploadedAt.toDate().toLocaleDateString("en-US", {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
                     </p>
                   </div>
                   {podcast.status === "completed" ? (
                     <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-700">
-                      Fertig
+                      Complete
                     </span>
                   ) : podcast.status === "error" ? (
                     <span className="text-xs px-2 py-1 rounded bg-red-100 text-red-700">
-                      Fehler
+                      Error
                     </span>
                   ) : (podcast.status === "processing" || podcast.status === "queued") ? (
                     <div className="scale-75 origin-right">
@@ -153,7 +157,7 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <span className="text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-700">
-                      In Arbeit
+                      In Progress
                     </span>
                   )}
                 </div>

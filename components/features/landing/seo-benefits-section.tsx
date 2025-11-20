@@ -3,27 +3,27 @@ import { TrendingUp, Users, Globe, Zap } from "lucide-react";
 const benefits = [
   {
     icon: TrendingUp,
-    title: "Bessere Rankings",
+    title: "Better Rankings",
     description:
-      "Meta-Tags und Keywords helfen Google, Ihre Inhalte zu verstehen und höher zu ranken.",
+      "Meta tags and keywords help Google understand your content and rank it higher.",
   },
   {
     icon: Users,
-    title: "Mehr Hörer*innen",
+    title: "More Listeners",
     description:
-      "Menschen finden Ihre Podcasts über Google-Suche – erschließen Sie neue Zielgruppen.",
+      "People find your podcasts through Google search – reach new audiences.",
   },
   {
     icon: Globe,
-    title: "Größere Reichweite",
+    title: "Greater Reach",
     description:
-      "Social Media Posts verbreiten Ihre Inhalte automatisch auf allen wichtigen Kanälen.",
+      "Social media posts automatically distribute your content across all major channels.",
   },
   {
     icon: Zap,
-    title: "Zeit sparen",
+    title: "Save Time",
     description:
-      "Statt Stunden für Content-Erstellung – fertig in Minuten. Mehr Zeit fürs Podcasten.",
+      "Instead of hours for content creation – ready in minutes. More time for podcasting.",
   },
 ];
 
@@ -34,15 +34,15 @@ export function SeoBenefitsSection() {
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold">
-            Warum{" "}
+            Why{" "}
             <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-              SEO-optimierte Artikel
+              SEO-Optimized Articles
             </span>{" "}
-            für Podcaster*innen wichtig sind
+            are important for podcasters
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Die meisten Hörer*innen finden neue Podcasts über Google, nicht über Podcast-Apps.
-            Mit SEO-optimierten Artikeln erschließen Sie diese riesige Zielgruppe.
+            Most listeners discover new podcasts through Google, not through podcast apps.
+            With SEO-optimized articles, you tap into this huge audience.
           </p>
         </div>
 
@@ -70,11 +70,11 @@ export function SeoBenefitsSection() {
         {/* Stats or Additional Info */}
         <div className="mt-16 bg-gradient-to-r from-blue-600 to-violet-600 rounded-2xl p-8 md:p-12 text-white text-center">
           <h3 className="text-3xl md:text-4xl font-bold mb-4">
-            Die meisten Podcast-Hörer*innen
+            Most Podcast Listeners
           </h3>
           <p className="text-xl md:text-2xl opacity-90 max-w-2xl mx-auto">
-            suchen zuerst auf Google nach Podcasts zu ihren Interessen.
-            Seien Sie dort sichtbar, wo Ihre Zielgruppe sucht.
+            search on Google first for podcasts about their interests.
+            Be visible where your target audience is searching.
           </p>
         </div>
       </div>

@@ -2,9 +2,9 @@ import { Metadata } from 'next'
 
 export const siteConfig = {
   name: 'EchoScribe',
-  description: 'Wandeln Sie Podcasts automatisch in SEO-optimierte Blog-Artikel um',
-  url: process.env.NEXT_PUBLIC_BASE_URL || 'https://echoscribe.de',
-  locale: 'de_DE',
+  description: 'Automatically convert podcasts into SEO-optimized blog articles',
+  url: process.env.NEXT_PUBLIC_BASE_URL || 'https://echoscribes.com',
+  locale: 'en_US',
   type: 'website',
 }
 

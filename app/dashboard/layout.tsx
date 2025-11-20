@@ -48,18 +48,18 @@ export default function DashboardLayout({
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success("Erfolgreich abgemeldet");
+      toast.success("Successfully signed out");
     } catch (error) {
-      toast.error("Fehler beim Abmelden");
+      toast.error("Error signing out");
     }
   };
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Podcasts", href: "/dashboard/podcasts", icon: FileAudio },
-    { name: "Artikel", href: "/dashboard/articles", icon: FileText },
-    { name: "Preise", href: "/dashboard/pricing", icon: CreditCard },
-    { name: "Einstellungen", href: "/dashboard/settings", icon: Settings },
+    { name: "Articles", href: "/dashboard/articles", icon: FileText },
+    { name: "Pricing", href: "/dashboard/pricing", icon: CreditCard },
+    { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
 
   return (

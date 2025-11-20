@@ -40,7 +40,7 @@ export default function DashboardPricingPage() {
       setQuotaInfo(info);
     } catch (error) {
       console.error("Error loading quota info:", error);
-      toast.error("Fehler beim Laden der Quota-Informationen");
+      toast.error("Error loading quota information");
       // Set default quota info on error
       setQuotaInfo({
         used: 0,
@@ -75,7 +75,7 @@ export default function DashboardPricingPage() {
 
   const handleSelectTier = async (tier: PricingTier) => {
     if (tier === "free") {
-      toast.error("Sie können nicht zum Free-Plan downgraden. Bitte kündigen Sie Ihr Abo in den Einstellungen.");
+      toast.error("You cannot downgrade to the Free plan. Please cancel your subscription in Settings.");
       return;
     }
 
@@ -111,11 +111,11 @@ export default function DashboardPricingPage() {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || "Fehler beim Ändern des Plans");
+          throw new Error(errorData.error || "Error changing plan");
         }
 
         const result = await response.json();
-        toast.success("Plan erfolgreich geändert!");
+        toast.success("Plan successfully changed!");
 
         // Reload quota info to reflect new tier
         await loadQuotaInfo();
@@ -130,7 +130,7 @@ export default function DashboardPricingPage() {
         });
 
         if (!response.ok) {
-          throw new Error("Fehler beim Erstellen der Checkout-Session");
+          throw new Error("Error creating checkout session");
         }
 
         const { url } = await response.json();
@@ -141,7 +141,7 @@ export default function DashboardPricingPage() {
       }
     } catch (error: any) {
       console.error("Tier selection error:", error);
-      toast.error(error.message || "Fehler beim Ändern des Plans. Bitte versuchen Sie es erneut.");
+      toast.error(error.message || "Error changing plan. Please try again.");
     } finally {
       setLoading(false);
       setLoadingTier(null);
@@ -154,9 +154,9 @@ export default function DashboardPricingPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Preise & Pläne</h1>
+        <h1 className="text-3xl font-bold">Pricing & Plans</h1>
         <p className="text-muted-foreground mt-2">
-          Wählen Sie den Plan, der am besten zu Ihren Bedürfnissen passt
+          Choose the plan that best fits your needs
         </p>
       </div>
 
@@ -167,7 +167,7 @@ export default function DashboardPricingPage() {
           <div className="text-sm text-blue-900">
             <p className="font-semibold mb-1">Launch Special Phase</p>
             <p>
-              Aktuell ist nur der kostenlose Plan mit 200 Minuten verfügbar. Weitere Preisstufen (Starter, Professional, Business) folgen in Kürze.
+              Currently only the free plan with 200 minutes is available. Additional pricing tiers (Starter, Professional, Business) coming soon.
             </p>
           </div>
         </div>
@@ -177,26 +177,26 @@ export default function DashboardPricingPage() {
       {quotaInfo && (
         <Card>
           <CardHeader>
-            <CardTitle>Ihr aktueller Plan</CardTitle>
+            <CardTitle>Your Current Plan</CardTitle>
             <CardDescription>
-              {currentTier === "free" && "Sie nutzen derzeit den kostenlosen Plan"}
-              {currentTier === "starter" && "Sie nutzen derzeit den Starter Plan"}
-              {currentTier === "professional" && "Sie nutzen derzeit den Professional Plan"}
-              {currentTier === "business" && "Sie nutzen derzeit den Business Plan"}
+              {currentTier === "free" && "You are currently using the free plan"}
+              {currentTier === "starter" && "You are currently using the Starter plan"}
+              {currentTier === "professional" && "You are currently using the Professional plan"}
+              {currentTier === "business" && "You are currently using the Business plan"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div>
-                <span className="text-sm font-medium">Quota-Nutzung: </span>
+                <span className="text-sm font-medium">Quota Usage: </span>
                 <span className="text-sm text-muted-foreground">
-                  {quotaInfo.used} / {quotaInfo.total} Minuten verwendet
+                  {quotaInfo.used} / {quotaInfo.total} minutes used
                 </span>
               </div>
               {isPro && quotaInfo.subscriptionStatus === "active" && (
                 <div>
                   <span className="text-sm font-medium">Status: </span>
-                  <span className="text-sm text-green-600">Aktiv</span>
+                  <span className="text-sm text-green-600">Active</span>
                 </div>
               )}
             </div>
@@ -233,35 +233,35 @@ export default function DashboardPricingPage() {
       {/* Additional Info */}
       <Card>
         <CardHeader>
-          <CardTitle>Plan-Verwaltung</CardTitle>
+          <CardTitle>Plan Management</CardTitle>
           <CardDescription>
-            Informationen zu Ihrem Abonnement und wie Sie es verwalten können
+            Information about your subscription and how to manage it
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <h3 className="font-medium mb-2">Wie funktioniert ein Upgrade?</h3>
+            <h3 className="font-medium mb-2">How does upgrading work?</h3>
             <p className="text-sm text-muted-foreground">
-              Wenn Sie einen höheren Plan wählen, erhalten Sie sofort Zugriff auf die erweiterte Quota.
-              Die Abrechnung erfolgt anteilig für den verbleibenden Monat.
+              When you choose a higher plan, you get immediate access to the expanded quota.
+              Billing is prorated for the remaining month.
             </p>
           </div>
 
           <div>
-            <h3 className="font-medium mb-2">Wie kann ich meinen Plan kündigen?</h3>
+            <h3 className="font-medium mb-2">How can I cancel my plan?</h3>
             <p className="text-sm text-muted-foreground">
-              Gehen Sie zu den <a href="/dashboard/settings" className="text-primary hover:underline">Einstellungen</a> und
-              klicken Sie auf &quot;Abonnement verwalten&quot;. Sie werden zum Stripe-Kundenportal weitergeleitet,
-              wo Sie Ihr Abonnement kündigen können.
+              Go to <a href="/dashboard/settings" className="text-primary hover:underline">Settings</a> and
+              click &quot;Manage Subscription&quot;. You will be redirected to the Stripe customer portal
+              where you can cancel your subscription.
             </p>
           </div>
 
           <div>
-            <h3 className="font-medium mb-2">Was passiert nach der Kündigung?</h3>
+            <h3 className="font-medium mb-2">What happens after cancellation?</h3>
             <p className="text-sm text-muted-foreground">
-              Ihr Abonnement bleibt bis zum Ende des bezahlten Zeitraums aktiv.
-              Danach werden Sie automatisch auf den Free-Plan herabgestuft.
-              Ihre Daten und bereits erstellten Artikel bleiben erhalten.
+              Your subscription remains active until the end of the paid period.
+              After that, you will automatically be downgraded to the Free plan.
+              Your data and already created articles will be preserved.
             </p>
           </div>
         </CardContent>

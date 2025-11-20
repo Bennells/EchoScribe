@@ -28,19 +28,18 @@ export function CookieBanner() {
       <Card className="mx-auto max-w-3xl p-6 shadow-lg">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex-1">
-            <h3 className="font-semibold mb-2">Cookie-Hinweis</h3>
+            <h3 className="font-semibold mb-2">Cookie Notice</h3>
             <p className="text-sm text-muted-foreground">
-              Wir verwenden ausschließlich technisch notwendige Cookies für die Authentifizierung.
-              Diese sind für die Funktion der Website erforderlich. Weitere Informationen finden
-              Sie in unserer{" "}
+              We only use technically necessary cookies for authentication.
+              These are required for the website to function. More information can be found in our{" "}
               <Link href="/privacy" className="underline hover:text-primary">
-                Datenschutzerklärung
+                Privacy Policy
               </Link>
               .
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={acceptCookies}>Verstanden</Button>
+            <Button onClick={acceptCookies}>Got it</Button>
           </div>
         </div>
       </Card>

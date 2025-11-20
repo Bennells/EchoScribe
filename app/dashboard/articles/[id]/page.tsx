@@ -33,14 +33,14 @@ export default function ArticleDetailPage() {
     try {
       const data = await getArticle(params.id);
       if (!data) {
-        toast.error("Artikel nicht gefunden");
+        toast.error("Article not found");
         router.push("/dashboard/articles");
         return;
       }
 
       // Check if user owns this article
       if (data.userId !== user?.uid) {
-        toast.error("Keine Berechtigung");
+        toast.error("Not authorized");
         router.push("/dashboard/articles");
         return;
       }
@@ -48,7 +48,7 @@ export default function ArticleDetailPage() {
       setArticle(data);
     } catch (error) {
       console.error("Error loading article:", error);
-      toast.error("Fehler beim Laden des Artikels");
+      toast.error("Error loading article");
     } finally {
       setLoading(false);
     }
@@ -56,7 +56,7 @@ export default function ArticleDetailPage() {
 
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
-    toast.success(`${type} in Zwischenablage kopiert`);
+    toast.success(`${type} copied to clipboard`);
   };
 
   if (loading) {
@@ -66,11 +66,11 @@ export default function ArticleDetailPage() {
           <Button variant="ghost" asChild>
             <Link href="/dashboard/articles">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Zurück
+              Back
             </Link>
           </Button>
         </div>
-        <p className="text-center py-12 text-muted-foreground">Lädt...</p>
+        <p className="text-center py-12 text-muted-foreground">Loading...</p>
       </div>
     );
   }
@@ -93,7 +93,7 @@ export default function ArticleDetailPage() {
         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
             <Calendar className="h-4 w-4" />
-            {article.createdAt.toDate().toLocaleDateString("de-DE", {
+            {article.createdAt.toDate().toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
               day: "numeric",
@@ -109,13 +109,13 @@ export default function ArticleDetailPage() {
       {/* Meta Info */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">SEO Metadaten</CardTitle>
+          <CardTitle className="text-base">SEO Metadata</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* SEO Title */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium">SEO Titel</label>
+              <label className="text-sm font-medium">SEO Title</label>
               <CharacterCounter
                 current={article.title.length}
                 optimal={{ min: 50, max: 60 }}
@@ -128,7 +128,7 @@ export default function ArticleDetailPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => copyToClipboard(article.title, "Titel")}
+                onClick={() => copyToClipboard(article.title, "Title")}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -195,7 +195,7 @@ export default function ArticleDetailPage() {
                   }
                 >
                   <Copy className="h-4 w-4 mr-1" />
-                  Alle kopieren
+                  Copy All
                 </Button>
               </div>
             </div>
@@ -216,9 +216,9 @@ export default function ArticleDetailPage() {
       {/* Content */}
       <Card>
         <CardHeader>
-          <CardTitle>Artikel-Inhalt</CardTitle>
+          <CardTitle>Article Content</CardTitle>
           <CardDescription>
-            Markdown und HTML Ansicht des generierten Artikels
+            Markdown and HTML view of the generated article
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -226,7 +226,7 @@ export default function ArticleDetailPage() {
             <TabsList className="inline-flex sticky top-0 z-10 bg-background border-b mb-4">
               <TabsTrigger value="preview" className="gap-2">
                 <Eye className="h-4 w-4" />
-                <span className="hidden sm:inline">Vorschau</span>
+                <span className="hidden sm:inline">Preview</span>
               </TabsTrigger>
               <TabsTrigger value="markdown" className="gap-2">
                 <Code className="h-4 w-4" />
@@ -255,7 +255,7 @@ export default function ArticleDetailPage() {
                   }
                 >
                   <Copy className="h-4 w-4 mr-2" />
-                  HTML kopieren
+                  Copy HTML
                 </Button>
                 <div
                   className="prose prose-base max-w-full p-6 border rounded-lg overflow-x-auto prose-headings:font-bold prose-h1:text-3xl prose-h1:mb-4 prose-h2:text-2xl prose-h2:mb-3 prose-h3:text-xl prose-h3:mb-2 prose-p:mb-4 prose-p:leading-relaxed prose-ul:my-4 prose-ol:my-4 prose-li:mb-2"
@@ -275,7 +275,7 @@ export default function ArticleDetailPage() {
                   }
                 >
                   <Copy className="h-4 w-4 mr-2" />
-                  Kopieren
+                  Copy
                 </Button>
                 <pre className="p-6 bg-muted rounded-lg overflow-x-auto text-sm whitespace-pre-wrap break-words">
                   <code className="break-words">{article.contentMarkdown}</code>
@@ -294,7 +294,7 @@ export default function ArticleDetailPage() {
                   }
                 >
                   <Copy className="h-4 w-4 mr-2" />
-                  Kopieren
+                  Copy
                 </Button>
                 <HTMLCodeBlock code={article.contentHTML} showLineNumbers={false} />
               </div>
@@ -349,7 +349,7 @@ export default function ArticleDetailPage() {
                             <div className="flex-1">
                               <span className="text-xs text-muted-foreground font-medium">Tweet {idx + 1}</span>
                               <p className="text-sm mt-1 whitespace-pre-wrap">{tweet}</p>
-                              <p className="text-xs text-muted-foreground mt-2">{tweet.length}/280 Zeichen</p>
+                              <p className="text-xs text-muted-foreground mt-2">{tweet.length}/280 characters</p>
                             </div>
                             <Button
                               variant="ghost"

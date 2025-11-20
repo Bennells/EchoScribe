@@ -6,29 +6,29 @@ import { cn } from "@/lib/utils/cn";
 
 const faqs = [
   {
-    question: "Wie lange dauert die Verarbeitung eines Podcasts?",
+    question: "How long does it take to process a podcast?",
     answer:
-      "Die Verarbeitung dauert in der Regel 2-5 Minuten, abhängig von der Länge Ihrer Podcast-Episode. Sie werden in Echtzeit über den Fortschritt informiert und erhalten eine Benachrichtigung, sobald Ihr Artikel fertig ist.",
+      "Processing typically takes 2-5 minutes, depending on the length of your podcast episode. You'll be informed of progress in real-time and receive a notification once your article is ready.",
   },
   {
-    question: "Welche Audioformate werden unterstützt?",
+    question: "Which audio formats are supported?",
     answer:
-      "Wir unterstützen alle gängigen Audioformate wie MP3, WAV, M4A, FLAC und OGG. Die maximale Dateigröße beträgt 500MB pro Upload.",
+      "We support all common audio formats like MP3, WAV, M4A, FLAC and OGG. The maximum file size is 500MB per upload.",
   },
   {
-    question: "Was passiert, wenn ich mein monatliches Kontingent aufbrauche?",
+    question: "What happens if I run out of my monthly quota?",
     answer:
-      "Bei bezahlten Plänen wird Ihr Kontingent jeden Monat automatisch zurückgesetzt. Wenn Sie Ihr Kontingent vorher aufbrauchen, können Sie entweder auf einen höheren Plan upgraden oder bis zur nächsten Zurücksetzung warten. Ihre bereits erstellten Artikel bleiben verfügbar.",
+      "For paid plans, your quota automatically resets every month. If you use up your quota beforehand, you can either upgrade to a higher plan or wait until the next reset. Your already created articles remain available.",
   },
   {
-    question: "Sind meine Daten sicher und wo werden sie verarbeitet?",
+    question: "Are my data safe and where are they processed?",
     answer:
-      "Absolut! Wir sind DSGVO-konform. Alle Ihre Daten (Account, Audio-Dateien, Artikel) werden ausschließlich in der EU gehostet (Firebase + Google Cloud europe-west1). Für die KI-Verarbeitung nutzen wir OpenAI (USA) mit Zero Data Retention - OpenAI speichert Ihre Daten NICHT dauerhaft und verwendet sie NICHT für Training. Audio-Dateien werden nach 30 Tagen automatisch gelöscht. Sie können Ihre Daten jederzeit exportieren oder löschen. Details in unserer Datenschutzerklärung.",
+      "Absolutely! We are GDPR compliant. All your data (account, audio files, articles) are hosted exclusively in the EU (Firebase + Google Cloud europe-west1). For AI processing, we use OpenAI (USA) with Zero Data Retention - OpenAI does NOT store your data permanently and does NOT use it for training. Audio files are automatically deleted after 30 days. You can export or delete your data at any time. Details in our privacy policy.",
   },
   {
-    question: "Warum nutzt ihr OpenAI und nicht eine EU-basierte KI?",
+    question: "Why do you use OpenAI and not an EU-based AI?",
     answer:
-      "OpenAI bietet derzeit die beste Qualität für Audio-Transkription und Content-Generierung. Wir nutzen die API mit Zero Data Retention, d.h. Ihre Daten werden nur für die Verarbeitung verwendet und danach nicht gespeichert oder für Training verwendet. Wir beobachten EU-basierte Alternativen und werden wechseln, sobald diese eine vergleichbare Qualität bieten.",
+      "OpenAI currently offers the best quality for audio transcription and content generation. We use the API with Zero Data Retention, meaning your data is only used for processing and not stored or used for training afterwards. We're monitoring EU-based alternatives and will switch once they offer comparable quality.",
   },
 ];
 
@@ -45,10 +45,10 @@ export function FaqSection() {
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold">
-            Häufig gestellte Fragen
+            Frequently Asked Questions
           </h2>
           <p className="text-xl text-muted-foreground">
-            Alles, was Sie über EchoScribe wissen müssen
+            Everything you need to know about EchoScribe
           </p>
         </div>
 
@@ -92,27 +92,27 @@ export function FaqSection() {
         <div className="mt-12 text-center space-y-6">
           <div>
             <p className="text-muted-foreground mb-4">
-              Haben Sie weitere Fragen? Wir helfen Ihnen gerne weiter.
+              Have more questions? We&apos;re happy to help.
             </p>
             <a
-              href="mailto:info@echoscribe.de"
+              href="mailto:info@echoscribes.com"
               className="text-primary hover:underline font-medium"
             >
-              Kontaktieren Sie unseren Support
+              Contact our support
             </a>
           </div>
 
           <div className="pt-6 border-t max-w-2xl mx-auto">
             <p className="text-muted-foreground mb-4">
-              Wir freuen uns über Ihr Feedback! Als Podcaster*in wissen Sie am besten,
-              was Sie brauchen. Teilen Sie uns Ihre Ideen und Wünsche mit –
-              wir sind hier, um Ihnen zu helfen.
+              We appreciate your feedback! As a podcaster, you know best
+              what you need. Share your ideas and wishes with us –
+              we&apos;re here to help you.
             </p>
             <a
-              href="mailto:info@echoscribe.de"
+              href="mailto:info@echoscribes.com"
               className="text-primary hover:underline font-medium"
             >
-              Feedback senden an info@echoscribe.de
+              Send feedback to info@echoscribes.com
             </a>
           </div>
         </div>

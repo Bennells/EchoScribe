@@ -5,23 +5,23 @@ const steps = [
   {
     number: "01",
     icon: Upload,
-    title: "Podcast hochladen",
+    title: "Upload Podcast",
     description:
-      "Drag & Drop Ihrer Audio-Datei. Alle gängigen Formate bis 500MB.",
+      "Drag & drop your audio file. All common formats up to 500MB.",
   },
   {
     number: "02",
     icon: Sparkles,
-    title: "KI-Verarbeitung",
+    title: "AI Processing",
     description:
-      "Automatische Transkription und Erstellung von SEO-Artikeln und Social Posts.",
+      "Automatic transcription and creation of SEO articles and social posts.",
   },
   {
     number: "03",
     icon: FileText,
-    title: "Fertig zum Teilen",
+    title: "Ready to Share",
     description:
-      "Blog-Artikel und Social Media Content – alles bereit für Ihre Kanäle.",
+      "Blog articles and social media content – everything ready for your channels.",
   },
 ];
 
@@ -32,10 +32,10 @@ export function HowItWorks() {
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold">
-            So einfach geht&apos;s
+            It&apos;s That Simple
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Von der Audio-Datei zu vollständigem Content in nur 3 Schritten
+            From audio file to complete content in just 3 steps
           </p>
         </div>
 
@@ -88,7 +88,7 @@ export function HowItWorks() {
         <div className="mt-12 text-center">
           <p className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-6 py-3 rounded-full">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="font-semibold">Durchschnittliche Verarbeitungszeit: 2-5 Minuten</span>
+            <span className="font-semibold">Average processing time: 2-5 minutes</span>
           </p>
         </div>
       </div>

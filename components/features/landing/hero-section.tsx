@@ -20,22 +20,22 @@ export function HeroSection() {
             {/* Main Headline */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
               <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-                Mehr Reichweite
+                More Reach
               </span>
               <br />
-              <span className="text-foreground">für Ihre Podcasts</span>
+              <span className="text-foreground">for Your Podcasts</span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              Verwandeln Sie Ihre Podcast-Episoden automatisch in SEO-Artikel und Social Media Posts.
-              Erreichen Sie mehr Hörer*innen auf allen Kanälen.
+              Automatically convert your podcast episodes into SEO articles and social media posts.
+              Reach more listeners across all channels.
             </p>
 
             {LAUNCH_SPECIAL_MODE && (
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-full text-sm font-semibold shadow-lg">
                 <Sparkles className="h-4 w-4" />
-                Launch Special: 200 Minuten kostenlos!
+                Launch Special: 200 Minutes Free!
               </div>
             )}
 
@@ -43,14 +43,14 @@ export function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center pt-4">
               <Link href="/register">
                 <Button size="lg" className="text-base px-8 py-6 group">
-                  {LAUNCH_SPECIAL_MODE ? "Jetzt 200 Minuten gratis sichern" : "Kostenlos starten"}
+                  {LAUNCH_SPECIAL_MODE ? "Get 200 Minutes Free Now" : "Start Free"}
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               {!LAUNCH_SPECIAL_MODE && (
                 <Link href="/pricing">
                   <Button size="lg" variant="outline" className="text-base px-8 py-6">
-                    Preise ansehen
+                    View Pricing
                   </Button>
                 </Link>
               )}
@@ -60,24 +60,24 @@ export function HeroSection() {
             <div className="flex flex-wrap justify-center lg:justify-start items-center gap-6 pt-8 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-blue-600" />
-                <span>EU-Hosting</span>
+                <span>EU Hosting</span>
               </div>
               <div className="flex items-center gap-2">
                 <Lock className="h-5 w-5 text-blue-600" />
-                <span>DSGVO-konform</span>
+                <span>GDPR Compliant</span>
               </div>
               <div className="flex items-center gap-2">
                 <X className="h-5 w-5 text-blue-600" />
-                <span>Jederzeit kündbar</span>
+                <span>Cancel Anytime</span>
               </div>
             </div>
 
             {/* Data Processing Notice */}
             <div className="pt-4 max-w-xl mx-auto lg:mx-0">
               <p className="text-xs text-muted-foreground">
-                KI-Verarbeitung durch OpenAI (USA). Alle Daten werden in der EU gespeichert.{" "}
+                AI processing by OpenAI (USA). All data is stored in the EU.{" "}
                 <Link href="/privacy" className="underline hover:text-foreground">
-                  Details zum Datenschutz
+                  Privacy details
                 </Link>
               </p>
             </div>
@@ -95,7 +95,7 @@ export function HeroSection() {
                       <Mic className="h-8 w-8 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">Ihr Podcast</h3>
+                      <h3 className="font-semibold text-lg">Your Podcast</h3>
                       <p className="text-sm text-muted-foreground">MP3, WAV, M4A...</p>
                     </div>
                   </div>
@@ -105,7 +105,7 @@ export function HeroSection() {
                 <div className="flex justify-center -my-4 relative z-10">
                   <div className="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2">
                     <Sparkles className="h-5 w-5 animate-pulse" />
-                    <span className="font-semibold text-sm">KI-Verarbeitung</span>
+                    <span className="font-semibold text-sm">AI Processing</span>
                   </div>
                 </div>
 
@@ -117,8 +117,8 @@ export function HeroSection() {
                       <Sparkles className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-base">Sie erhalten:</h3>
-                      <p className="text-xs text-muted-foreground">Alles fertig zum Veröffentlichen</p>
+                      <h3 className="font-semibold text-base">You Get:</h3>
+                      <p className="text-xs text-muted-foreground">Everything ready to publish</p>
                     </div>
                   </div>
 
@@ -130,8 +130,8 @@ export function HeroSection() {
                         <FileText className="h-4 w-4 text-violet-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground">SEO-Artikel</p>
-                        <p className="text-xs text-muted-foreground">Meta-Tags • Keywords • Schema.org</p>
+                        <p className="text-sm font-medium text-foreground">SEO Article</p>
+                        <p className="text-xs text-muted-foreground">Meta Tags • Keywords • Schema.org</p>
                       </div>
                     </div>
 
@@ -151,7 +151,7 @@ export function HeroSection() {
                   {/* Quick Stats */}
                   <div className="mt-4 pt-4 border-t border-violet-100 flex items-center justify-center gap-2">
                     <Tag className="h-3.5 w-3.5 text-violet-600" />
-                    <span className="text-xs font-medium text-violet-600">Alles in 2-5 Minuten</span>
+                    <span className="text-xs font-medium text-violet-600">All in 2-5 minutes</span>
                   </div>
                 </div>
               </div>

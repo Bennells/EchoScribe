@@ -159,7 +159,6 @@ async function transcribeSmallFile(
             const result = await openai.audio.transcriptions.create({
               file: audioStream as any,
               model: "gpt-4o-transcribe",
-              language: "de",
               response_format: "json",
             });
 
@@ -264,7 +263,6 @@ async function transcribeWithChunking(
             const result = await openai.audio.transcriptions.create({
               file: fileStream as any,
               model: "gpt-4o-transcribe",
-              language: "de",
               response_format: "json",
             });
 

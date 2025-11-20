@@ -49,7 +49,7 @@ export default function PodcastsPage() {
         // Show toast for new quota_exceeded podcasts
         newQuotaExceeded.forEach(podcast => {
           toast.error(
-            `Upload abgelehnt: ${podcast.fileName}\n${podcast.errorMessage || 'Kontingent überschritten'}`,
+            `Upload rejected: ${podcast.fileName}\n${podcast.errorMessage || 'Quota exceeded'}`,
             { duration: 10000 }
           );
         });
@@ -96,7 +96,7 @@ export default function PodcastsPage() {
       setPodcasts(data);
     } catch (error) {
       console.error("Error loading podcasts:", error);
-      toast.error("Fehler beim Laden der Podcasts");
+      toast.error("Error loading podcasts");
     } finally {
       setLoading(false);
     }
@@ -114,7 +114,7 @@ export default function PodcastsPage() {
       setSelectedFiles(prev => [...prev, ...filesWithDurations]);
     } catch (error) {
       console.error("Error extracting audio durations:", error);
-      toast.error("Fehler beim Extrahieren der Audio-Dauer");
+      toast.error("Error extracting audio duration");
       // Add files with 0 duration on error
       const filesWithZeroDuration = files.map(file => ({ file, duration: 0 }));
       setSelectedFiles(prev => [...prev, ...filesWithZeroDuration]);
@@ -143,10 +143,10 @@ export default function PodcastsPage() {
       if (totalRequired > currentQuotaInfo.total) {
         const available = Math.max(0, currentQuotaInfo.total - currentQuotaInfo.used - pendingMinutes);
         toast.error(
-          `Nicht genügend Minuten verfügbar!\n` +
-          `Benötigt: ${totalRequiredMinutes.toFixed(1)} Min.\n` +
-          `Verfügbar: ${available.toFixed(1)} Min.\n\n` +
-          `Hinweis: Die finale Kontingent-Prüfung erfolgt nach dem Upload.`,
+          `Not enough minutes available!\n` +
+          `Required: ${totalRequiredMinutes.toFixed(1)} min.\n` +
+          `Available: ${available.toFixed(1)} min.\n\n` +
+          `Note: Final quota check occurs after upload.`,
           { duration: 8000 }
         );
         return;
@@ -156,8 +156,8 @@ export default function PodcastsPage() {
 
       // Show initial upload started message
       toast.success(
-        `Upload gestartet für ${selectedFiles.length} Datei${selectedFiles.length !== 1 ? 'en' : ''}...\n` +
-        `Kontingent wird nach dem Upload geprüft.`,
+        `Upload started for ${selectedFiles.length} file${selectedFiles.length !== 1 ? 's' : ''}...\n` +
+        `Quota will be checked after upload.`,
         { duration: 4000 }
       );
 
@@ -197,18 +197,18 @@ export default function PodcastsPage() {
       // Show summary message with quota verification note
       if (errorCount === 0) {
         toast.success(
-          `${successCount} Podcast${successCount !== 1 ? 's' : ''} erfolgreich hochgeladen!\n` +
-          `Verarbeitung läuft... Kontingent wird jetzt geprüft und Datei analysiert.`,
+          `${successCount} Podcast${successCount !== 1 ? 's' : ''} successfully uploaded!\n` +
+          `Processing... Quota is being checked and file analyzed.`,
           { duration: 6000 }
         );
       } else if (successCount > 0) {
         toast.success(
-          `${successCount} von ${selectedFiles.length} Podcasts hochgeladen. ${errorCount} fehlgeschlagen.\n` +
-          `Verarbeitung läuft für erfolgreiche Uploads.`,
+          `${successCount} of ${selectedFiles.length} Podcasts uploaded. ${errorCount} failed.\n` +
+          `Processing for successful uploads.`,
           { duration: 6000 }
         );
       } else {
-        toast.error(`Alle ${errorCount} Uploads fehlgeschlagen.`);
+        toast.error(`All ${errorCount} uploads failed.`);
       }
 
       // Reset upload state to allow immediate re-upload
@@ -219,21 +219,21 @@ export default function PodcastsPage() {
       // Quota will be incremented by Cloud Function after processing completes
     } catch (error: any) {
       console.error("Upload error:", error);
-      toast.error("Fehler beim Hochladen: " + error.message);
+      toast.error("Upload error: " + error.message);
       setUploading(false);
     }
   };
 
   const handleDelete = async (podcast: Podcast) => {
-    if (!confirm(`Podcast "${podcast.fileName}" wirklich löschen?`)) return;
+    if (!confirm(`Really delete podcast "${podcast.fileName}"?`)) return;
 
     try {
       await deletePodcast(podcast.id, podcast.storagePath);
-      toast.success("Podcast gelöscht");
+      toast.success("Podcast deleted");
       // Podcasts will update via real-time listener
     } catch (error) {
       console.error("Delete error:", error);
-      toast.error("Fehler beim Löschen");
+      toast.error("Error deleting");
     }
   };
 
@@ -245,7 +245,7 @@ export default function PodcastsPage() {
         return (
           <div className="flex items-center gap-1 text-blue-600">
             <Clock className="h-4 w-4" />
-            <span className="text-sm">Hochgeladen</span>
+            <span className="text-sm">Uploaded</span>
           </div>
         );
       case "processing":
@@ -260,21 +260,21 @@ export default function PodcastsPage() {
         return (
           <div className="flex items-center gap-1 text-green-600">
             <CheckCircle className="h-4 w-4" />
-            <span className="text-sm">Fertig</span>
+            <span className="text-sm">Complete</span>
           </div>
         );
       case "error":
         return (
           <div className="flex items-center gap-1 text-red-600">
             <AlertCircle className="h-4 w-4" />
-            <span className="text-sm">Fehler</span>
+            <span className="text-sm">Error</span>
           </div>
         );
       case "quota_exceeded":
         return (
           <div className="flex items-center gap-1 text-orange-600">
             <AlertCircle className="h-4 w-4" />
-            <span className="text-sm">Quota überschritten</span>
+            <span className="text-sm">Quota Exceeded</span>
           </div>
         );
       default:
@@ -290,7 +290,7 @@ export default function PodcastsPage() {
       <div>
         <h1 className="text-3xl font-bold">Podcasts</h1>
         <p className="text-muted-foreground mt-2">
-          Laden Sie Ihre Podcasts hoch und lassen Sie sie in Blog-Artikel umwandeln
+          Upload your podcasts and convert them into blog articles
         </p>
       </div>
 
@@ -299,22 +299,22 @@ export default function PodcastsPage() {
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>
-            {quotaExceededPodcasts.length} Upload{quotaExceededPodcasts.length > 1 ? 's' : ''} fehlgeschlagen
+            {quotaExceededPodcasts.length} Upload{quotaExceededPodcasts.length > 1 ? 's' : ''} failed
           </AlertTitle>
           <AlertDescription>
             <p className="mb-2">
-              Ihr Kontingent hat nicht für alle Dateien gereicht. Die folgenden Uploads wurden abgelehnt:
+              Your quota was not sufficient for all files. The following uploads were rejected:
             </p>
             <ul className="list-disc list-inside space-y-1">
               {quotaExceededPodcasts.map(p => (
                 <li key={p.id} className="text-sm">
                   <span className="font-medium">{p.fileName}</span>
-                  {p.duration && ` (${p.duration} Min)`}
+                  {p.duration && ` (${p.duration} min)`}
                 </li>
               ))}
             </ul>
             <p className="mt-3 text-sm">
-              Diese Dateien wurden nicht gespeichert und zählen nicht zu Ihrem Kontingent.
+              These files were not saved and do not count towards your quota.
             </p>
           </AlertDescription>
         </Alert>
@@ -323,19 +323,19 @@ export default function PodcastsPage() {
       {/* Upload Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Neuen Podcast hochladen</CardTitle>
+          <CardTitle>Upload New Podcast</CardTitle>
           <CardDescription>
-            Unterstützte Formate: MP3, WAV, M4A, OGG (max. 500 MB)
+            Supported formats: MP3, WAV, M4A, OGG (max. 500 MB)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert className="bg-blue-50 border-blue-200">
             <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="text-blue-900">Wichtiger Hinweis zur Kontingent-Prüfung</AlertTitle>
+            <AlertTitle className="text-blue-900">Important Note on Quota Verification</AlertTitle>
             <AlertDescription className="text-blue-800">
-              Die exakte Länge Ihrer Audio-Datei wird erst <strong>nach dem Upload</strong> vom Server geprüft.
-              Falls die tatsächliche Länge Ihr verfügbares Kontingent überschreitet, wird die Datei automatisch gelöscht
-              und <strong>nicht verarbeitet</strong>. Die angezeigte Dauer vor dem Upload ist nur eine Schätzung.
+              The exact length of your audio file is only verified by the server <strong>after upload</strong>.
+              If the actual length exceeds your available quota, the file will be automatically deleted
+              and <strong>not processed</strong>. The duration displayed before upload is only an estimate.
             </AlertDescription>
           </Alert>
 
@@ -349,7 +349,7 @@ export default function PodcastsPage() {
                 <div className="flex items-center gap-2">
                   <Info className="h-4 w-4 text-blue-600" />
                   <span className="text-sm font-medium text-blue-900">
-                    Wie wird die Dauer berechnet?
+                    How is duration calculated?
                   </span>
                 </div>
                 {showDurationInfo ? (
@@ -362,17 +362,17 @@ export default function PodcastsPage() {
               {showDurationInfo && (
                 <div className="mt-3 pt-3 border-t border-blue-200 text-sm text-blue-900 space-y-2">
                   <p>
-                    Die angezeigte Dauer ist eine Schätzung Ihres Browsers.
-                    Nach dem Upload validiert unser Server die tatsächliche Länge für eine faire Abrechnung.
+                    The displayed duration is an estimate from your browser.
+                    After upload, our server validates the actual length for fair billing.
                   </p>
                   <p className="text-xs text-blue-700">
-                    <strong>Warum validieren wir die Dauer?</strong>
+                    <strong>Why do we validate duration?</strong>
                     <br />
-                    • Faire und genaue Kontingent-Verwaltung
+                    • Fair and accurate quota management
                     <br />
-                    • Schutz vor Manipulation
+                    • Protection against manipulation
                     <br />
-                    • Bei VBR-kodierten Dateien kann es zu kleinen Abweichungen (meist &lt;5%) kommen
+                    • VBR-encoded files may have small variations (usually &lt;5%)
                   </p>
                 </div>
               )}
@@ -394,7 +394,7 @@ export default function PodcastsPage() {
 
           {loadingDurations && (
             <div className="text-center text-sm text-muted-foreground">
-              Lade Audio-Dauer...
+              Loading audio duration...
             </div>
           )}
 
@@ -411,14 +411,14 @@ export default function PodcastsPage() {
             return (
               <div className="space-y-2">
                 <div className="text-sm text-muted-foreground">
-                  {selectedFiles.length} Datei{selectedFiles.length !== 1 ? 'en' : ''} ausgewählt
-                  ({totalRequiredMinutes.toFixed(1)} Min.)
+                  {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''} selected
+                  ({totalRequiredMinutes.toFixed(1)} min.)
                 </div>
                 {!hasEnoughQuota && (
                   <Alert variant="destructive" className="py-2">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription className="text-sm">
-                      Nicht genügend Minuten! Benötigt: {totalRequiredMinutes.toFixed(1)} Min., Verfügbar: {available.toFixed(1)} Min.
+                      Not enough minutes! Required: {totalRequiredMinutes.toFixed(1)} min., Available: {available.toFixed(1)} min.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -427,7 +427,7 @@ export default function PodcastsPage() {
                   className="w-full"
                   disabled={!hasEnoughQuota}
                 >
-                  {selectedFiles.length === 1 ? 'Jetzt hochladen' : `${selectedFiles.length} Dateien hochladen`}
+                  {selectedFiles.length === 1 ? 'Upload now' : `Upload ${selectedFiles.length} files`}
                 </Button>
               </div>
             );
@@ -436,7 +436,7 @@ export default function PodcastsPage() {
           {uploading && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span>Wird hochgeladen...</span>
+                <span>Uploading...</span>
                 <span>{uploadProgress.toFixed(0)}%</span>
               </div>
               <Progress value={uploadProgress} />
@@ -448,17 +448,17 @@ export default function PodcastsPage() {
       {/* Podcasts List */}
       <Card>
         <CardHeader>
-          <CardTitle>Ihre Podcasts</CardTitle>
+          <CardTitle>Your Podcasts</CardTitle>
           <CardDescription>
-            {podcasts.length} Podcast{podcasts.length !== 1 ? "s" : ""} hochgeladen
+            {podcasts.length} Podcast{podcasts.length !== 1 ? "s" : ""} uploaded
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-center py-8 text-muted-foreground">Lädt...</p>
+            <p className="text-center py-8 text-muted-foreground">Loading...</p>
           ) : podcasts.length === 0 ? (
             <p className="text-center py-8 text-muted-foreground">
-              Noch keine Podcasts hochgeladen
+              No podcasts uploaded yet
             </p>
           ) : (
             <div className="space-y-3">
@@ -480,7 +480,11 @@ export default function PodcastsPage() {
                           {(podcast.fileSize / 1024 / 1024).toFixed(2)} MB
                         </span>
                         <span>
-                          {podcast.uploadedAt.toDate().toLocaleDateString("de-DE")}
+                          {podcast.uploadedAt.toDate().toLocaleDateString("en-US", {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
                         </span>
                       </div>
                     </div>
@@ -495,7 +499,7 @@ export default function PodcastsPage() {
                       >
                         <Link href={`/dashboard/articles/${podcast.articleId}`}>
                           <ExternalLink className="h-4 w-4 mr-1" />
-                          Artikel
+                          Article
                         </Link>
                       </Button>
                     )}

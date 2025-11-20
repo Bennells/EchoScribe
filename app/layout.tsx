@@ -9,8 +9,8 @@ import { createMetadata } from "@/lib/metadata";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = createMetadata({
-  title: "EchoScribe - Podcast zu Blog-Artikel",
-  description: "Wandeln Sie Podcasts automatisch in SEO-optimierte Blog-Artikel um",
+  title: "EchoScribe - Podcast to Blog Article",
+  description: "Automatically convert podcasts into SEO-optimized blog articles",
   path: "/",
 });
 
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de">
+    <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
           <div className="flex min-h-screen flex-col">

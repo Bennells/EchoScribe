@@ -19,4 +19,4 @@ Disallow: /forgot-password
 Disallow: /not-authorized
 
 # Sitemap location
-Sitemap: https://echoscribe.de/sitemap.xml
+Sitemap: https://echoscribes.com/sitemap.xml

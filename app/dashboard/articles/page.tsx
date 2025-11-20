@@ -35,31 +35,31 @@ export default function ArticlesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Artikel</h1>
+        <h1 className="text-3xl font-bold">Articles</h1>
         <p className="text-muted-foreground mt-2">
-          Ihre generierten Blog-Artikel aus Podcasts
+          Your generated blog articles from podcasts
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Ihre Artikel</CardTitle>
+          <CardTitle>Your Articles</CardTitle>
           <CardDescription>
-            {articles.length} Artikel{articles.length !== 1 ? "" : ""} generiert
+            {articles.length} Article{articles.length !== 1 ? "s" : ""} generated
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-center py-8 text-muted-foreground">Lädt...</p>
+            <p className="text-center py-8 text-muted-foreground">Loading...</p>
           ) : articles.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">
-                Noch keine Artikel generiert
+                No articles generated yet
               </p>
               <Button asChild>
                 <Link href="/dashboard/podcasts">
-                  Podcast hochladen
+                  Upload Podcast
                 </Link>
               </Button>
             </div>
@@ -82,7 +82,7 @@ export default function ArticlesPage() {
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {article.createdAt.toDate().toLocaleDateString("de-DE", {
+                          {article.createdAt.toDate().toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
@@ -102,7 +102,7 @@ export default function ArticlesPage() {
                   >
                     <Link href={`/dashboard/articles/${article.id}`}>
                       <ExternalLink className="h-4 w-4 mr-1" />
-                      Anzeigen
+                      View
                     </Link>
                   </Button>
                 </div>

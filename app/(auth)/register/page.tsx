@@ -26,12 +26,12 @@ export default function RegisterPage() {
 
     // Validation
     if (password !== confirmPassword) {
-      setError("Passwörter stimmen nicht überein");
+      setError("Passwords do not match");
       return;
     }
 
     if (password.length < 6) {
-      setError("Passwort muss mindestens 6 Zeichen lang sein");
+      setError("Password must be at least 6 characters long");
       return;
     }
 
@@ -39,7 +39,7 @@ export default function RegisterPage() {
 
     try {
       await signUp(email, password);
-      toast.success("Konto erfolgreich erstellt!");
+      toast.success("Account created successfully!");
       // Wait a bit for auth state to propagate, then use router.push
       // This allows the AuthContext to update before navigation
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -47,13 +47,13 @@ export default function RegisterPage() {
     } catch (err: any) {
       console.error(err);
       if (err.code === "auth/email-already-in-use") {
-        setError("Diese E-Mail-Adresse wird bereits verwendet");
+        setError("This email address is already in use");
       } else if (err.code === "auth/invalid-email") {
-        setError("Ungültige E-Mail-Adresse");
+        setError("Invalid email address");
       } else if (err.code === "auth/weak-password") {
-        setError("Passwort ist zu schwach");
+        setError("Password is too weak");
       } else {
-        setError("Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.");
+        setError("Registration failed. Please try again.");
       }
       setLoading(false);
     }
@@ -64,19 +64,19 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Registrieren</CardTitle>
+          <CardTitle className="text-2xl font-bold">Register</CardTitle>
           <CardDescription>
-            Erstellen Sie ein Konto, um loszulegen
+            Create an account to get started
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form onSubmit={handleSubmit}>
             <FormField>
-              <Label htmlFor="email">E-Mail</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="name@beispiel.de"
+                placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -85,7 +85,7 @@ export default function RegisterPage() {
             </FormField>
 
             <FormField>
-              <Label htmlFor="password">Passwort</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -96,12 +96,12 @@ export default function RegisterPage() {
                 minLength={6}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Mindestens 6 Zeichen
+                At least 6 characters
               </p>
             </FormField>
 
             <FormField>
-              <Label htmlFor="confirmPassword">Passwort bestätigen</Label>
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -115,27 +115,27 @@ export default function RegisterPage() {
             {error && <FormMessage>{error}</FormMessage>}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Wird registriert..." : "Registrieren"}
+              {loading ? "Registering..." : "Register"}
             </Button>
           </Form>
 
           <div className="mt-4 text-center text-sm">
-            Bereits ein Konto?{" "}
+            Already have an account?{" "}
             <Link href="/login" className="text-primary hover:underline">
-              Jetzt anmelden
+              Sign in now
             </Link>
           </div>
 
           <p className="mt-4 text-xs text-center text-muted-foreground">
-            Mit der Registrierung stimmen Sie unseren{" "}
+            By registering, you agree to our{" "}
             <Link href="/terms" className="underline hover:text-primary">
-              AGB
+              Terms
             </Link>{" "}
-            und{" "}
+            and{" "}
             <Link href="/privacy" className="underline hover:text-primary">
-              Datenschutzerklärung
-            </Link>{" "}
-            zu.
+              Privacy Policy
+            </Link>
+            .
           </p>
         </CardContent>
       </Card>

@@ -3,8 +3,8 @@ import { AlertCircle } from "lucide-react";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
-  title: "AGB - EchoScribe",
-  description: "Allgemeine Geschäftsbedingungen für die Nutzung von EchoScribe.",
+  title: "Terms of Service - EchoScribes",
+  description: "Terms of Service for using EchoScribes.",
   path: "/terms",
   noIndex: true,
 });
@@ -12,7 +12,7 @@ export const metadata = createMetadata({
 export default function TermsPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8">Allgemeine Geschäftsbedingungen (AGB)</h1>
+      <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
 
       {/* Launch Phase Notice */}
       <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
@@ -20,131 +20,130 @@ export default function TermsPage() {
         <div className="text-sm text-blue-900">
           <p className="font-semibold mb-1">Launch Special Phase</p>
           <p>
-            Während der Launch Special Phase ist nur der kostenlose Plan mit 200 Minuten verfügbar.
-            Diese AGB werden nach der offiziellen Launch-Phase mit bezahlten Plänen aktualisiert.
+            During the Launch Special Phase, only the free plan with 200 minutes is available.
+            These Terms of Service will be updated after the official launch phase with paid plans.
           </p>
         </div>
       </div>
 
       <div className="prose prose-slate max-w-none space-y-6">
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">1. Geltungsbereich</h2>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">1. Scope</h2>
           <p>
-            Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für die Nutzung von EchoScribe,
-            einem Service zur Umwandlung von Podcasts in Blog-Artikel.
+            These Terms of Service apply to the use of EchoScribes, a service for converting
+            podcasts into blog articles.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">2. Leistungsbeschreibung</h2>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">2. Service Description</h2>
           <p>
-            EchoScribe bietet einen Service zur automatischen Umwandlung von Audio-Podcasts in
-            SEO-optimierte Blog-Artikel mittels künstlicher Intelligenz (OpenAI ChatGPT).
+            EchoScribes offers a service for automatically converting audio podcasts into
+            SEO-optimized blog articles using artificial intelligence (OpenAI ChatGPT).
           </p>
 
           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg my-4">
-            <p className="font-semibold text-yellow-900">Hinweis zur Datenverarbeitung:</p>
+            <p className="font-semibold text-yellow-900">Notice About Data Processing:</p>
             <p className="text-yellow-800 mt-2">
-              Die KI-Verarbeitung erfolgt durch OpenAI auf Servern in den USA. Alle anderen Daten
-              (Account, Dateien, Artikel) werden ausschließlich in der EU gespeichert. Details finden
-              Sie in unserer{" "}
+              AI processing is performed by OpenAI on servers in the USA. All other data
+              (account, files, articles) is stored exclusively in the EU. Details can be found
+              in our{" "}
               <Link href="/privacy" className="underline font-semibold">
-                Datenschutzerklärung
+                Privacy Policy
               </Link>
               .
             </p>
           </div>
 
-          <h3 className="text-xl font-semibold mt-6 mb-3">2.1 Leistungsumfang</h3>
+          <h3 className="text-xl font-semibold mt-6 mb-3">2.1 Scope of Services</h3>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Upload von Audio-Dateien (max. 500 MB) mit Speicherung in der EU</li>
-            <li>Automatische Transkription und Artikel-Generierung durch OpenAI (USA)</li>
-            <li>Bereitstellung in Markdown- und HTML-Format</li>
-            <li>SEO-Optimierung (Meta-Descriptions, Keywords, Schema.org)</li>
-            <li>Automatische Löschung der Audio-Dateien nach 30 Tagen</li>
+            <li>Upload of audio files (max. 500 MB) with storage in the EU</li>
+            <li>Automatic transcription and article generation by OpenAI (USA)</li>
+            <li>Provision in Markdown and HTML format</li>
+            <li>SEO optimization (meta descriptions, keywords, Schema.org)</li>
+            <li>Automatic deletion of audio files after 30 days</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">3. Nutzungsbedingungen</h2>
-          <h3 className="text-xl font-semibold mt-6 mb-3">3.1 Registrierung</h3>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">3. Terms of Use</h2>
+          <h3 className="text-xl font-semibold mt-6 mb-3">3.1 Registration</h3>
           <p>
-            Die Nutzung des Services erfordert eine Registrierung mit gültiger E-Mail-Adresse und
-            Passwort.
+            Using the service requires registration with a valid email address and password.
           </p>
-          <h3 className="text-xl font-semibold mt-6 mb-3">3.2 Erlaubte Nutzung</h3>
-          <p>Der Service darf nur für legale Zwecke genutzt werden. Verboten ist insbesondere:</p>
+          <h3 className="text-xl font-semibold mt-6 mb-3">3.2 Permitted Use</h3>
+          <p>The service may only be used for legal purposes. The following is prohibited:</p>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Upload von urheberrechtlich geschütztem Material ohne Berechtigung</li>
-            <li>Upload von illegalen, beleidigenden oder schädlichen Inhalten</li>
-            <li>Missbrauch des Services (z.B. automatisierte Anfragen, DDoS)</li>
+            <li>Uploading copyrighted material without authorization</li>
+            <li>Uploading illegal, offensive, or harmful content</li>
+            <li>Abuse of the service (e.g., automated requests, DDoS)</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">4. Preise und Zahlung</h2>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">4. Pricing and Payment</h2>
           <h3 className="text-xl font-semibold mt-6 mb-3">4.1 Free Tier</h3>
           <p>
-            <strong>Während der Launch Special Phase:</strong> Der kostenlose Plan umfasst 200 Minuten
-            Audio-Verarbeitung pro Monat. Diese Quota erneuert sich monatlich. Es werden keine Zahlungen
-            verarbeitet und keine kostenpflichtigen Abonnements angeboten.
+            <strong>During the Launch Special Phase:</strong> The free plan includes 200 minutes
+            of audio processing per month. This quota renews monthly. No payments are processed
+            and no paid subscriptions are offered.
           </p>
           <p className="mt-3">
-            <strong>Nach der Launch Special Phase:</strong> Der kostenlose Plan umfasst 100 Minuten
-            Audio-Verarbeitung pro Monat mit monatlicher Erneuerung.
+            <strong>After the Launch Special Phase:</strong> The free plan includes 100 minutes
+            of audio processing per month with monthly renewal.
           </p>
-          <h3 className="text-xl font-semibold mt-6 mb-3">4.2 Bezahlte Abos (Nach Launch Phase)</h3>
+          <h3 className="text-xl font-semibold mt-6 mb-3">4.2 Paid Subscriptions (After Launch Phase)</h3>
           <p>
-            Nach Abschluss der Launch Special Phase werden bezahlte Abonnements mit erweiterten Quotas
-            verfügbar sein. Diese werden über Stripe abgewickelt. Die Abrechnung erfolgt dann monatlich
-            im Voraus. Bestehende Nutzer werden rechtzeitig über die Verfügbarkeit und Konditionen
-            informiert.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">5. Haftung</h2>
-          <p>
-            Die generierten Artikel werden automatisch durch KI erstellt. Wir übernehmen keine
-            Garantie für die Richtigkeit, Vollständigkeit oder Qualität der Ergebnisse. Nutzer*innen
-            sind selbst für die Überprüfung und Verwendung der Artikel verantwortlich.
+            After the Launch Special Phase concludes, paid subscriptions with extended quotas
+            will be available. These will be processed through Stripe. Billing will then occur
+            monthly in advance. Existing users will be informed in advance about availability
+            and terms.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">6. Datenschutz</h2>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">5. Liability</h2>
           <p>
-            Für die Verarbeitung personenbezogener Daten gilt unsere{" "}
+            The generated articles are created automatically by AI. We do not guarantee the
+            accuracy, completeness, or quality of the results. Users are responsible for
+            reviewing and using the articles.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">6. Privacy</h2>
+          <p>
+            For the processing of personal data, our{" "}
             <Link href="/privacy" className="text-primary underline hover:no-underline">
-              Datenschutzerklärung
-            </Link>
-            .
+              Privacy Policy
+            </Link>{" "}
+            applies.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">7. Kündigung</h2>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">7. Termination</h2>
           <p>
-            Nutzer*innen können ihr Konto jederzeit in den Einstellungen löschen. Bei bezahlten Abos
-            endet die Leistung mit dem Ende der Abrechnungsperiode.
+            Users can delete their account at any time in the settings. For paid subscriptions,
+            the service ends at the end of the billing period.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">8. Änderungen der AGB</h2>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">8. Changes to Terms of Service</h2>
           <p>
-            Wir behalten uns vor, diese AGB jederzeit zu ändern. Nutzer*innen werden über Änderungen per
-            E-Mail informiert.
+            We reserve the right to change these Terms of Service at any time. Users will be
+            informed of changes via email.
           </p>
         </section>
 
         <section className="mt-12 pt-8 border-t">
           <p className="text-sm text-muted-foreground">
-            Stand: {new Date().toLocaleDateString("de-DE")}
+            Last updated: {new Date().toLocaleDateString("en-US")}
           </p>
           <p className="text-sm text-muted-foreground mt-2">
             <Link href="/" className="underline hover:text-primary">
-              Zurück zur Startseite
+              Back to Homepage
             </Link>
           </p>
         </section>

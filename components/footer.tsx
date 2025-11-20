@@ -24,25 +24,25 @@ export function Footer() {
               href="/privacy"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
-              Datenschutz
+              Privacy
             </Link>
             <Link
               href="/terms"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
-              AGB
+              Terms
             </Link>
             <Link
               href="/imprint"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
-              Impressum
+              Imprint
             </Link>
             <a
-              href="mailto:info@echoscribe.de"
+              href="mailto:info@echoscribes.com"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
-              Kontakt
+              Contact
             </a>
           </div>
         </div>

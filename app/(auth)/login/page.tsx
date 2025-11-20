@@ -26,7 +26,7 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password);
-      toast.success("Erfolgreich angemeldet!");
+      toast.success("Successfully signed in!");
       // Wait a bit for auth state to propagate, then use router.push
       // This allows the AuthContext to update before navigation
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -34,11 +34,11 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error(err);
       if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
-        setError("Ungültige E-Mail oder Passwort");
+        setError("Invalid email or password");
       } else if (err.code === "auth/too-many-requests") {
-        setError("Zu viele fehlgeschlagene Versuche. Bitte versuchen Sie es später erneut.");
+        setError("Too many failed attempts. Please try again later.");
       } else {
-        setError("Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.");
+        setError("Sign in failed. Please try again.");
       }
       setLoading(false);
     }
@@ -49,19 +49,19 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Anmelden</CardTitle>
+          <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
           <CardDescription>
-            Geben Sie Ihre E-Mail-Adresse ein, um sich anzumelden
+            Enter your email address to sign in
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form onSubmit={handleSubmit}>
             <FormField>
-              <Label htmlFor="email">E-Mail</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="name@beispiel.de"
+                placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -71,12 +71,12 @@ export default function LoginPage() {
 
             <FormField>
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Passwort</Label>
+                <Label htmlFor="password">Password</Label>
                 <Link
                   href="/forgot-password"
                   className="text-sm text-primary hover:underline"
                 >
-                  Passwort vergessen?
+                  Forgot password?
                 </Link>
               </div>
               <Input
@@ -92,14 +92,14 @@ export default function LoginPage() {
             {error && <FormMessage>{error}</FormMessage>}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Wird angemeldet..." : "Anmelden"}
+              {loading ? "Signing in..." : "Sign In"}
             </Button>
           </Form>
 
           <div className="mt-4 text-center text-sm">
-            Noch kein Konto?{" "}
+            Don&apos;t have an account?{" "}
             <Link href="/register" className="text-primary hover:underline">
-              Jetzt registrieren
+              Register now
             </Link>
           </div>
         </CardContent>

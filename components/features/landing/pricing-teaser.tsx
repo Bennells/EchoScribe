@@ -8,49 +8,49 @@ const pricingTiers = [
   {
     name: "Free",
     price: "€0",
-    description: "100 Minuten pro Monat",
+    description: "100 minutes per month",
     features: [
-      "100 Minuten pro Monat",
+      "100 minutes per month",
       "Social Media Posts",
-      "SEO-Paket",
-      "Massen-Upload",
+      "SEO Package",
+      "Batch Upload",
     ],
   },
   {
     name: "Starter",
     price: "€19",
-    period: "/Monat",
-    description: "240 Minuten pro Monat",
+    period: "/month",
+    description: "240 minutes per month",
     features: [
-      "240 Minuten pro Monat",
+      "240 minutes per month",
       "Social Media Posts",
-      "SEO-Paket",
-      "Massen-Upload",
+      "SEO Package",
+      "Batch Upload",
     ],
   },
   {
     name: "Professional",
     price: "€49",
-    period: "/Monat",
-    description: "600 Minuten pro Monat",
+    period: "/month",
+    description: "600 minutes per month",
     features: [
-      "600 Minuten pro Monat",
+      "600 minutes per month",
       "Social Media Posts",
-      "SEO-Paket",
-      "Massen-Upload",
+      "SEO Package",
+      "Batch Upload",
     ],
     popular: true,
   },
   {
     name: "Business",
     price: "€149",
-    period: "/Monat",
-    description: "2000 Minuten pro Monat",
+    period: "/month",
+    description: "2000 minutes per month",
     features: [
-      "2000 Minuten pro Monat",
+      "2000 minutes per month",
       "Social Media Posts",
-      "SEO-Paket",
-      "Massen-Upload",
+      "SEO Package",
+      "Batch Upload",
     ],
   },
 ];
@@ -71,17 +71,17 @@ export function PricingTeaser() {
               </>
             ) : (
               <>
-                Einfache{" "}
+                Simple{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-                  Preise
+                  Pricing
                 </span>
               </>
             )}
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             {LAUNCH_SPECIAL_MODE
-              ? "Aktuell befinden wir uns in der Launch-Phase. Preismodelle werden in Kürze verfügbar sein."
-              : "Faire Preise ohne versteckte Kosten. Jederzeit kündbar."
+              ? "We're currently in launch phase. Pricing models will be available soon."
+              : "Fair prices with no hidden costs. Cancel anytime."
             }
           </p>
         </div>
@@ -95,10 +95,10 @@ export function PricingTeaser() {
                   <Sparkles className="h-12 w-12 text-primary" />
                 </div>
                 <CardTitle className="text-3xl mb-4">
-                  Kostenlos Starten
+                  Start Free
                 </CardTitle>
                 <CardDescription className="text-lg">
-                  Starten Sie jetzt mit 200 Minuten kostenfrei und testen Sie alle Features.
+                  Start now with 200 free minutes and test all features.
                 </CardDescription>
               </CardHeader>
 
@@ -106,7 +106,7 @@ export function PricingTeaser() {
                 <ul className="space-y-3.5 max-w-md mx-auto">
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm leading-relaxed">200 Minuten Startguthaben</span>
+                    <span className="text-sm leading-relaxed">200 minutes starting credit</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -114,22 +114,22 @@ export function PricingTeaser() {
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm leading-relaxed">Vollständiges SEO-Paket</span>
+                    <span className="text-sm leading-relaxed">Complete SEO Package</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm leading-relaxed">Massen-Upload</span>
+                    <span className="text-sm leading-relaxed">Batch Upload</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm leading-relaxed">Keine Kreditkarte erforderlich</span>
+                    <span className="text-sm leading-relaxed">No credit card required</span>
                   </li>
                 </ul>
 
                 <div className="text-center pt-4">
                   <Link href="/dashboard">
                     <Button size="lg" className="bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700">
-                      Jetzt kostenlos starten
+                      Start free now
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
@@ -153,7 +153,7 @@ export function PricingTeaser() {
                   {tier.popular && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
                       <span className="bg-gradient-to-r from-blue-600 to-violet-600 text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg">
-                        Beliebteste Wahl
+                        Most Popular
                       </span>
                     </div>
                   )}
@@ -189,7 +189,7 @@ export function PricingTeaser() {
             <div className="text-center">
               <Link href="/pricing">
                 <Button size="lg" variant="outline" className="group">
-                  Alle Preise und Details ansehen
+                  View all prices and details
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>

@@ -22,7 +22,7 @@ export function OrganizationSchema() {
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "Customer Service",
-      availableLanguage: "German",
+      availableLanguage: "English",
     },
   };
 
@@ -44,7 +44,7 @@ export function WebSiteSchema() {
     name: "EchoScribe",
     url: siteConfig.url,
     description: siteConfig.description,
-    inLanguage: "de-DE",
+    inLanguage: "en-US",
     potentialAction: {
       "@type": "SearchAction",
       target: {
@@ -73,34 +73,34 @@ export function FAQPageSchema() {
     mainEntity: [
       {
         "@type": "Question",
-        name: "Wie lange dauert die Verarbeitung eines Podcasts?",
+        name: "How long does it take to process a podcast?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Die Verarbeitung dauert in der Regel nur wenige Minuten. Sie erhalten eine Benachrichtigung, sobald Ihr Artikel fertig ist.",
+          text: "Processing typically takes just a few minutes. You'll receive a notification once your article is ready.",
         },
       },
       {
         "@type": "Question",
-        name: "Kann ich die generierten Artikel anpassen?",
+        name: "Can I customize the generated articles?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Ja, Sie können alle generierten Inhalte nach Belieben bearbeiten und an Ihre Bedürfnisse anpassen.",
+          text: "Yes, you can edit all generated content as you wish and adapt it to your needs.",
         },
       },
       {
         "@type": "Question",
-        name: "Welche Podcast-Formate werden unterstützt?",
+        name: "Which podcast formats are supported?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Wir unterstützen alle gängigen Audio-Formate wie MP3, WAV, M4A und mehr.",
+          text: "We support all common audio formats such as MP3, WAV, M4A and more.",
         },
       },
       {
         "@type": "Question",
-        name: "Ist mein Content sicher?",
+        name: "Is my content secure?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Ja, wir sind DSGVO-konform und Ihre Daten werden sicher auf deutschen Servern gehostet.",
+          text: "Yes, we are GDPR compliant and your data is securely hosted on European servers.",
         },
       },
     ],
@@ -160,12 +160,12 @@ export function SoftwareApplicationSchema() {
     url: siteConfig.url,
     screenshot: `${siteConfig.url}/screenshot.png`,
     featureList: [
-      "Automatische Transkription von Podcasts",
-      "SEO-optimierte Blog-Artikel",
-      "Meta-Tags und Keywords",
-      "Schema.org Integration",
-      "Social Media Posts für LinkedIn, Twitter, Instagram, Facebook",
-      "DSGVO-konform",
+      "Automatic podcast transcription",
+      "SEO-optimized blog articles",
+      "Meta tags and keywords",
+      "Schema.org integration",
+      "Social media posts for LinkedIn, Twitter, Instagram, Facebook",
+      "GDPR compliant",
     ],
   };
 

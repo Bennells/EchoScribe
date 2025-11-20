@@ -62,7 +62,7 @@ export default function SettingsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Fehler beim Erstellen der Checkout-Session");
+        throw new Error("Error creating checkout session");
       }
 
       const { url } = await response.json();
@@ -72,8 +72,8 @@ export default function SettingsPage() {
       }
     } catch (error: any) {
       console.error("Upgrade error:", error);
-      toast.error("Fehler beim Upgrade. Bitte versuchen Sie es erneut.");
-    } finally {
+      toast.error("Error upgrading. Please try again.");
+    } finally{
       setLoading(false);
     }
   };
@@ -106,7 +106,7 @@ export default function SettingsPage() {
   };
 
   const formatRenewalDate = (date: Date): string => {
-    return date.toLocaleDateString("de-DE", {
+    return date.toLocaleDateString("en-US", {
       day: "2-digit",
       month: "long",
       year: "numeric",
@@ -123,16 +123,16 @@ export default function SettingsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Fehler beim Kündigen des Abonnements");
+        throw new Error(data.error || "Error canceling subscription");
       }
 
-      toast.success("Abonnement erfolgreich gekündigt");
+      toast.success("Subscription successfully canceled");
 
       // Reload subscription to get updated status
       await loadSubscription();
     } catch (error: any) {
       console.error("Cancel subscription error:", error);
-      toast.error(error.message || "Fehler beim Kündigen des Abonnements. Bitte versuchen Sie es erneut.");
+      toast.error(error.message || "Error canceling subscription. Please try again.");
       throw error; // Re-throw to keep dialog loading state
     } finally {
       setCancelLoading(false);
@@ -149,16 +149,16 @@ export default function SettingsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Fehler beim Reaktivieren des Abonnements");
+        throw new Error(data.error || "Error reactivating subscription");
       }
 
-      toast.success("Abonnement erfolgreich reaktiviert");
+      toast.success("Subscription successfully reactivated");
 
       // Reload subscription to get updated status
       await loadSubscription();
     } catch (error: any) {
       console.error("Reactivate subscription error:", error);
-      toast.error(error.message || "Fehler beim Reaktivieren des Abonnements. Bitte versuchen Sie es erneut.");
+      toast.error(error.message || "Error reactivating subscription. Please try again.");
       throw error; // Re-throw to keep dialog loading state
     } finally {
       setReactivateLoading(false);
@@ -195,7 +195,7 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async () => {
     try {
-      toast.loading("Konto wird gelöscht...", { id: "delete-account" });
+      toast.loading("Deleting account...", { id: "delete-account" });
 
       const response = await fetch("/api/account/delete", {
         method: "POST",
@@ -203,10 +203,10 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Fehler beim Löschen des Kontos");
+        throw new Error(errorData.error || "Error deleting account");
       }
 
-      toast.success("Konto erfolgreich gelöscht", { id: "delete-account" });
+      toast.success("Account successfully deleted", { id: "delete-account" });
 
       // Sign out and redirect to homepage
       await signOut();
@@ -214,7 +214,7 @@ export default function SettingsPage() {
     } catch (error: any) {
       console.error("Delete account error:", error);
       toast.error(
-        error.message || "Fehler beim Löschen des Kontos. Bitte versuchen Sie es erneut.",
+        error.message || "Error deleting account. Please try again.",
         { id: "delete-account" }
       );
       throw error; // Re-throw to keep dialog loading state
@@ -230,9 +230,9 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Einstellungen</h1>
+        <h1 className="text-3xl font-bold">Settings</h1>
         <p className="text-muted-foreground mt-2">
-          Verwalten Sie Ihr Konto und Ihre Einstellungen
+          Manage your account and settings
         </p>
       </div>
 
@@ -245,8 +245,8 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Konto</CardTitle>
-          <CardDescription>Ihre Kontoinformationen</CardDescription>
+          <CardTitle>Account</CardTitle>
+          <CardDescription>Your account information</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -263,18 +263,18 @@ export default function SettingsPage() {
             <p className="text-sm text-muted-foreground">{user?.email}</p>
           </div>
           <div>
-            <label className="text-sm font-medium">Konto-Typ</label>
+            <label className="text-sm font-medium">Account Type</label>
             <p className="text-sm text-muted-foreground">
-              {quotaInfo?.tier === "free" && `Free Tier (${TIER_LIMITS.free} Minuten pro Monat)`}
-              {quotaInfo?.tier === "starter" && "Starter (240 Minuten pro Monat)"}
-              {quotaInfo?.tier === "professional" && "Professional (600 Minuten pro Monat)"}
-              {quotaInfo?.tier === "business" && "Business (2000 Minuten pro Monat)"}
-              {!quotaInfo?.tier && `Free Tier (${TIER_LIMITS.free} Minuten pro Monat)`}
+              {quotaInfo?.tier === "free" && `Free Tier (${TIER_LIMITS.free} minutes per month)`}
+              {quotaInfo?.tier === "starter" && "Starter (240 minutes per month)"}
+              {quotaInfo?.tier === "professional" && "Professional (600 minutes per month)"}
+              {quotaInfo?.tier === "business" && "Business (2000 minutes per month)"}
+              {!quotaInfo?.tier && `Free Tier (${TIER_LIMITS.free} minutes per month)`}
             </p>
             {LAUNCH_SPECIAL_MODE && (quotaInfo?.tier === "free" || !quotaInfo?.tier) && (
               <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-xs font-semibold rounded-full">
                 <Sparkles className="h-3 w-3" />
-                Launch Special: 200 Minuten gratis!
+                Launch Special: 200 minutes free!
               </div>
             )}
           </div>
@@ -283,20 +283,20 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Datenschutz & DSGVO</CardTitle>
+          <CardTitle>Privacy & GDPR</CardTitle>
           <CardDescription>
-            Einsicht und Export Ihrer gespeicherten Daten
+            View and export your stored data
           </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            Gemäß DSGVO Art. 15 haben Sie das Recht auf Auskunft über alle Ihre
-            gespeicherten Daten. Sie können Ihre Daten jederzeit einsehen und exportieren.
+            According to GDPR Art. 15, you have the right to access all your
+            stored data. You can view and export your data at any time.
           </p>
           <Button variant="outline" asChild>
             <a href="/dashboard/settings/my-data">
               <Database className="mr-2 h-4 w-4" />
-              Meine Daten anzeigen
+              Show My Data
             </a>
           </Button>
         </CardContent>
@@ -305,11 +305,11 @@ export default function SettingsPage() {
       {!LAUNCH_SPECIAL_MODE && (
         <Card>
           <CardHeader>
-            <CardTitle>Abo-Verwaltung</CardTitle>
+            <CardTitle>Subscription Management</CardTitle>
             <CardDescription>
               {quotaInfo?.tier && quotaInfo.tier !== "free"
-                ? "Verwalten Sie Ihr aktives Abonnement"
-                : "Wählen Sie einen Plan und starten Sie mit mehr Podcast-Analysen"}
+                ? "Manage your active subscription"
+                : "Choose a plan and start with more podcast analyses"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -317,17 +317,17 @@ export default function SettingsPage() {
               <>
                 <div className="mb-4 space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Wählen Sie aus unseren verschiedenen Plänen:
+                    Choose from our different plans:
                   </p>
                   <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                    <li>Starter: 15 Podcasts pro Monat (€9,99)</li>
-                    <li>Professional: 60 Podcasts pro Monat (€24,99)</li>
-                    <li>Business: 150 Podcasts pro Monat (€49,99)</li>
+                    <li>Starter: 15 podcasts per month (€9.99)</li>
+                    <li>Professional: 60 podcasts per month (€24.99)</li>
+                    <li>Business: 150 podcasts per month (€49.99)</li>
                   </ul>
                 </div>
                 <Button asChild>
                   <a href="/dashboard/pricing">
-                    Pläne ansehen & upgraden
+                    View Plans & Upgrade
                   </a>
                 </Button>
               </>
@@ -339,22 +339,21 @@ export default function SettingsPage() {
                     <AlertCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <div className="space-y-1.5 flex-1">
                       <p className="text-sm font-semibold text-foreground">
-                        Ihr Abonnement wurde gekündigt
+                        Your subscription has been canceled
                       </p>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        Ihr Zugang bleibt bis zum{" "}
+                        Your access remains active until{" "}
                         <span className="font-medium text-foreground">
                           {formatRenewalDate(new Date(subscription.currentPeriodEnd.seconds * 1000))}
-                        </span>{" "}
-                        aktiv
+                        </span>
                         {(() => {
                           const daysLeft = calculateDaysUntil(new Date(subscription.currentPeriodEnd.seconds * 1000));
                           if (daysLeft > 0) {
-                            return ` (noch ${daysLeft} ${daysLeft === 1 ? "Tag" : "Tage"})`;
+                            return ` (${daysLeft} ${daysLeft === 1 ? "day" : "days"} remaining)`;
                           }
                           return "";
                         })()}
-                        . Danach werden Sie auf den kostenlosen Plan herabgestuft.
+                        . After that, you will be downgraded to the free plan.
                       </p>
                     </div>
                   </div>
@@ -362,14 +361,14 @@ export default function SettingsPage() {
               ) : (
                 <>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Sie haben ein aktives Abonnement. Vielen Dank für Ihre Unterstützung!
+                    You have an active subscription. Thank you for your support!
                   </p>
                   {subscription?.currentPeriodEnd && quotaInfo?.tier && (
                     <div className="mb-4 p-3 bg-muted/50 border border-border rounded-md">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium text-foreground">
-                            Nächste Verlängerung
+                            Next Renewal
                           </p>
                           <p className="text-sm font-semibold text-foreground">
                             {getPriceForTier(quotaInfo.tier)}
@@ -380,9 +379,9 @@ export default function SettingsPage() {
                           {(() => {
                             const daysUntil = calculateDaysUntil(new Date(subscription.currentPeriodEnd.seconds * 1000));
                             if (daysUntil > 0) {
-                              return ` (in ${daysUntil} ${daysUntil === 1 ? "Tag" : "Tagen"})`;
+                              return ` (in ${daysUntil} ${daysUntil === 1 ? "day" : "days"})`;
                             } else if (daysUntil === 0) {
-                              return " (heute)";
+                              return " (today)";
                             }
                             return "";
                           })()}
@@ -408,7 +407,7 @@ export default function SettingsPage() {
                 )}
                 <Button variant="outline" asChild>
                   <a href="/dashboard/pricing">
-                    Andere Pläne ansehen
+                    View Other Plans
                   </a>
                 </Button>
               </div>
@@ -418,24 +417,24 @@ export default function SettingsPage() {
         </Card>
       )}
 
-      {/* Zahlungsmethode & Rechnungen - nur für bezahlte Abonnements */}
+      {/* Payment Method & Invoices - only for paid subscriptions */}
       {!LAUNCH_SPECIAL_MODE && quotaInfo?.tier && quotaInfo.tier !== "free" && (
         <Card>
           <CardHeader>
-            <CardTitle>Zahlungsdetails & Rechnungen</CardTitle>
+            <CardTitle>Payment Details & Invoices</CardTitle>
             <CardDescription>
-              Verwalten Sie Ihre Zahlungsmethode und greifen Sie auf Ihre Rechnungen zu
+              Manage your payment method and access your invoices
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Im Stripe-Kundenportal können Sie:
+              In the Stripe customer portal you can:
             </p>
             <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-              <li>Ihre Zahlungsmethode aktualisieren</li>
-              <li>Rechnungshistorie einsehen und herunterladen</li>
-              <li>Ihre Rechnungsadresse ändern</li>
-              <li>Zahlungsdetails verwalten</li>
+              <li>Update your payment method</li>
+              <li>View and download invoice history</li>
+              <li>Change your billing address</li>
+              <li>Manage payment details</li>
             </ul>
             <Button
               onClick={handleOpenBillingPortal}
@@ -443,7 +442,7 @@ export default function SettingsPage() {
               className="w-full sm:w-auto"
             >
               <CreditCard className="mr-2 h-4 w-4" />
-              {portalLoading ? "Wird geöffnet..." : "Abrechnungsportal öffnen"}
+              {portalLoading ? "Opening..." : "Open Billing Portal"}
             </Button>
           </CardContent>
         </Card>
@@ -451,9 +450,9 @@ export default function SettingsPage() {
 
       <Card className="border-destructive">
         <CardHeader>
-          <CardTitle className="text-destructive">Konto löschen</CardTitle>
+          <CardTitle className="text-destructive">Delete Account</CardTitle>
           <CardDescription>
-            Löschen Sie Ihr Konto und alle zugehörigen Daten permanent
+            Permanently delete your account and all associated data
           </CardDescription>
         </CardHeader>
         <CardContent>

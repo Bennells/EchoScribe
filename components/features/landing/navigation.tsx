@@ -54,7 +54,7 @@ export function Navigation() {
             onClick={() => scrollToSection("pricing")}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            Preise
+            Pricing
           </button>
           <button
             onClick={() => scrollToSection("faq")}
@@ -68,11 +68,11 @@ export function Navigation() {
         <div className="flex items-center gap-3">
           <Link href="/login">
             <Button variant="ghost" size="sm" className="hidden md:inline-flex">
-              Anmelden
+              Sign In
             </Button>
           </Link>
           <Link href="/register">
-            <Button size="sm">Kostenlos starten</Button>
+            <Button size="sm">Start Free</Button>
           </Link>
         </div>
       </div>

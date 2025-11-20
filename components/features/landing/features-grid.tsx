@@ -12,45 +12,45 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const features = [
   {
     icon: Search,
-    title: "SEO-Optimierung",
+    title: "SEO Optimization",
     description:
-      "Meta-Tags, Keywords und OpenGraph für Top-Rankings. Lassen Sie sich von mehr Hörer*innen auf Google finden.",
+      "Meta tags, keywords and OpenGraph for top rankings. Get found by more listeners on Google.",
   },
   {
     icon: Mic,
-    title: "Automatische Transkription",
+    title: "Automatic Transcription",
     description:
-      "KI-gestützte Transkription in höchster Qualität. Mehrsprachig und akkurat für perfekte Texte.",
+      "AI-powered transcription in highest quality. Multilingual and accurate for perfect texts.",
   },
   {
     icon: Share2,
     title: "Social Media Content",
     description:
-      "Fertige Posts für LinkedIn, Twitter, Instagram und Facebook. Maximale Reichweite auf allen Kanälen.",
+      "Ready-made posts for LinkedIn, Twitter, Instagram and Facebook. Maximum reach across all channels.",
   },
   {
     icon: Tag,
-    title: "Keyword-Extraktion",
+    title: "Keyword Extraction",
     description:
-      "Intelligente Keyword-Analyse für bessere Rankings. Relevante Themen automatisch identifiziert.",
+      "Intelligent keyword analysis for better rankings. Relevant topics automatically identified.",
   },
   {
     icon: Settings,
     title: "Schema.org Markup",
     description:
-      "Rich Snippets für bessere Sichtbarkeit. Strukturierte Daten für Google-Suchergebnisse.",
+      "Rich snippets for better visibility. Structured data for Google search results.",
   },
   {
     icon: Code,
-    title: "Mehrere Formate",
+    title: "Multiple Formats",
     description:
-      "Export als Markdown, HTML oder direkt ins CMS. Flexibel für jeden Workflow.",
+      "Export as Markdown, HTML or directly to CMS. Flexible for every workflow.",
   },
   {
     icon: Shield,
-    title: "DSGVO-konform",
+    title: "GDPR Compliant",
     description:
-      "100% DSGVO-konform mit EU-Hosting. Ihre Daten bleiben sicher und geschützt.",
+      "100% GDPR compliant with EU hosting. Your data stays safe and protected.",
   },
 ];
 
@@ -61,14 +61,14 @@ export function FeaturesGrid() {
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold">
-            Alles für Ihre{" "}
+            Everything for Your{" "}
             <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-              Podcast-Reichweite
+              Podcast Reach
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Von der Transkription bis zur Verbreitung – alle Tools für
-            maximale Sichtbarkeit Ihrer Podcasts
+            From transcription to distribution – all tools for
+            maximum visibility of your podcasts
           </p>
         </div>
 
