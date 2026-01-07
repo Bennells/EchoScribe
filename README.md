@@ -1,29 +1,28 @@
 # EchoScribe
 
-Wandeln Sie Podcasts automatisch in SEO-optimierte Blog-Artikel um.
+Transform podcasts automatically into SEO-optimized blog articles.
 
-## 🚀 Tech Stack
+## Tech Stack
 
 - **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS
 - **Backend:** Firebase Functions (Node.js 20)
 - **Database:** Firestore
 - **Storage:** Firebase Storage
 - **Auth:** Firebase Authentication
-- **AI:** OpenAI (GPT-4o & GPT-4o-mini)
+- **AI:** OpenAI (GPT-4o & Whisper)
 - **Payment:** Stripe
 - **UI:** shadcn/ui Components
-- **Monitoring:** Sentry (Production Error Tracking)
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Node.js 20+
-- npm oder yarn
+- npm or yarn
 - Firebase CLI (`npm install -g firebase-tools`)
 - OpenAI API Key (https://platform.openai.com/api-keys)
 
-## 🛠️ Setup
+## Setup
 
-### 1. Dependencies installieren
+### 1. Install Dependencies
 
 ```bash
 # Root dependencies
@@ -37,50 +36,50 @@ cd ..
 
 ### 2. Environment Variables
 
-Die `.env.local` Datei ist bereits konfiguriert für lokale Entwicklung mit dem echten Firebase Backend (echoscribe-test).
+The `.env.local` file is configured for local development with the real Firebase backend (echoscribe-test).
 
-**Für Production:** Die `.env.production` Datei enthält Platzhalter für das Production Firebase Backend (echoscribe-prod).
+**For Production:** The `.env.production` file contains placeholders for the production Firebase backend (echoscribe-prod).
 
 ### 3. Firebase Backends
 
-Die App nutzt **2 Firebase Backends**:
+The app uses **2 Firebase backends**:
 
-1. **echoscribe-test** - für Entwicklung und Testing
+1. **echoscribe-test** - for development and testing
    - Localhost Development (`.env.local`)
    - Firebase App Hosting DEV/TEST (via `apphosting.yaml`)
 
-2. **echoscribe-prod** - für Production
+2. **echoscribe-prod** - for production
    - Firebase App Hosting Production
 
-### 4. Development starten
+### 4. Start Development
 
 ```bash
 npm run dev
 ```
 
-Die App läuft auf: **http://localhost:3000**
+The app runs on: **http://localhost:3000**
 
-### 5. Firebase Projekt wechseln
+### 5. Switch Firebase Project
 
 ```bash
-# Wechsel zu Test/Development
+# Switch to Test/Development
 npm run firebase:use:test
 
-# Wechsel zu Production
+# Switch to Production
 npm run firebase:use:prod
 ```
 
-## 📁 Projektstruktur
+## Project Structure
 
 ```
 ├── app/                      # Next.js App Router
-│   ├── (auth)/              # Auth-Pages (Login, Register)
+│   ├── (auth)/              # Auth Pages (Login, Register)
 │   ├── (dashboard)/         # Dashboard (Podcasts, Articles, Settings)
 │   ├── api/                 # API Routes (Stripe Webhooks)
 │   └── layout.tsx
 ├── components/
 │   ├── ui/                  # shadcn/ui Base Components
-│   └── features/            # Feature-spezifische Komponenten
+│   └── features/            # Feature-specific Components
 ├── functions/               # Firebase Cloud Functions
 │   └── src/
 │       ├── triggers/        # Firestore/Storage Triggers
@@ -95,58 +94,49 @@ npm run firebase:use:prod
 └── storage.rules           # Storage Security Rules
 ```
 
-## 🔒 Security
+## Security
 
-- Firestore und Storage Rules sind bereits konfiguriert
-- Nur authentifizierte User können ihre eigenen Daten lesen/schreiben
-- Quota-System verhindert Missbrauch
-- API Keys sind in .env.local (nicht im Git!)
+- Firestore and Storage Rules are configured
+- Only authenticated users can read/write their own data
+- Quota system prevents abuse
+- API Keys are in .env.local (not in Git!)
 
-## 🧪 Testing
+## Testing
 
 ```bash
-# Build prüfen
+# Check build
 npm run build
 
 # Functions Build
 cd functions && npm run build
 ```
 
-## 📊 Monitoring (Production)
+## Deployment
 
-### Sentry Error Tracking
+```bash
+# Deploy functions to test
+npm run deploy:functions:test
 
-Sentry ist für **Production-Only** konfiguriert und trackt automatisch:
-- Frontend Errors (React Components, API Calls)
-- Backend Errors (Cloud Functions, Triggers)
-- API Route Errors (Stripe Webhooks)
+# Deploy functions to production
+npm run deploy:functions:prod
 
-**Setup Anleitung:** Siehe [SENTRY_SETUP.md](./SENTRY_SETUP.md)
+# Deploy everything to test
+npm run deploy:test
 
-**Was wird getrackt:**
-- Error Messages und Stack Traces
-- User Context (welcher User hatte den Fehler)
-- Breadcrumbs (Aktionen vor dem Fehler)
-- Performance Metrics (optional)
+# Deploy everything to production
+npm run deploy:prod
+```
 
-**Vorteile:**
-- Automatische Email-Benachrichtigungen bei neuen Fehlern
-- Source Maps für lesbare Stack Traces
-- Error Grouping und Trends
-- Integration mit GitHub, Slack, etc.
+## Features
 
-## 📝 Nächste Schritte (Phase 2)
+- Audio file upload (MP3, WAV, M4A - max 250 MB)
+- Automatic transcription via OpenAI Whisper
+- AI-powered article generation with customizable tone and style
+- Multi-language support with automatic language detection
+- SEO optimization for generated content
+- Stripe subscription management
+- User quota tracking
 
-- [ ] Authentifizierung implementieren (Login, Register, Password Reset)
-- [ ] Auth Context Provider
-- [ ] Protected Routes Middleware
-- [ ] DSGVO-Compliance (Cookie-Banner, Datenschutz, AGB)
-- [ ] User-Dokument bei Registrierung erstellen (Cloud Function)
+## License
 
-## 🤝 Contributing
-
-Dieses Projekt ist aktuell in aktiver Entwicklung (MVP Phase 1 abgeschlossen).
-
-## 📄 License
-
-Proprietary - Alle Rechte vorbehalten.
+Proprietary - All rights reserved.
